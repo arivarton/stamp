@@ -213,62 +213,52 @@ class Status(object):
 
         widths.update({'total_workday': sum(widths.values()) + 11})
 
-        divider()
-        invoices_str = '\n'
-        invoices_str += '{0:<{id_width}} {1:<{created_width}} {2:<{customer_width}} {3:<{year_width}} {4:<{month_width}} {5:<{pdf_width}} {6:<{sent_width}} {7:<{paid_width}}'.format(
-                         '',
-                         created_headline,
-                         customer_headline,
-                         year_headline,
-                         month_headline,
-                         pdf_headline,
-                         sent_headline,
-                         paid_headline,
-                         id_width=widths['id'],
-                         created_width=widths['created'],
-                         customer_width=widths['customer'],
-                         year_width=widths['year'],
-                         month_width=widths['month'],
-                         pdf_width=widths['pdf'],
-                         sent_width=widths['sent'],
-                         paid_width=widths['paid']
-                         )
-        invoices_str += '\n' + divider()
+        return_str = divider()
+        return_str += '\n'
+        # TODO:
+        #  return_str += '{0:<{id_width}} {1:<{created_width}} {2:<{customer_width}} {3:<{year_width}} {4:<{month_width}} {5:<{pdf_width}} {6:<{sent_width}} {7:<{paid_width}}'.format(
+        #                   '',
+        #                   created_headline,
+        #                   customer_headline,
+        #                   year_headline,
+        #                   month_headline,
+        #                   pdf_headline,
+        #                   sent_headline,
+        #                   paid_headline,
+        #                   id_width=widths['id'],
+        #                   created_width=widths['created'],
+        #                   customer_width=widths['customer'],
+        #                   year_width=widths['year'],
+        #                   month_width=widths['month'],
+        #                   pdf_width=widths['pdf'],
+        #                   sent_width=widths['sent'],
+        #                   paid_width=widths['paid']
+        #                   )
+        #  return_str += '\n' + divider()
 
-        # Output for each invoice
-        for invoice in self.db_query:
-
-            if invoice.sent:
-                invoice_sent = 'Yes'
-            else:
-                invoice_sent = 'No'
-
-            if invoice.paid:
-                invoice_paid = 'Yes'
-            else:
-                invoice_paid = 'No'
-
-            invoices_str += '{0:<{id_width}} {1:<{created_width}} {2:<{customer_width}} {3:<{year_width}} {4:<{month_width}} {5:<{pdf_width}} {6:<{sent_width}} {7:<{paid_width}}'.format(
-                            invoice.id,
-                            invoice.created.date().isoformat(),
-                            invoice.customer.name,
-                            invoice.year,
-                            invoice.month,
-                            invoice.pdf or not_exported_message,
-                            invoice_sent,
-                            invoice_paid,
+        # Output for each workday
+        for workday in self.db_query:
+            return_str += '{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{project_width}} {4:<{from_width}} {5:<{to_width}} {6:^{invoice_id_width}} {7:>{total_width}}'.format(
+                            workday.id,
+                            workday.start.date().isoformat(),
+                            workday.customer.name,
+                            workday.project.name,
+                            workday.start.strftime(self.time_format),
+                            workday.end.strftime(self.time_format),
+                            workday.invoice_id,
+                            output_for_total_hours_date_and_wage(workday),
                             id_width=widths['id'],
-                            created_width=widths['created'],
+                            date_width=widths['date'],
                             customer_width=widths['customer'],
-                            year_width=widths['year'],
-                            month_width=widths['month'],
-                            pdf_width=widths['pdf'],
-                            sent_width=widths['sent'],
-                            paid_width=widths['paid']
+                            project_width=widths['project'],
+                            from_width=widths['from'],
+                            to_width=widths['to'],
+                            invoice_id_width=widths['invoice_id'],
+                            total_width=widths['total_workday']
                         )
-            invoices_str += '\n' + divider()
+            return_str += '\n' + divider()
 
-        return invoices_str
+        return return_str
 
 
     def invoices(self):
@@ -296,9 +286,9 @@ class Status(object):
 
         widths.update({'total': sum(widths.values()) + 7})
 
-        divider()
-        invoices_str = '\n'
-        invoices_str += '{0:<{id_width}} {1:<{created_width}} {2:<{customer_width}} {3:<{year_width}} {4:<{month_width}} {5:<{pdf_width}} {6:<{sent_width}} {7:<{paid_width}}'.format(
+        return_str = divider()
+        return_str += '\n'
+        return_str += '{0:<{id_width}} {1:<{created_width}} {2:<{customer_width}} {3:<{year_width}} {4:<{month_width}} {5:<{pdf_width}} {6:<{sent_width}} {7:<{paid_width}}'.format(
                          '',
                          created_headline,
                          customer_headline,
@@ -316,7 +306,7 @@ class Status(object):
                          sent_width=widths['sent'],
                          paid_width=widths['paid']
                          )
-        invoices_str += '\n' + divider()
+        return_str += '\n' + divider()
 
         # Output for each invoice
         for invoice in self.db_query:
@@ -331,7 +321,7 @@ class Status(object):
             else:
                 invoice_paid = 'No'
 
-            invoices_str += '{0:<{id_width}} {1:<{created_width}} {2:<{customer_width}} {3:<{year_width}} {4:<{month_width}} {5:<{pdf_width}} {6:<{sent_width}} {7:<{paid_width}}'.format(
+            return_str += '{0:<{id_width}} {1:<{created_width}} {2:<{customer_width}} {3:<{year_width}} {4:<{month_width}} {5:<{pdf_width}} {6:<{sent_width}} {7:<{paid_width}}'.format(
                             invoice.id,
                             invoice.created.date().isoformat(),
                             invoice.customer.name,
@@ -349,9 +339,9 @@ class Status(object):
                             sent_width=widths['sent'],
                             paid_width=widths['paid']
                         )
-            invoices_str += '\n' + divider()
+            return_str += '\n' + divider()
 
-        return invoices_str
+        return return_str
 
 
 def print_current_stamp(current_stamp):
