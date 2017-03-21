@@ -16,17 +16,11 @@ import logging
 import argparse
 import pickle
 import os
-
-# Setup log file
-FORMAT = logging.basicConfig(filename=".workhours.log",
-                             filemode='a',
-                             format='%(asctime)s %(levelname)s: %(message)s',
-                             level=logging.DEBUG,
-                             datefmt='%H:%M:%S')
-logger = logging.getLogger('workhours')
+import re
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 STAMP_FILE = os.path.join(BASE_DIR, 'current_stamp.pickle')
+HOURS = os.getenv('STAMP_HOURS') or '08:00-16:00'
 
 
 def get_parser():
@@ -39,10 +33,8 @@ def get_parser():
                         help='''Tag new or current (if already initalized)
                         stamp with a comment. Marked with current time or
                         time specified by the date argument.''')
-    parser.add_argument('-d', '--datetime', type=str, default=datetime.now(),
+    parser.add_argument('-d', '--datetime', type=str, default=False,
                         help='Set date and time manually.')
-    parser.add_argument('-h', '--hours', type=str, default='08:00-16:00',
-                        help='Set hours.')
     parser.add_argument('-s', '--status', action='store_true',  # Finished
                         help='Print current state of stamp.')
     parser.add_argument('-e', '--export', type=str,
@@ -55,24 +47,60 @@ def get_parser():
 def _write_pickle(stamp):
     pickle.dump(stamp, open(STAMP_FILE), 'wb')
 
-
-def _create_stamp(args):
-    stamp = _current_stamp()
-    if stamp is not None and args['tag'] is False:
-        stamp.update({'end': args['date']})
-    elif args['tag']:
-        stamp['tags'].update({id: {'comment': args['tag'], 'time': args['date']}})
-    else:
-        stamp = {'start': args['date'], 'tags': {}}
-    _write_pickle(stamp)
-
-
 def _current_stamp():
     if os.path.isfile(STAMP_FILE):
         stamp = pickle.open(STAMP_FILE, 'rb')
     else:
         stamp = None
     return stamp
+
+def _separate_values_from_datetime(datetime):
+    # Separate each part of datetime that user has put as argument
+    # Argument could f.ex. look like this: 2017/02/20, 20:32:10
+    year, month, day, *usertime = re.findall(r"[\w']+", datetime)
+    time = ['0'] * 3
+    for index, value in usertime:
+        time[index] = value
+    try:
+        return datetime(int(year), int(month), int(day),
+                        int(time[0]), int(time[1]), int(time[2]))
+    except ValueError as error:
+        print('Error in --date parameter:\n', error)
+
+def _separate_values_from_hours(date):
+    _work_from, _work_to = re.findall(r"([\w']+):([\w]+)", HOURS)
+    work_from = datetime(
+
+def _stamp_in(date, hours):
+    # Do you want to register standard hours or current time as start?
+    return {'start': date, 'hours': hours, 'tags': {}}
+
+def _stamp_out(stamp):
+    # Do you want to register standard hours or current time as end?
+    stamp.update({'end': args['date']})
+    # Add stamp to database
+    # Delete stamp file
+    return
+
+def _create_stamp(args):
+    stamp = _current_stamp()
+
+    if args['datetime']:
+        date = _separate_values_from_datetime(args['datetime'])
+    else:
+        date = datetime.now()
+
+    if stamp is not None and args['tag'] is False:
+        _stamp_out(stamp)
+    elif args['tag']:
+        stamp['tags'].update({date: args['tag']})
+        _write_pickle(stamp)
+    else:
+        hours = _separate_values_from_hours()
+        stamp = _stamp_in(date, hours)
+        _write_pickle(stamp)
+
+    return
 
 
 def run():
