@@ -33,8 +33,10 @@ def get_parser():
                         help='''Tag new or current (if already initalized)
                         stamp with a comment. Marked with current time or
                         time specified by the date argument.''')
-    parser.add_argument('-d', '--datetime', type=str, default=False,
-                        help='Set date and time manually.')
+    parser.add_argument('-D', '--date', type=str, default=False,
+                        help='Set date manually.')
+    parser.add_argument('-T', '--time', type=str, default=False,
+                        help='Set time manually.')
     parser.add_argument('-s', '--status', action='store_true',  # Finished
                         help='Print current state of stamp.')
     parser.add_argument('-e', '--export', type=str,
@@ -47,6 +49,7 @@ def get_parser():
 def _write_pickle(stamp):
     pickle.dump(stamp, open(STAMP_FILE), 'wb')
 
+
 def _current_stamp():
     if os.path.isfile(STAMP_FILE):
         stamp = pickle.open(STAMP_FILE, 'rb')
@@ -54,50 +57,81 @@ def _current_stamp():
         stamp = None
     return stamp
 
-def _separate_values_from_datetime(datetime):
-    # Separate each part of datetime that user has put as argument
-    # Argument could f.ex. look like this: 2017/02/20, 20:32:10
-    year, month, day, *usertime = re.findall(r"[\w']+", datetime)
-    time = ['0'] * 3
-    for index, value in usertime:
-        time[index] = value
+
+def _get_value_from_time_parameter(time):
+    # Separate each part of time that user has put as argument
+    # Argument could f.ex. look like this: 16:45
+    hours, minutes = re.findall(r"[\w]+", time)
     try:
-        return datetime(int(year), int(month), int(day),
-                        int(time[0]), int(time[1]), int(time[2]))
+        return datetime.time(datetime(1, 1, 1, int(hours), int(minutes)))
+    except ValueError as error:
+        print('Error in --time parameter:\n', error)
+
+
+def _get_value_from_date_parameter(date):
+    # Separate each part of date that user has put as argument
+    # Argument could f.ex. look like this: 2017/02/20
+    year, month, day = re.findall(r"[\w]+", date)
+    try:
+        return datetime.date(datetime(int(year), int(month), int(day)))
     except ValueError as error:
         print('Error in --date parameter:\n', error)
 
-def _separate_values_from_hours(date):
-    _work_from, _work_to = re.findall(r"([\w']+):([\w]+)", HOURS)
-    work_from = datetime(
 
-def _stamp_in(date, hours):
-    # Do you want to register standard hours or current time as start?
-    return {'start': date, 'hours': hours, 'tags': {}}
+def _get_values_from_stamp_hours_variable():
+    _work_from, _work_to = re.findall(r"([\w]+).([\w]+)", HOURS)
+    try:
+        work_from = datetime.time(datetime(1, 1, 1, _work_from[0], _work_from[1]))
+        work_to = datetime.time(datetime(1, 1, 1, _work_to[0], _work_to[1]))
+    except ValueError as error:
+        print('Error in STAMP_HOURS environment variable:\n', error)
+    return {'from': work_from, 'to': work_to}
 
-def _stamp_out(stamp):
-    # Do you want to register standard hours or current time as end?
-    stamp.update({'end': args['date']})
+
+def _determine_work_hour(time, date, stamp_status):
+    if date:
+        workdate = _get_value_from_date_parameter(date)
+    else:
+        workdate = datetime.now().date()
+
+    if time == 'current':
+        worktime = datetime.now().time()
+    elif time:
+        worktime = _get_value_from_time_parameter(time)
+    else:
+        _stamp_hours = _get_values_from_stamp_hours_variable()
+        if stamp_status == 'in':
+            worktime = _stamp_hours['from']
+        elif stamp_status == 'out':
+            worktime = _stamp_hours['to']
+    return workdate, worktime
+
+def _stamp_in(date, time):
+    return {'start': {'date': date, 'time': time}, 'tags': {}}
+
+
+def _stamp_out(date, time, stamp):
+    stamp.update({'end': {'date': date, 'time': time})
     # Add stamp to database
     # Delete stamp file
     return
 
+
 def _create_stamp(args):
     stamp = _current_stamp()
 
-    if args['datetime']:
-        date = _separate_values_from_datetime(args['datetime'])
-    else:
-        date = datetime.now()
-
+    # Stamp out
     if stamp is not None and args['tag'] is False:
-        _stamp_out(stamp)
+        date, time = _determine_work_hour(args['time'], args['date'], 'out')
+        _stamp_out(date, time, stamp)
+    # Tag
     elif args['tag']:
-        stamp['tags'].update({date: args['tag']})
+        stamp['tags'].update({'date': date, 'time': time, 'tag': args['tag']})
         _write_pickle(stamp)
+    # Stamp in
     else:
-        hours = _separate_values_from_hours()
-        stamp = _stamp_in(date, hours)
+        date, time = _determine_work_hour(args['time'], args['date'], 'in')
+        stamp = _stamp_in(date, time)
         _write_pickle(stamp)
 
     return
