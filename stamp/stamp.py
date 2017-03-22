@@ -11,12 +11,15 @@
 ##############################
 
 from datetime import datetime
+from sqlalchemy.orm import sessionmaker
+from mappings import Workday, Tag, engine
 from __init__ import __version__
 import argparse
 import pickle
 import os
 import re
 
+DB_SESSION = sessionmaker(bind=engine)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 STAMP_FILE = os.path.join(BASE_DIR, 'current_stamp.pickle')
 HOURS = os.getenv('STAMP_HOURS') or '08:00-16:00'
@@ -48,6 +51,7 @@ def get_parser():
 def _write_pickle(stamp):
     with open(STAMP_FILE, 'wb') as stamp_file:
         pickle.dump(stamp, stamp_file)
+    return
 
 
 def _current_stamp():
@@ -111,22 +115,28 @@ def _determine_time_and_date(time, date, stamp_status):
 
 
 def _stamp_in(date, time):
-    stamp = {'start': {'date': date, 'time': time}, 'tags': []}
+    #  stamp = {'start': {'date': date, 'time': time}, 'tags': []}
+    stamp = Workday(start=datetime(date.year, date.month, date.day, time.hour, time.minute))
     return stamp
 
 
 def _stamp_out(date, time, stamp):
-    stamp.update({'end': {'date': date, 'time': time}})
-    print('End of workday: ' + stamp['end']['date'].isoformat() + ' ' +
-          stamp['end']['time'].isoformat())
+    #  stamp.update({'end': {'date': date, 'time': time}})
+#      print('End of workday: ' + stamp['end']['date'].isoformat() + ' ' +
+#            stamp['end']['time'].isoformat())
     # Add stamp to database
+    stamp.end = datetime(date.year, date.month, date.day, time.hour, time.minute)
+    session = DB_SESSION()
+    session.add(stamp)
+    session.commit()
     # Delete stamp file
     os.remove(STAMP_FILE)
     return
 
 
 def _tag_stamp(date, time, stamp, tag):
-    stamp['tags'].append({'date': date, 'time': time, 'tag': tag})
+    stamp.tags.append(Tag(recorded=datetime(date.year, date.month, date.day, time.hour, time.minute),
+                          tag=tag))
     return stamp
 
 
