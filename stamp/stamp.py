@@ -11,8 +11,7 @@
 ##############################
 
 from datetime import datetime
-from . import __version__
-import logging
+from __init__ import __version__
 import argparse
 import pickle
 import os
@@ -47,12 +46,14 @@ def get_parser():
 
 
 def _write_pickle(stamp):
-    pickle.dump(stamp, open(STAMP_FILE), 'wb')
+    with open(STAMP_FILE, 'wb') as stamp_file:
+        pickle.dump(stamp, stamp_file)
 
 
 def _current_stamp():
     if os.path.isfile(STAMP_FILE):
-        stamp = pickle.open(STAMP_FILE, 'rb')
+        with open(STAMP_FILE, 'rb') as stamp_file:
+            stamp = pickle.load(stamp_file)
     else:
         stamp = None
     return stamp
@@ -81,14 +82,14 @@ def _get_value_from_date_parameter(date):
 def _get_values_from_stamp_hours_variable():
     _work_from, _work_to = re.findall(r"([\w]+).([\w]+)", HOURS)
     try:
-        work_from = datetime.time(datetime(1, 1, 1, _work_from[0], _work_from[1]))
-        work_to = datetime.time(datetime(1, 1, 1, _work_to[0], _work_to[1]))
+        work_from = datetime.time(datetime(1, 1, 1, int(_work_from[0]), int(_work_from[1])))
+        work_to = datetime.time(datetime(1, 1, 1, int(_work_to[0]), int(_work_to[1])))
     except ValueError as error:
         print('Error in STAMP_HOURS environment variable:\n', error)
     return {'from': work_from, 'to': work_to}
 
 
-def _determine_work_hour(time, date, stamp_status):
+def _determine_time_and_date(time, date, stamp_status):
     if date:
         workdate = _get_value_from_date_parameter(date)
     else:
@@ -98,6 +99,8 @@ def _determine_work_hour(time, date, stamp_status):
         worktime = datetime.now().time()
     elif time:
         worktime = _get_value_from_time_parameter(time)
+    elif stamp_status == 'tag':
+        worktime = datetime.now().time()
     else:
         _stamp_hours = _get_values_from_stamp_hours_variable()
         if stamp_status == 'in':
@@ -106,31 +109,42 @@ def _determine_work_hour(time, date, stamp_status):
             worktime = _stamp_hours['to']
     return workdate, worktime
 
+
 def _stamp_in(date, time):
-    return {'start': {'date': date, 'time': time}, 'tags': {}}
+    stamp = {'start': {'date': date, 'time': time}, 'tags': []}
+    return stamp
 
 
 def _stamp_out(date, time, stamp):
-    stamp.update({'end': {'date': date, 'time': time})
+    stamp.update({'end': {'date': date, 'time': time}})
+    print('End of workday: ' + stamp['end']['date'].isoformat() + ' ' +
+          stamp['end']['time'].isoformat())
     # Add stamp to database
     # Delete stamp file
+    os.remove(STAMP_FILE)
     return
 
 
-def _create_stamp(args):
+def _tag_stamp(date, time, stamp, tag):
+    stamp['tags'].append({'date': date, 'time': time, 'tag': tag})
+    return stamp
+
+
+def _stamp_or_tag(args):
     stamp = _current_stamp()
 
     # Stamp out
     if stamp is not None and args['tag'] is False:
-        date, time = _determine_work_hour(args['time'], args['date'], 'out')
+        date, time = _determine_time_and_date(args['time'], args['date'], 'out')
         _stamp_out(date, time, stamp)
     # Tag
     elif args['tag']:
-        stamp['tags'].update({'date': date, 'time': time, 'tag': args['tag']})
+        date, time = _determine_time_and_date(args['time'], args['date'], 'tag')
+        stamp = _tag_stamp(date, time, stamp, args['tag'])
         _write_pickle(stamp)
     # Stamp in
     else:
-        date, time = _determine_work_hour(args['time'], args['date'], 'in')
+        date, time = _determine_time_and_date(args['time'], args['date'], 'in')
         stamp = _stamp_in(date, time)
         _write_pickle(stamp)
 
@@ -146,12 +160,18 @@ def run():
         return
 
     if args['status']:
-        return  ### NEED TO PRINT THE STATUS HERE ###
+        stamp = _current_stamp()
+        print('Start of workday: ' + stamp['start']['date'].isoformat() + ' ' +
+              stamp['start']['time'].isoformat())
+        for tag in stamp['tags']:
+            print(tag['date'].isoformat() + ' ' + tag['time'].isoformat() +
+                  ': ' + tag['tag'])
+        return
 
     if args['export']:
-        return  ### NEED TO EXPORT TO PDF HERE ###
+        return  # NEED TO EXPORT TO PDF HERE
 
-    _create_stamp(args)
+    _stamp_or_tag(args)
 
 if __name__ == '__main__':
     run()
