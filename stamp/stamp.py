@@ -24,7 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 STAMP_FILE = os.path.join(BASE_DIR, 'current_stamp.pickle')
 HOURS = os.getenv('STAMP_HOURS') or '08:00-16:00'
 LUNCH = os.getenv('STAMP_LUNCH') or '00:30'
-MINIMUM_HOURS = os.getenv('STAMP_MINIMUM_HOURS') or '1'
+MINIMUM_HOURS = os.getenv('STAMP_MINIMUM_HOURS') or '2'
 STANDARD_COMPANY = os.getenv('STAMP_STANDARD_COMPANY') or 'Not specified'
 
 
@@ -132,6 +132,46 @@ def _determine_total_hours_worked(workday):
     return total.days, round(hours), minutes
 
 
+def _query_db_and_print_status():
+    for workday in DB_SESSION.query(Workday).order_by(Workday.start):
+        days, hours, minutes = _determine_total_hours_worked(workday)
+        if days:
+            output_total_hours = (str(days) + 'd, ' +
+                                  str(hours) + 'h')
+        else:
+            output_total_hours = (str(hours) + 'h')
+        if minutes:
+            output_total_hours += ', ' + str(minutes) + 'm'
+        if workday.start.date() == workday.end.date():
+            output_date = workday.start.date().isoformat()
+        else:
+            output_date = (workday.start.date().isoformat() + '-' +
+                           workday.end.date().isoformat())
+        print('id: ' + str(workday.id))
+        print(output_date)
+        print('Company: ' + workday.company)
+        print('Workday: ')
+        print(workday.start.time().isoformat() + '-' +
+              workday.end.time().isoformat())
+        print('Total hours: ' + output_total_hours)
+        print('Tags: ' + str(len(workday.tags)))
+        for tag in workday.tags:
+            print(tag.recorded.time().isoformat() + ' ' + tag.tag)
+        print('--')
+
+
+def _print_current_stamp():
+    stamp = _current_stamp()
+    if stamp is not None:
+        print('\nCurrent stamp:')
+        print(stamp.start.date().isoformat() + ' ' + stamp.end.time().isoformat())
+        print('Tags: ' + str(len(stamp.tags)))
+        for tag in stamp.tags:
+            print(tag.recorded.time().isoformat() + ' ' + tag.tag)
+    else:
+        print('\nNot stamped in.')
+
+
 def _stamp_in(date, time, company):
     stamp = Workday(start=datetime(date.year, date.month, date.day, time.hour, time.minute),
                     company=company)
@@ -188,36 +228,8 @@ def run():
         return
 
     if args['status']:
-        stamp = _current_stamp()
-        if stamp is None:
-            for workday in DB_SESSION.query(Workday).order_by(Workday.start):
-                days, hours, minutes = _determine_total_hours_worked(workday)
-                if days:
-                    output_total_hours = (str(days) + 'd, ' +
-                                          str(hours) + 'h')
-                else:
-                    output_total_hours = (str(hours) + 'h')
-                if minutes:
-                    output_total_hours += ', ' + str(minutes) + 'm'
-                if workday.start.date() == workday.end.date():
-                    output_date = workday.start.date().isoformat()
-                else:
-                    output_date = (workday.start.date().isoformat() + '-' +
-                                   workday.end.date().isoformat())
-                print('id: ' + str(workday.id) +
-                      '\n' + output_date +
-                      '\nCompany: ' + workday.company +
-                      '\nWorkday:' +
-                      workday.start.time().isoformat() + '-' +
-                      workday.end.time().isoformat() +
-                      '\nTotal hours: ' + output_total_hours +
-                      '\nTags: ' + str(len(workday.tags))
-                      )
-                for tag in workday.tags:
-                    print(tag.recorded.time().isoformat() + ' ' + tag.tag)
-                print('--')
-        else:
-            pass
+        _query_db_and_print_status()
+        _print_current_stamp()
         return
 
     if args['export']:
