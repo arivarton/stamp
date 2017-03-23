@@ -11,15 +11,21 @@
 ##############################
 
 from datetime import datetime
+from mappings import Workday, Tag, session
 from __init__ import __version__
 import argparse
 import pickle
 import os
 import re
+import math
 
+DB_SESSION = session()
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 STAMP_FILE = os.path.join(BASE_DIR, 'current_stamp.pickle')
 HOURS = os.getenv('STAMP_HOURS') or '08:00-16:00'
+LUNCH = os.getenv('STAMP_LUNCH') or '00:30'
+MINIMUM_HOURS = os.getenv('STAMP_MINIMUM_HOURS') or '1'
+STANDARD_COMPANY = os.getenv('STAMP_STANDARD_COMPANY') or 'Not specified'
 
 
 def get_parser():
@@ -36,6 +42,8 @@ def get_parser():
                         help='Set date manually.')
     parser.add_argument('-T', '--time', type=str, default=False,
                         help='Set time manually.')
+    parser.add_argument('-c', '--company', type=str, default=STANDARD_COMPANY,
+                        help='Set company to bill hours to.')
     parser.add_argument('-s', '--status', action='store_true',  # Finished
                         help='Print current state of stamp.')
     parser.add_argument('-e', '--export', type=str,
@@ -48,6 +56,7 @@ def get_parser():
 def _write_pickle(stamp):
     with open(STAMP_FILE, 'wb') as stamp_file:
         pickle.dump(stamp, stamp_file)
+    return
 
 
 def _current_stamp():
@@ -110,23 +119,36 @@ def _determine_time_and_date(time, date, stamp_status):
     return workdate, worktime
 
 
-def _stamp_in(date, time):
-    stamp = {'start': {'date': date, 'time': time}, 'tags': []}
+def _determine_total_hours_worked(workday):
+    total = workday.end - workday.start
+    hours = total.seconds / 3600
+    if round(hours) == math.ceil(hours):
+        minutes = 0
+    else:
+        minutes = 30
+    if total.days is 0 and hours < int(MINIMUM_HOURS):
+        hours = int(MINIMUM_HOURS)
+        minutes = 0
+    return total.days, round(hours), minutes
+
+
+def _stamp_in(date, time, company):
+    stamp = Workday(start=datetime(date.year, date.month, date.day, time.hour, time.minute),
+                    company=company)
     return stamp
 
 
 def _stamp_out(date, time, stamp):
-    stamp.update({'end': {'date': date, 'time': time}})
-    print('End of workday: ' + stamp['end']['date'].isoformat() + ' ' +
-          stamp['end']['time'].isoformat())
-    # Add stamp to database
-    # Delete stamp file
+    stamp.end = datetime(date.year, date.month, date.day, time.hour, time.minute)
+    DB_SESSION.add(stamp)
+    DB_SESSION.commit()
     os.remove(STAMP_FILE)
     return
 
 
 def _tag_stamp(date, time, stamp, tag):
-    stamp['tags'].append({'date': date, 'time': time, 'tag': tag})
+    stamp.tags.append(Tag(recorded=datetime(date.year, date.month, date.day, time.hour, time.minute),
+                          tag=tag))
     return stamp
 
 
@@ -135,17 +157,23 @@ def _stamp_or_tag(args):
 
     # Stamp out
     if stamp is not None and args['tag'] is False:
+        if args['company'] is not STANDARD_COMPANY:
+            print('Company can only be set when stamping in')
         date, time = _determine_time_and_date(args['time'], args['date'], 'out')
         _stamp_out(date, time, stamp)
     # Tag
-    elif args['tag']:
+    elif stamp is not None and args['tag']:
+        if args['company'] is not STANDARD_COMPANY:
+            print('Company can only be set when stamping in')
         date, time = _determine_time_and_date(args['time'], args['date'], 'tag')
         stamp = _tag_stamp(date, time, stamp, args['tag'])
         _write_pickle(stamp)
     # Stamp in
     else:
         date, time = _determine_time_and_date(args['time'], args['date'], 'in')
-        stamp = _stamp_in(date, time)
+        stamp = _stamp_in(date, time, args['company'])
+        if args['tag']:
+            stamp = _tag_stamp(date, time, stamp, args['tag'])
         _write_pickle(stamp)
 
     return
@@ -161,11 +189,35 @@ def run():
 
     if args['status']:
         stamp = _current_stamp()
-        print('Start of workday: ' + stamp['start']['date'].isoformat() + ' ' +
-              stamp['start']['time'].isoformat())
-        for tag in stamp['tags']:
-            print(tag['date'].isoformat() + ' ' + tag['time'].isoformat() +
-                  ': ' + tag['tag'])
+        if stamp is None:
+            for workday in DB_SESSION.query(Workday).order_by(Workday.start):
+                days, hours, minutes = _determine_total_hours_worked(workday)
+                if days:
+                    output_total_hours = (str(days) + 'd, ' +
+                                          str(hours) + 'h')
+                else:
+                    output_total_hours = (str(hours) + 'h')
+                if minutes:
+                    output_total_hours += ', ' + str(minutes) + 'm'
+                if workday.start.date() == workday.end.date():
+                    output_date = workday.start.date().isoformat()
+                else:
+                    output_date = (workday.start.date().isoformat() + '-' +
+                                   workday.end.date().isoformat())
+                print('id: ' + str(workday.id) +
+                      '\n' + output_date +
+                      '\nCompany: ' + workday.company +
+                      '\nWorkday:' +
+                      workday.start.time().isoformat() + '-' +
+                      workday.end.time().isoformat() +
+                      '\nTotal hours: ' + output_total_hours +
+                      '\nTags: ' + str(len(workday.tags))
+                      )
+                for tag in workday.tags:
+                    print(tag.recorded.time().isoformat() + ' ' + tag.tag)
+                print('--')
+        else:
+            pass
         return
 
     if args['export']:

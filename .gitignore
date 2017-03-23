@@ -88,5 +88,9 @@ ENV/
 # Rope project settings
 .ropeproject
 
+# Vim
+*.swp
+
 # App specific
 current_stamp.pickle
+workhours.db
