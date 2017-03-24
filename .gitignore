@@ -94,3 +94,4 @@ ENV/
 # App specific
 current_stamp.pickle
 workhours.db
+*.pdf
