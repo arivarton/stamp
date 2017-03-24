@@ -9,8 +9,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, sessionmaker
+import os
 
-engine = create_engine('sqlite:///workhours.db')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+engine = create_engine('sqlite:///' + os.path.join(BASE_DIR, 'workhours.db'))
 Base = declarative_base()
 
 
@@ -22,7 +24,8 @@ class Workday(Base):
     end = Column(DateTime)
     company = Column(String)
 
-    tags = relationship('Tag', order_by='Tag.recorded')
+    tags = relationship('Tag', order_by='Tag.recorded', cascade='all, delete, delete-orphan',
+                        lazy='dynamic')
 
 
 class Tag(Base):
@@ -33,6 +36,7 @@ class Tag(Base):
     tag = Column(String)
 
     workday_id = Column(ForeignKey('workday.id'))
+    id_under_workday = Column(Integer)
 
 Base.metadata.create_all(engine)
 session = sessionmaker(bind=engine)

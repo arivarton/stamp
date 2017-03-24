@@ -10,22 +10,26 @@
 #
 ##############################
 
+
 from datetime import datetime
+from sqlalchemy.orm import exc
+from reportlab.pdfgen import canvas
 from mappings import Workday, Tag, session
 from __init__ import __version__
 import argparse
 import pickle
-import os
 import re
 import math
+import os
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_SESSION = session()
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 STAMP_FILE = os.path.join(BASE_DIR, 'current_stamp.pickle')
 HOURS = os.getenv('STAMP_HOURS') or '08:00-16:00'
 LUNCH = os.getenv('STAMP_LUNCH') or '00:30'
 MINIMUM_HOURS = os.getenv('STAMP_MINIMUM_HOURS') or '2'
 STANDARD_COMPANY = os.getenv('STAMP_STANDARD_COMPANY') or 'Not specified'
+REPORT_DIR = os.getenv('STAMP_REPORT_DIR') or BASE_DIR
 
 
 def get_parser():
@@ -44,11 +48,15 @@ def get_parser():
                         help='Set time manually.')
     parser.add_argument('-c', '--company', type=str, default=STANDARD_COMPANY,
                         help='Set company to bill hours to.')
-    parser.add_argument('-s', '--status', action='store_true',  # Finished
+    parser.add_argument('-s', '--status', action='store_true',
                         help='Print current state of stamp.')
-    parser.add_argument('-e', '--export', type=str,
-                        help='Export as PDF.', default=False)
-    parser.add_argument('-v', '--version', action='store_true',  # Finished
+    parser.add_argument('-e', '--export', action='store_true',
+                        help='Export as PDF.')
+    parser.add_argument('-d', '--delete', type=int,
+                        help='Delete the specified id. To delete a tag inside a \
+                        workday, add the workday id and the tag parameter with \
+                        the tag id to delete. F.ex. "-d 3 -t 4".', default=False)
+    parser.add_argument('-v', '--version', action='store_true',
                         help='Display current version.')
     return parser
 
@@ -132,42 +140,65 @@ def _determine_total_hours_worked(workday):
     return total.days, round(hours), minutes
 
 
+def _output_for_total_hours_and_date(workday):
+    days, hours, minutes = _determine_total_hours_worked(workday)
+    output_total_hours = '%dh' % hours
+    if days:
+        output_total_hours = '%dd, %dh' % (days, hours)
+    if minutes:
+        output_total_hours += ', %dm' % minutes
+    if workday.start.date() == workday.end.date():
+        output_date = workday.start.date().isoformat()
+    else:
+        output_date = '%s-%s' % (workday.start.date().isoformat(),
+                                    workday.end.date().isoformat())
+    return output_total_hours, output_date
+
+
+def _query_db_for_workdays():
+    workdays = DB_SESSION.query(Workday).order_by(Workday.start)
+    return workdays
+
+
 def _query_db_and_print_status():
-    for workday in DB_SESSION.query(Workday).order_by(Workday.start):
-        days, hours, minutes = _determine_total_hours_worked(workday)
-        if days:
-            output_total_hours = (str(days) + 'd, ' +
-                                  str(hours) + 'h')
-        else:
-            output_total_hours = (str(hours) + 'h')
-        if minutes:
-            output_total_hours += ', ' + str(minutes) + 'm'
-        if workday.start.date() == workday.end.date():
-            output_date = workday.start.date().isoformat()
-        else:
-            output_date = (workday.start.date().isoformat() + '-' +
-                           workday.end.date().isoformat())
-        print('id: ' + str(workday.id))
+    workdays = _query_db_for_workdays()
+    for workday in workdays:
+        output_total_hours, output_date = _output_for_total_hours_and_date(workday)
+        print('id: %d' % workday.id)
         print(output_date)
-        print('Company: ' + workday.company)
+        print('Company: %s' % workday.company)
         print('Workday: ')
-        print(workday.start.time().isoformat() + '-' +
-              workday.end.time().isoformat())
-        print('Total hours: ' + output_total_hours)
-        print('Tags: ' + str(len(workday.tags)))
+        print('%s-%s' % (workday.start.time().isoformat(),
+                         workday.end.time().isoformat()))
+        print('Total hours: %s' % output_total_hours)
+        print('Tags: %d' % len(workday.tags.all()))
         for tag in workday.tags:
-            print(tag.recorded.time().isoformat() + ' ' + tag.tag)
+            print('%d: %s %s' % (tag.id_under_workday, tag.recorded.time().isoformat(), tag.tag))
         print('--')
+
+
+def _query_db_and_delete(workday_id, tag_id):
+    try:
+        if tag_id:
+            _workday = DB_SESSION.query(Workday).get(workday_id)
+            objects = _workday.tags.filter(Tag.id_under_workday==tag_id).all()
+        else:
+            objects = [DB_SESSION.query(Workday).get(workday_id)]
+        for object in objects:
+            DB_SESSION.delete(object)
+        DB_SESSION.commit()
+    except exc.UnmappedInstanceError:
+        print('Specified id to delete not found')
 
 
 def _print_current_stamp():
     stamp = _current_stamp()
     if stamp is not None:
         print('\nCurrent stamp:')
-        print(stamp.start.date().isoformat() + ' ' + stamp.end.time().isoformat())
-        print('Tags: ' + str(len(stamp.tags)))
+        print('%s %s' % (stamp.start.date().isoformat(), stamp.start.time().isoformat()))
+        print('Tags: %d' % len(stamp.tags.all()))
         for tag in stamp.tags:
-            print(tag.recorded.time().isoformat() + ' ' + tag.tag)
+            print('%d: %s %s' % (tag.id_under_workday, tag.recorded.time().isoformat(), tag.tag))
     else:
         print('\nNot stamped in.')
 
@@ -187,8 +218,9 @@ def _stamp_out(date, time, stamp):
 
 
 def _tag_stamp(date, time, stamp, tag):
+    _id_under_workday = len(stamp.tags.all()) + 1
     stamp.tags.append(Tag(recorded=datetime(date.year, date.month, date.day, time.hour, time.minute),
-                          tag=tag))
+                          tag=tag, id_under_workday=_id_under_workday))
     return stamp
 
 
@@ -219,6 +251,41 @@ def _stamp_or_tag(args):
     return
 
 
+def _create_pdf():
+    workdays = _query_db_for_workdays()
+
+    output_filename = os.path.join(REPORT_DIR, 'report.pdf')
+
+    # A4 paper, 96 = dpi
+    width = 210 /25.4 * 96
+    height = 297 /25.4 * 96
+
+    c = canvas.Canvas(output_filename, pagesize=(width, height))
+    c.setStrokeColorRGB(0,0,0)
+    c.setFillColorRGB(0,0,0)
+    font_size = 12
+    c.setFont("Helvetica", font_size)
+    height_placement = height - font_size
+    for workday in workdays:
+        output_total_hours, output_date = _output_for_total_hours_and_date(workday)
+        height_placement -= font_size
+        # Date
+        c.drawString(72, height_placement, '%s %s-%s' % (output_date,
+                                                         workday.start.time().isoformat(),
+                                                         workday.end.time().isoformat()))
+        height_placement -= font_size
+        # Worktime
+        c.drawString(72, height_placement, 'Total hours: %s' % (output_total_hours))
+        for tag in workday.tags:
+            height_placement -= font_size
+
+            c.drawString(72, height_placement, '%s - %s' % (tag.recorded.time().isoformat(), tag.tag))
+            #  print('%d: %s %s' % (tag.id_under_workday, tag.recorded.time().isoformat(), tag.tag))
+        height_placement -= font_size
+    c.showPage()
+    c.save()
+
+
 def run():
     parser = get_parser()
     args = vars(parser.parse_args())
@@ -233,7 +300,12 @@ def run():
         return
 
     if args['export']:
+        _create_pdf()
         return  # NEED TO EXPORT TO PDF HERE
+
+    if args['delete']:
+        _query_db_and_delete(args['delete'], args['tag'])
+        return
 
     _stamp_or_tag(args)
 
