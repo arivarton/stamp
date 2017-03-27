@@ -27,14 +27,17 @@ DB_SESSION = session()
 STAMP_FILE = os.path.join(BASE_DIR, 'current_stamp.pickle')
 HOURS = os.getenv('STAMP_HOURS') or '08:00-16:00'
 LUNCH = os.getenv('STAMP_LUNCH') or '00:30'
-MINIMUM_HOURS = os.getenv('STAMP_MINIMUM_HOURS') or '2'
+MINIMUM_HOURS = int(os.getenv('STAMP_MINIMUM_HOURS') or 2)
 STANDARD_COMPANY = os.getenv('STAMP_STANDARD_COMPANY') or 'Not specified'
+WAGE_PER_HOUR = int(os.getenv('STAMP_WAGE_PER_HOUR') or 300)
+CURRENCY = os.getenv('STAMP_CURRENCY') or 'NKR'
+
 REPORT_DIR = os.getenv('STAMP_REPORT_DIR') or BASE_DIR
 
 
 def get_parser():
     parser = argparse.ArgumentParser(description='''Register work hours.
-                                     Hours get automatically sorted by date and
+                                     Hours get automatically sorted by date, and
                                      month is the default separator.''',
                                      epilog='''By arivarton
                                      (http://www.arivarton.com)''')
@@ -45,7 +48,9 @@ def get_parser():
     parser.add_argument('-D', '--date', type=str, default=False,
                         help='Set date manually.')
     parser.add_argument('-T', '--time', type=str, default=False,
-                        help='Set time manually.')
+                        help='''Set time manually. Use the keyword "current" to
+                        use current time instead of time specified by the HOURS
+                        variable.''')
     parser.add_argument('-c', '--company', type=str, default=STANDARD_COMPANY,
                         help='Set company to bill hours to.')
     parser.add_argument('-s', '--status', action='store_true',
@@ -127,32 +132,70 @@ def _determine_time_and_date(time, date, stamp_status):
     return workdate, worktime
 
 
-def _determine_total_hours_worked(workday):
-    total = workday.end - workday.start
-    hours = total.seconds / 3600
-    if round(hours) == math.ceil(hours):
-        minutes = 0
-    else:
-        minutes = 30
-    if total.days is 0 and hours < int(MINIMUM_HOURS):
-        hours = int(MINIMUM_HOURS)
-        minutes = 0
-    return total.days, round(hours), minutes
+def _determine_total_hours_worked_and_wage_earned(workdays):
+    # If workdays is an object (Workday) it must be put in a list
+    try:
+        workdays = list(workdays)
+    except TypeError:
+        workdays = [workdays]
+    total_days = 0
+    total_hours = 0
+    total_minutes = 0
+    total_wage = 0
+    for workday in workdays:
+        total = workday.end - workday.start
+        hours = total.seconds / 3600
+        total_days += total.days
+        # Rounds up hours
+        if round(hours) == math.ceil(hours):
+            minutes = 0
+        else:
+            minutes = 30
+        # If total work time is under MINIMUM_HOURS then set work time to
+        # MINIMUM_HOURS instead
+        if total.days is 0 and hours < MINIMUM_HOURS:
+            hours = MINIMUM_HOURS
+            total_hours += hours
+            minutes = 0
+        else:
+            hours = round(hours)
+            total_hours += hours
+        # Increment hour if minutes has passed 60
+        if minutes is 30 and total_minutes is 30:
+            total_hours += 1
+            total_minutes = 0
+        total_minutes = minutes
+        # Increment days if total hours has passed 23
+        if total_hours >= 24:
+            total_days += 1
+            total_hours -= 24
+        # Add to wage
+        total_wage += ((total_days*24) * WAGE_PER_HOUR) + (hours * WAGE_PER_HOUR)
+        if minutes is 30:
+            total_wage += WAGE_PER_HOUR * 0.5
+    return total_days, total_hours, total_minutes, total_wage
 
 
-def _output_for_total_hours_and_date(workday):
-    days, hours, minutes = _determine_total_hours_worked(workday)
+def _output_for_total_hours_date_and_wage(workday):
+    days, hours, minutes, wage = _determine_total_hours_worked_and_wage_earned(workday)
     output_total_hours = '%dh' % hours
+    output_total_wage = '%d%s' % (wage, CURRENCY)
     if days:
         output_total_hours = '%dd, %dh' % (days, hours)
     if minutes:
         output_total_hours += ', %dm' % minutes
-    if workday.start.date() == workday.end.date():
-        output_date = workday.start.date().isoformat()
-    else:
-        output_date = '%s-%s' % (workday.start.date().isoformat(),
-                                    workday.end.date().isoformat())
-    return output_total_hours, output_date
+    # Add output date if the workday is not a list
+    # If workday is a list, then it means total hours are being calculated
+    # and the date is unneccesary
+    try:
+        if workday.start.date() == workday.end.date():
+            output_date = workday.start.date().isoformat()
+        else:
+            output_date = '%s-%s' % (workday.start.date().isoformat(),
+                                     workday.end.date().isoformat())
+    except AttributeError:
+        output_date = None
+    return output_total_hours, output_date, output_total_wage
 
 
 def _query_db_for_workdays():
@@ -163,25 +206,28 @@ def _query_db_for_workdays():
 def _query_db_and_print_status():
     workdays = _query_db_for_workdays()
     for workday in workdays:
-        output_total_hours, output_date = _output_for_total_hours_and_date(workday)
+        output_total_hours, output_date, output_total_wage = _output_for_total_hours_date_and_wage(workday)
         print('id: %d' % workday.id)
         print(output_date)
         print('Company: %s' % workday.company)
         print('Workday: ')
         print('%s-%s' % (workday.start.time().isoformat(),
                          workday.end.time().isoformat()))
-        print('Total hours: %s' % output_total_hours)
+        print('Hours: %s@%s' % (output_total_hours, output_total_wage))
         print('Tags: %d' % len(workday.tags.all()))
         for tag in workday.tags:
             print('%d: %s %s' % (tag.id_under_workday, tag.recorded.time().isoformat(), tag.tag))
         print('--')
+    output_total_hours, __, output_total_wage = _output_for_total_hours_date_and_wage(workdays)
+    print('Total hours: %s' % output_total_hours)
+    print('Total wage earned: %s' % output_total_wage)
 
 
 def _query_db_and_delete(workday_id, tag_id):
     try:
         if tag_id:
             _workday = DB_SESSION.query(Workday).get(workday_id)
-            objects = _workday.tags.filter(Tag.id_under_workday==tag_id).all()
+            objects = _workday.tags.filter(Tag.id_under_workday == tag_id).all()
         else:
             objects = [DB_SESSION.query(Workday).get(workday_id)]
         for object in objects:
@@ -256,34 +302,42 @@ def _create_pdf():
 
     output_filename = os.path.join(REPORT_DIR, 'report.pdf')
 
-    # A4 paper, 96 = dpi
-    width = 210 /25.4 * 96
-    height = 297 /25.4 * 96
+    # A4 paper, 210mm*297mm displayed on a 96dpi monitor
+    width = 210 / 25.4 * 96
+    height = 297 / 25.4 * 96
 
-    c = canvas.Canvas(output_filename, pagesize=(width, height))
-    c.setStrokeColorRGB(0,0,0)
-    c.setFillColorRGB(0,0,0)
+    pdf = canvas.Canvas(output_filename, pagesize=(width, height))
+    pdf.setStrokeColorRGB(0, 0, 0)
+    pdf.setFillColorRGB(0, 0, 0)
     font_size = 12
-    c.setFont("Helvetica", font_size)
+    font_padding = 20
+    pdf.setFont("Helvetica", font_size)
     height_placement = height - font_size
     for workday in workdays:
-        output_total_hours, output_date = _output_for_total_hours_and_date(workday)
+        output_hours, output_date, output_wage = _output_for_total_hours_date_and_wage(workday)
         height_placement -= font_size
         # Date
-        c.drawString(72, height_placement, '%s %s-%s' % (output_date,
-                                                         workday.start.time().isoformat(),
-                                                         workday.end.time().isoformat()))
+        pdf.drawString(font_padding, height_placement, '%s %s-%s' % (output_date,
+                                                                     workday.start.time().isoformat(),
+                                                                     workday.end.time().isoformat()))
         height_placement -= font_size
         # Worktime
-        c.drawString(72, height_placement, 'Total hours: %s' % (output_total_hours))
+        pdf.drawImage(os.path.join(BASE_DIR, 'logo.png'), width - 100, height - 110, width=100, height=100, mask=[0, 0, 0, 0, 0, 0])
+        pdf.drawString(font_padding, height_placement, 'Total hours: %s' % (output_hours))
+        height_placement -= font_size
+        pdf.drawString(font_padding, height_placement, 'Wage: %s' % (output_wage))
         for tag in workday.tags:
             height_placement -= font_size
-
-            c.drawString(72, height_placement, '%s - %s' % (tag.recorded.time().isoformat(), tag.tag))
-            #  print('%d: %s %s' % (tag.id_under_workday, tag.recorded.time().isoformat(), tag.tag))
+            pdf.drawString(font_padding, height_placement, '%s - %s' % (tag.recorded.time().isoformat(), tag.tag))
         height_placement -= font_size
-    c.showPage()
-    c.save()
+    output_total_hours, __, output_total_wage = _output_for_total_hours_date_and_wage(workdays)
+    height_placement -= font_size * 2
+    pdf.drawString(font_padding, height_placement, 'Total hours: %s' % (output_total_hours))
+    height_placement -= font_size
+    pdf.drawString(font_padding, height_placement, 'Total wage: %s' % (output_total_wage))
+    pdf.showPage()
+    pdf.save()
+    return
 
 
 def run():
