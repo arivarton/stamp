@@ -41,7 +41,7 @@ def get_parser():
                                      month is the default separator.''',
                                      epilog='''By arivarton
                                      (http://www.arivarton.com)''')
-    parser.add_argument('-t', '--tag', type=str, default=False,
+    parser.add_argument('-t', '--tag', type=str, default=None,
                         help='''Tag new or current (if already initalized)
                         stamp with a comment. Marked with current time or
                         time specified by the date argument.''')
@@ -55,12 +55,21 @@ def get_parser():
                         help='Set company to bill hours to.')
     parser.add_argument('-s', '--status', action='store_true',
                         help='Print current state of stamp.')
-    parser.add_argument('-e', '--export', action='store_true',
+    parser.add_argument('-E', '--export', action='store_true',
                         help='Export as PDF.')
-    parser.add_argument('-d', '--delete', type=int,
+    parser.add_argument('-f', '--filter', action='store_true',
+                        help='''Filter the output of status or pdf export. Use
+                        in combination with other arguments, f.ex status and company:
+                        "-s -f -c MyCompany"''')
+    parser.add_argument('-d', '--delete', type=int, default=None,
                         help='Delete the specified id. To delete a tag inside a \
                         workday, add the workday id and the tag parameter with \
-                        the tag id to delete. F.ex. "-d 3 -t 4".', default=False)
+                        the tag id to delete. F.ex. "-d 3 -t 4".')
+    parser.add_argument('-e', '--edit', type=int, default=None,
+                        help='''Edit the specified id. To edit a tag inside a
+                        workday, add the workday id and the tag parameter width
+                        the tag id to edit. F.ex. "-d 3 -t 4". Make sure to add
+                        the tag to edit with the new content. F.ex. "-e 9 -c MyCompany"''')
     parser.add_argument('-v', '--version', action='store_true',
                         help='Display current version.')
     return parser
@@ -198,13 +207,60 @@ def _output_for_total_hours_date_and_wage(workday):
     return output_total_hours, output_date, output_total_wage
 
 
-def _query_db_for_workdays():
-    workdays = DB_SESSION.query(Workday).order_by(Workday.start)
+def _query_db_for_workdays(workday_id=None, tag_id=None, args=None):
+    try:
+        if workday_id or tag_id:
+            if tag_id:
+                _workday = DB_SESSION.query(Workday).get(workday_id)
+                workdays = _workday.tags.filter(Tag.id_under_workday == tag_id).all()
+            else:
+                workdays = [DB_SESSION.query(Workday).get(workday_id)]
+        else:
+            if args['filter']:
+                if args['company']:
+                    workdays = DB_SESSION.query(Workday).filter(Workday.company.ilike(args['company'])).order_by(Workday.start)
+                elif args['time'] and args['date']:
+                    print('Not implemented yet')
+                elif args['date']:
+                    print('Not implemented yet')
+                elif args['time']:
+                    print('Not implemented yet')
+            else:
+                workdays = DB_SESSION.query(Workday).order_by(Workday.start)
+    except exc.UnmappedInstanceError:
+        print('Specified id not found')
     return workdays
 
 
-def _query_db_and_print_status():
-    workdays = _query_db_for_workdays()
+def _delete_workday_or_tag(workday_id, tag_id):
+    objects = _query_db_for_workdays(workday_id, tag_id)
+    for workday in objects:
+        DB_SESSION.delete(workday)
+    DB_SESSION.commit()
+
+
+def _edit_workday(workday_id, args):
+    objects = _query_db_for_workdays(workday_id)
+    for workday in objects:
+        if args['company']:
+            workday.company = args['company']
+    DB_SESSION.commit()
+
+
+def _print_current_stamp():
+    stamp = _current_stamp()
+    if stamp is not None:
+        print('\nCurrent stamp:')
+        print('%s %s' % (stamp.start.date().isoformat(), stamp.start.time().isoformat()))
+        print('Tags: %d' % len(stamp.tags.all()))
+        for tag in stamp.tags:
+            print('%d: %s %s' % (tag.id_under_workday, tag.recorded.time().isoformat(), tag.tag))
+    else:
+        print('\nNot stamped in.')
+
+
+def _print_status(args):
+    workdays = _query_db_for_workdays(args=args)
     for workday in workdays:
         output_total_hours, output_date, output_total_wage = _output_for_total_hours_date_and_wage(workday)
         print('id: %d' % workday.id)
@@ -223,35 +279,10 @@ def _query_db_and_print_status():
     print('Total wage earned: %s' % output_total_wage)
 
 
-def _query_db_and_delete(workday_id, tag_id):
-    try:
-        if tag_id:
-            _workday = DB_SESSION.query(Workday).get(workday_id)
-            objects = _workday.tags.filter(Tag.id_under_workday == tag_id).all()
-        else:
-            objects = [DB_SESSION.query(Workday).get(workday_id)]
-        for object in objects:
-            DB_SESSION.delete(object)
-        DB_SESSION.commit()
-    except exc.UnmappedInstanceError:
-        print('Specified id to delete not found')
-
-
-def _print_current_stamp():
-    stamp = _current_stamp()
-    if stamp is not None:
-        print('\nCurrent stamp:')
-        print('%s %s' % (stamp.start.date().isoformat(), stamp.start.time().isoformat()))
-        print('Tags: %d' % len(stamp.tags.all()))
-        for tag in stamp.tags:
-            print('%d: %s %s' % (tag.id_under_workday, tag.recorded.time().isoformat(), tag.tag))
-    else:
-        print('\nNot stamped in.')
-
-
 def _stamp_in(date, time, company):
     stamp = Workday(start=datetime(date.year, date.month, date.day, time.hour, time.minute),
                     company=company)
+    print('Stamped in at %s - %s' % (date.isoformat(), time.isoformat()))
     return stamp
 
 
@@ -260,6 +291,7 @@ def _stamp_out(date, time, stamp):
     DB_SESSION.add(stamp)
     DB_SESSION.commit()
     os.remove(STAMP_FILE)
+    print('Stamped out at %s - %s' % (date.isoformat(), time.isoformat()))
     return
 
 
@@ -274,7 +306,7 @@ def _stamp_or_tag(args):
     stamp = _current_stamp()
 
     # Stamp out
-    if stamp is not None and args['tag'] is False:
+    if stamp is not None and args['tag'] is None:
         if args['company'] is not STANDARD_COMPANY:
             print('Company can only be set when stamping in')
         date, time = _determine_time_and_date(args['time'], args['date'], 'out')
@@ -297,8 +329,8 @@ def _stamp_or_tag(args):
     return
 
 
-def _create_pdf():
-    workdays = _query_db_for_workdays()
+def _create_pdf(args):
+    workdays = _query_db_for_workdays(args=args)
 
     output_filename = os.path.join(REPORT_DIR, 'report.pdf')
 
@@ -322,7 +354,6 @@ def _create_pdf():
                                                                      workday.end.time().isoformat()))
         height_placement -= font_size
         # Worktime
-        pdf.drawImage(os.path.join(BASE_DIR, 'logo.png'), width - 100, height - 110, width=100, height=100, mask=[0, 0, 0, 0, 0, 0])
         pdf.drawString(font_padding, height_placement, 'Total hours: %s' % (output_hours))
         height_placement -= font_size
         pdf.drawString(font_padding, height_placement, 'Wage: %s' % (output_wage))
@@ -335,6 +366,7 @@ def _create_pdf():
     pdf.drawString(font_padding, height_placement, 'Total hours: %s' % (output_total_hours))
     height_placement -= font_size
     pdf.drawString(font_padding, height_placement, 'Total wage: %s' % (output_total_wage))
+    pdf.drawImage(os.path.join(BASE_DIR, 'logo.png'), width - 100, height - 110, width=100, height=100, mask=[0, 0, 0, 0, 0, 0])
     pdf.showPage()
     pdf.save()
     return
@@ -349,16 +381,21 @@ def run():
         return
 
     if args['status']:
-        _query_db_and_print_status()
+        _print_status(args)
         _print_current_stamp()
         return
 
     if args['export']:
-        _create_pdf()
-        return  # NEED TO EXPORT TO PDF HERE
+        _create_pdf(args)
+        return
+
+    # Edit only supports company for now
+    if args['edit']:
+        _edit_workday(args['edit'], args)
+        return
 
     if args['delete']:
-        _query_db_and_delete(args['delete'], args['tag'])
+        _delete_workday_or_tag(args['delete'], args['tag'])
         return
 
     _stamp_or_tag(args)
