@@ -239,8 +239,8 @@ def _delete_workday_or_tag(workday_id, tag_id):
     DB_SESSION.commit()
 
 
-def _edit_workday(workday_id, args):
-    objects = _query_db_for_workdays(workday_id)
+def _edit_workday(args):
+    objects = _query_db_for_workdays(workday_id=args['edit'])
     for workday in objects:
         if args['company']:
             workday.company = args['company']
@@ -391,7 +391,7 @@ def run():
 
     # Edit only supports company for now
     if args['edit']:
-        _edit_workday(args['edit'], args)
+        _edit_workday(args)
         return
 
     if args['delete']:
