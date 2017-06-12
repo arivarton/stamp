@@ -110,13 +110,13 @@ def _get_value_from_date_parameter(date):
         print('Error in --date parameter:\n', error)
 
 
-def _get_values_from_stamp_hours_variable():
-    _work_from, _work_to = re.findall(r"([\w]+).([\w]+)", HOURS)
+def _get_value_from_human_time(time):
+    _work_from, _work_to = re.findall(r"([\w]+).([\w]+)", time)
     try:
         work_from = datetime.time(datetime(1, 1, 1, int(_work_from[0]), int(_work_from[1])))
         work_to = datetime.time(datetime(1, 1, 1, int(_work_to[0]), int(_work_to[1])))
     except ValueError as error:
-        print('Error in STAMP_HOURS environment variable:\n', error)
+        print('Error in set time.', error)
     return {'from': work_from, 'to': work_to}
 
 
@@ -133,7 +133,7 @@ def _determine_time_and_date(time, date, stamp_status):
     elif stamp_status == 'tag':
         worktime = datetime.now().time()
     else:
-        _stamp_hours = _get_values_from_stamp_hours_variable()
+        _stamp_hours = _get_value_from_human_time(HOURS)
         if stamp_status == 'in':
             worktime = _stamp_hours['from']
         elif stamp_status == 'out':
@@ -244,6 +244,15 @@ def _edit_workday(args):
     for workday in objects:
         if args['company']:
             workday.company = args['company']
+        if args['time']:
+            _edit_time = _get_value_from_human_time(args['time'])
+            _stamped = _query_db_for_workdays(args['edit'])
+            workday.start = datetime(_stamped[0].start.year, _stamped[0].start.month,
+                                     _stamped[0].start.day, _edit_time['from'].hour,
+                                     _edit_time['from'].minute)
+            workday.end = datetime(_stamped[0].end.year, _stamped[0].end.month,
+                                   _stamped[0].end.day, _edit_time['to'].hour,
+                                   _edit_time['to'].minute)
     DB_SESSION.commit()
 
 
@@ -318,7 +327,7 @@ def _stamp_or_tag(args):
         date, time = _determine_time_and_date(args['time'], args['date'], 'tag')
         stamp = _tag_stamp(date, time, stamp, args['tag'])
         _write_pickle(stamp)
-    # Stamp in
+    # Stamp in and tag if set
     else:
         date, time = _determine_time_and_date(args['time'], args['date'], 'in')
         stamp = _stamp_in(date, time, args['company'])
@@ -372,7 +381,7 @@ def _create_pdf(args):
     return
 
 
-def run():
+def main():
     parser = get_parser()
     args = vars(parser.parse_args())
 
@@ -401,4 +410,4 @@ def run():
     _stamp_or_tag(args)
 
 if __name__ == '__main__':
-    run()
+    main()
