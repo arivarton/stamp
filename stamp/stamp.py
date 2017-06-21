@@ -93,7 +93,7 @@ def _current_stamp():
 def _get_value_from_time_parameter(time):
     # Separate each part of time that user has put as argument
     # Argument could f.ex. look like this: 16:45
-    hours, minutes = re.findall(r"[\w]+", time)
+    hours, minutes = re.findall(r"[0-9]+", time)
     try:
         return datetime.time(datetime(1, 1, 1, int(hours), int(minutes)))
     except ValueError as error:
@@ -178,10 +178,10 @@ def _determine_total_hours_worked_and_wage_earned(workdays):
         if total_hours >= 24:
             total_days += 1
             total_hours -= 24
-        # Add to wage
-        total_wage += ((total_days*24) * WAGE_PER_HOUR) + (hours * WAGE_PER_HOUR)
-        if minutes is 30:
-            total_wage += WAGE_PER_HOUR * 0.5
+    # Add to wage
+    total_wage = ((total_days*24) * WAGE_PER_HOUR) + (total_hours * WAGE_PER_HOUR)
+    if minutes is 30:
+        total_wage += WAGE_PER_HOUR * 0.5
     return total_days, total_hours, total_minutes, total_wage
 
 
@@ -190,7 +190,9 @@ def _output_for_total_hours_date_and_wage(workday):
     output_total_hours = '%dh' % hours
     output_total_wage = '%d%s' % (wage, CURRENCY)
     if days:
-        output_total_hours = '%dd, %dh' % (days, hours)
+        output_total_hours = '%dd' % days
+    if hours:
+        output_total_hours += ', %dh' % hours
     if minutes:
         output_total_hours += ', %dm' % minutes
     # Add output date if the workday is not a list
