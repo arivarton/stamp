@@ -22,7 +22,7 @@ import re
 import math
 import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_SESSION = session()
 STAMP_FILE = os.path.join(BASE_DIR, 'current_stamp.pickle')
 HOURS = os.getenv('STAMP_HOURS') or '08:00-16:00'
@@ -187,12 +187,13 @@ def _determine_total_hours_worked_and_wage_earned(workdays):
 
 def _output_for_total_hours_date_and_wage(workday):
     days, hours, minutes, wage = _determine_total_hours_worked_and_wage_earned(workday)
-    output_total_hours = '%dh' % hours
     output_total_wage = '%d%s' % (wage, CURRENCY)
     if days:
         output_total_hours = '%dd' % days
-    if hours:
-        output_total_hours += ', %dh' % hours
+        if hours:
+            output_total_hours += ', %dh' % hours
+    else:
+        output_total_hours = '%dh' % hours
     if minutes:
         output_total_hours += ', %dm' % minutes
     # Add output date if the workday is not a list
