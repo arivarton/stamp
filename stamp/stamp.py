@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ##############################
 #
@@ -35,46 +35,6 @@ CURRENCY = os.getenv('STAMP_CURRENCY') or 'NKR'
 REPORT_DIR = os.getenv('STAMP_REPORT_DIR') or BASE_DIR
 
 
-def get_parser():
-    parser = argparse.ArgumentParser(description='''Register work hours.
-                                     Hours get automatically sorted by date, and
-                                     month is the default separator.''',
-                                     epilog='''By arivarton
-                                     (http://www.arivarton.com)''')
-    parser.add_argument('-t', '--tag', type=str, default=None,
-                        help='''Tag new or current (if already initalized)
-                        stamp with a comment. Marked with current time or
-                        time specified by the date argument.''')
-    parser.add_argument('-D', '--date', type=str, default=False,
-                        help='Set date manually.')
-    parser.add_argument('-T', '--time', type=str, default=False,
-                        help='''Set time manually. Use the keyword "current" to
-                        use current time instead of time specified by the HOURS
-                        variable.''')
-    parser.add_argument('-c', '--company', type=str, default=STANDARD_COMPANY,
-                        help='Set company to bill hours to.')
-    parser.add_argument('-s', '--status', action='store_true',
-                        help='Print current state of stamp.')
-    parser.add_argument('-E', '--export', action='store_true',
-                        help='Export as PDF.')
-    parser.add_argument('-f', '--filter', action='store_true',
-                        help='''Filter the output of status or pdf export. Use
-                        in combination with other arguments, f.ex status and company:
-                        "-s -f -c MyCompany"''')
-    parser.add_argument('-d', '--delete', type=int, default=None,
-                        help='Delete the specified id. To delete a tag inside a \
-                        workday, add the workday id and the tag parameter with \
-                        the tag id to delete. F.ex. "-d 3 -t 4".')
-    parser.add_argument('-e', '--edit', type=int, default=None,
-                        help='''Edit the specified id. To edit a tag inside a
-                        workday, add the workday id and the tag parameter width
-                        the tag id to edit. F.ex. "-d 3 -t 4". Make sure to add
-                        the tag to edit with the new content. F.ex. "-e 9 -c MyCompany"''')
-    parser.add_argument('-v', '--version', action='store_true',
-                        help='Display current version.')
-    return parser
-
-
 def _write_pickle(stamp):
     with open(STAMP_FILE, 'wb') as stamp_file:
         pickle.dump(stamp, stamp_file)
@@ -103,37 +63,36 @@ def _get_value_from_time_parameter(time):
 def _get_value_from_date_parameter(date):
     # Separate each part of date that user has put as argument
     # Argument could f.ex. look like this: 2017/02/20
-    year, month, day = re.findall(r"[\w]+", date)
+    year, month, day = re.findall(r"[\d]+", date)
     try:
         return datetime.date(datetime(int(year), int(month), int(day)))
     except ValueError as error:
         print('Error in --date parameter:\n', error)
 
 
-def _get_value_from_human_time(time):
-    _work_from, _work_to = re.findall(r"([\w]+).([\w]+)", time)
-    try:
-        work_from = datetime.time(datetime(1, 1, 1, int(_work_from[0]), int(_work_from[1])))
-        work_to = datetime.time(datetime(1, 1, 1, int(_work_to[0]), int(_work_to[1])))
-    except ValueError as error:
-        print('Error in set time.', error)
+def _get_time_values(time):
+    work_times = re.findall(r"([\d]+)[^\d]([\d]+)", time)
+    if len(work_times) > 2:
+        raise ValueError('Error in time parameter.')
+    elif len(work_times) == 1:
+        work_from = datetime.time(datetime(1, 1, 1, int(work_times[0][0]), int(work_times[0][1])))
+        work_to = datetime.time(datetime(1, 1, 1, int(work_times[1][0]), int(work_times[1][1])))
+    else:
+        work_from = datetime.time(datetime(1, 1, 1, int(work_times[0][0]), int(work_times[0][1])))
+        work_to = None
     return {'from': work_from, 'to': work_to}
 
 
 def _determine_time_and_date(time, date, stamp_status):
     if date:
         workdate = _get_value_from_date_parameter(date)
-    else:
-        workdate = datetime.now().date()
 
-    if time == 'current':
-        worktime = datetime.now().time()
-    elif time:
+    if time:
         worktime = _get_value_from_time_parameter(time)
     elif stamp_status == 'tag':
         worktime = datetime.now().time()
     else:
-        _stamp_hours = _get_value_from_human_time(HOURS)
+        _stamp_hours = _get_time_values(HOURS)
         if stamp_status == 'in':
             worktime = _stamp_hours['from']
         elif stamp_status == 'out':
@@ -219,9 +178,10 @@ def _query_db_for_workdays(workday_id=None, tag_id=None, args=None):
             else:
                 workdays = [DB_SESSION.query(Workday).get(workday_id)]
         else:
-            if args['filter']:
-                if args['company']:
-                    workdays = DB_SESSION.query(Workday).filter(Workday.company.ilike(args['company'])).order_by(Workday.start)
+            print(args)
+            if args.filter:
+                if args.company:
+                    workdays = DB_SESSION.query(Workday).filter(Workday.company.ilike(args.company)).order_by(Workday.start)
                 elif args['time'] and args['date']:
                     print('Not implemented yet')
                 elif args['date']:
@@ -248,7 +208,7 @@ def _edit_workday(args):
         if args['company']:
             workday.company = args['company']
         if args['time']:
-            _edit_time = _get_value_from_human_time(args['time'])
+            _edit_time = _get_time_values(args['time'])
             _stamped = _query_db_for_workdays(args['edit'])
             workday.start = datetime(_stamped[0].start.year, _stamped[0].start.month,
                                      _stamped[0].start.day, _edit_time['from'].hour,
@@ -264,6 +224,7 @@ def _print_current_stamp():
     if stamp is not None:
         print('\nCurrent stamp:')
         print('%s %s' % (stamp.start.date().isoformat(), stamp.start.time().isoformat()))
+        print('Company: %s' % stamp.company)
         print('Tags: %d' % len(stamp.tags.all()))
         for tag in stamp.tags:
             print('%d: %s %s' % (tag.id_under_workday, tag.recorded.time().isoformat(), tag.tag))
@@ -291,14 +252,17 @@ def _print_status(args):
     print('Total wage earned: %s' % output_total_wage)
 
 
-def _stamp_in(date, time, company):
+def _stamp_in(args):
+    date, time = _determine_time_and_date(args.time, args.date, 'in')
     stamp = Workday(start=datetime(date.year, date.month, date.day, time.hour, time.minute),
-                    company=company)
+                    company=args['company'])
     print('Stamped in at %s - %s' % (date.isoformat(), time.isoformat()))
     return stamp
 
 
-def _stamp_out(date, time, stamp):
+def _stamp_out(args):
+    stamp = _current_stamp()
+    date, time = _determine_time_and_date(args['time'], args['date'], 'out')
     stamp.end = datetime(date.year, date.month, date.day, time.hour, time.minute)
     DB_SESSION.add(stamp)
     DB_SESSION.commit()
@@ -312,33 +276,6 @@ def _tag_stamp(date, time, stamp, tag):
     stamp.tags.append(Tag(recorded=datetime(date.year, date.month, date.day, time.hour, time.minute),
                           tag=tag, id_under_workday=_id_under_workday))
     return stamp
-
-
-def _stamp_or_tag(args):
-    stamp = _current_stamp()
-
-    # Stamp out
-    if stamp is not None and args['tag'] is None:
-        if args['company'] is not STANDARD_COMPANY:
-            print('Company can only be set when stamping in')
-        date, time = _determine_time_and_date(args['time'], args['date'], 'out')
-        _stamp_out(date, time, stamp)
-    # Tag
-    elif stamp is not None and args['tag']:
-        if args['company'] is not STANDARD_COMPANY:
-            print('Company can only be set when stamping in')
-        date, time = _determine_time_and_date(args['time'], args['date'], 'tag')
-        stamp = _tag_stamp(date, time, stamp, args['tag'])
-        _write_pickle(stamp)
-    # Stamp in and tag if set
-    else:
-        date, time = _determine_time_and_date(args['time'], args['date'], 'in')
-        stamp = _stamp_in(date, time, args['company'])
-        if args['tag']:
-            stamp = _tag_stamp(date, time, stamp, args['tag'])
-        _write_pickle(stamp)
-
-    return
 
 
 def _create_pdf(args):
@@ -384,33 +321,135 @@ def _create_pdf(args):
     return
 
 
+def add(args):
+    stamp = _stamp_in(args)
+    _write_pickle(stamp)
+    return
+
+
+def end(args):
+    if args['company'] is not STANDARD_COMPANY:
+        print('Company can only be set when stamping in')
+    _stamp_out(args)
+    return
+
+
+def tag(args):
+    stamp = _current_stamp()
+    if args['company'] is not STANDARD_COMPANY:
+        print('Company can only be set when stamping in')
+    date, time = _determine_time_and_date(args['time'], args['date'], 'tag')
+    stamp = _tag_stamp(date, time, stamp, args['tag'])
+    _write_pickle(stamp)
+    return
+
+
+def status(args):
+    _print_status(args)
+    _print_current_stamp()
+    return
+
+
+def export(args):
+    _create_pdf(args)
+    return
+
+
+def delete(args):
+    _delete_workday_or_tag(args['delete'], args['tag'])
+    return
+
+
+# Edit only supports company for now
+def edit(args):
+    _edit_workday(args)
+    return
+
+
+def version():
+    print(__version__)
+    return
+
+
 def main():
-    parser = get_parser()
-    args = vars(parser.parse_args())
+    # [Main parser]
+    main_parser = argparse.ArgumentParser(description='''Register work hours.
+                                          Hours get automatically sorted by date, and
+                                          month is the default separator.''',
+                                          epilog='''By arivarton
+                                          (http://www.arivarton.com)''')
+    main_parser.add_argument('-v', '--version', action='store_true',
+                             help='Display current version.')
 
-    if args['version']:
-        print(__version__)
-        return
+    # [Parent paramaters]
 
-    if args['status']:
-        _print_status(args)
-        _print_current_stamp()
-        return
+    # Date parameters
+    date_parameters = argparse.ArgumentParser(add_help=False)
+    date_parameters.add_argument('-D', '--date', type=str, default=str(datetime.now().date()),
+                                 help='Set date manually. Default is now.')
+    date_parameters.add_argument('-T', '--time', type=str, default=str(datetime.now().time()).split('.')[0],
+                                 help='Set time manually. Default is now.')
 
-    if args['export']:
-        _create_pdf(args)
-        return
+    # Filter parameters
+    filter_parameters = argparse.ArgumentParser(add_help=False)
+    filter_parameters.add_argument('-f', '--filter', action='store_true',
+                                   help='''Filter the output of status or pdf export. Use
+                                   in combination with other arguments, f.ex status and company:
+                                   "status -f -c MyCompany"''')
 
-    # Edit only supports company for now
-    if args['edit']:
-        _edit_workday(args)
-        return
+    # [Subparsers]
+    subparsers = main_parser.add_subparsers()
 
-    if args['delete']:
-        _delete_workday_or_tag(args['delete'], args['tag'])
-        return
+    # Add parser
+    add_parser = subparsers.add_parser('add', help='''Add hours. If added with
+                                       two separate times and/or dates the stamp
+                                       will automaticall finish.''', parents=[date_parameters])
+    add_parser.add_argument('-c', '--company', type=str, default=STANDARD_COMPANY,
+                            help='Set company to bill hours to.')
+    add_parser.set_defaults(func=add)
 
-    _stamp_or_tag(args)
+    # End parser
+    end_parser = subparsers.add_parser('end', help='End current stamp.',
+                                       parents=[date_parameters])
+    end_parser.set_defaults(func=end)
+
+    # Tag parser
+    tag_parser = subparsers.add_parser('tag', help='Tag a stamp.', parents=[date_parameters])
+    tag_parser.set_defaults(func=tag)
+
+    # Status parser
+    status_parser = subparsers.add_parser('status', help='Show registered hours.',
+                                          parents=[filter_parameters])
+    status_parser.add_argument('-s', '--status', action='store_true',
+                               help='Print current state of stamp.')
+    status_parser.add_argument('-a', '--all', action='store_true',
+                               help='Show status of all registered days.')
+    status_parser.add_argument('-c', '--company', type=str,
+                               help='Filter on company.')
+    status_parser.set_defaults(func=status)
+
+    # Export parser
+    export_parser = subparsers.add_parser('export', help='Export hours to file.',
+                                          parents=[filter_parameters])
+    export_parser.add_argument('type', type=str, choices=['pdf'])
+    export_parser.set_defaults(func=export)
+
+    # Delete parser
+    delete_parser = subparsers.add_parser('delete')
+    delete_parser.add_argument('id', type=int)
+    delete_parser.add_argument('-t', '--tag', type=int)
+    delete_parser.set_defaults(func=delete)
+
+    # Edit parser
+    edit_parser = subparsers.add_parser('edit')
+    edit_parser.add_argument('id', type=int)
+    edit_parser.add_argument('-t', '--tag', type=int)
+    edit_parser.set_defaults(func=edit)
+
+    args = main_parser.parse_args()
+    print(args.time)
+    args.func(args)
+
 
 if __name__ == '__main__':
     main()
