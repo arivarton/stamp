@@ -83,23 +83,6 @@ def _get_time_values(time):
     return {'from': work_from, 'to': work_to}
 
 
-def _determine_time_and_date(time, date, stamp_status):
-    if date:
-        workdate = _get_value_from_date_parameter(date)
-
-    if time:
-        worktime = _get_value_from_time_parameter(time)
-    elif stamp_status == 'tag':
-        worktime = datetime.now().time()
-    else:
-        _stamp_hours = _get_time_values(HOURS)
-        if stamp_status == 'in':
-            worktime = _stamp_hours['from']
-        elif stamp_status == 'out':
-            worktime = _stamp_hours['to']
-    return workdate, worktime
-
-
 def _determine_total_hours_worked_and_wage_earned(workdays):
     # If workdays is an object (Workday) it must be put in a list
     try:
@@ -178,15 +161,14 @@ def _query_db_for_workdays(workday_id=None, tag_id=None, args=None):
             else:
                 workdays = [DB_SESSION.query(Workday).get(workday_id)]
         else:
-            print(args)
             if args.filter:
                 if args.company:
                     workdays = DB_SESSION.query(Workday).filter(Workday.company.ilike(args.company)).order_by(Workday.start)
-                elif args['time'] and args['date']:
+                elif args.time and args.date:
                     print('Not implemented yet')
-                elif args['date']:
+                elif args.date:
                     print('Not implemented yet')
-                elif args['time']:
+                elif args.time:
                     print('Not implemented yet')
             else:
                 workdays = DB_SESSION.query(Workday).order_by(Workday.start)
@@ -203,13 +185,13 @@ def _delete_workday_or_tag(workday_id, tag_id):
 
 
 def _edit_workday(args):
-    objects = _query_db_for_workdays(workday_id=args['edit'])
+    objects = _query_db_for_workdays(workday_id=args.edit)
     for workday in objects:
-        if args['company']:
-            workday.company = args['company']
-        if args['time']:
-            _edit_time = _get_time_values(args['time'])
-            _stamped = _query_db_for_workdays(args['edit'])
+        if args.company:
+            workday.company = args.company
+        if args.time:
+            _edit_time = _get_time_values(args.time)
+            _stamped = _query_db_for_workdays(args.edit)
             workday.start = datetime(_stamped[0].start.year, _stamped[0].start.month,
                                      _stamped[0].start.day, _edit_time['from'].hour,
                                      _edit_time['from'].minute)
@@ -222,12 +204,13 @@ def _edit_workday(args):
 def _print_current_stamp():
     stamp = _current_stamp()
     if stamp is not None:
-        print('\nCurrent stamp:')
+        print('\n\nCurrent stamp:')
         print('%s %s' % (stamp.start.date().isoformat(), stamp.start.time().isoformat()))
         print('Company: %s' % stamp.company)
-        print('Tags: %d' % len(stamp.tags.all()))
+        print('%d tag(s):' % len(stamp.tags.all()))
         for tag in stamp.tags:
-            print('%d: %s %s' % (tag.id_under_workday, tag.recorded.time().isoformat(), tag.tag))
+            print('\t[id: %d] [Tagged: %s | %s]\n\t%s' % (tag.id_under_workday, tag.recorded.date().isoformat(), tag.recorded.time().isoformat(), tag.tag))
+        print('')
     else:
         print('\nNot stamped in.')
 
@@ -243,9 +226,9 @@ def _print_status(args):
         print('%s-%s' % (workday.start.time().isoformat(),
                          workday.end.time().isoformat()))
         print('Hours: %s@%s' % (output_total_hours, output_total_wage))
-        print('Tags: %d' % len(workday.tags.all()))
+        print('%d tag(s)' % len(workday.tags.all()))
         for tag in workday.tags:
-            print('%d: %s %s' % (tag.id_under_workday, tag.recorded.time().isoformat(), tag.tag))
+            print('\t[id: %d] [Tagged: %s | %s]\n\t%s' % (tag.id_under_workday, tag.recorded.date().isoformat(), tag.recorded.time().isoformat(), tag.tag))
         print('--')
     output_total_hours, __, output_total_wage = _output_for_total_hours_date_and_wage(workdays)
     print('Total hours: %s' % output_total_hours)
@@ -253,29 +236,43 @@ def _print_status(args):
 
 
 def _stamp_in(args):
-    date, time = _determine_time_and_date(args.time, args.date, 'in')
-    stamp = Workday(start=datetime(date.year, date.month, date.day, time.hour, time.minute),
-                    company=args['company'])
-    print('Stamped in at %s - %s' % (date.isoformat(), time.isoformat()))
+    stamp = Workday(start=datetime(args.date.year,
+                                   args.date.month,
+                                   args.date.day,
+                                   args.time.hour,
+                                   args.time.minute),
+                    company=args.company)
+    print('Stamped in at %s - %s' % (args.date.isoformat(), args.time.isoformat()))
     return stamp
 
 
 def _stamp_out(args):
     stamp = _current_stamp()
-    date, time = _determine_time_and_date(args['time'], args['date'], 'out')
-    stamp.end = datetime(date.year, date.month, date.day, time.hour, time.minute)
+    stamp.end = datetime(args.date.year,
+                         args.date.month,
+                         args.date.day,
+                         args.time.hour,
+                         args.time.minute)
+    for tag in stamp.tags:
+        if tag.recorded > stamp.end:
+            raise Exception('''Tag with id %d has a recorded date/time that is
+                            newer than the stamp\'s end date. Please correct the
+                            recorded tag date/time.''' % tag.id_under_workday)
     DB_SESSION.add(stamp)
     DB_SESSION.commit()
     os.remove(STAMP_FILE)
-    print('Stamped out at %s - %s' % (date.isoformat(), time.isoformat()))
+    print('Stamped out at %s - %s' % (args.date.isoformat(), args.time.isoformat()))
     return
 
 
 def _tag_stamp(date, time, stamp, tag):
     _id_under_workday = len(stamp.tags.all()) + 1
-    stamp.tags.append(Tag(recorded=datetime(date.year, date.month, date.day, time.hour, time.minute),
-                          tag=tag, id_under_workday=_id_under_workday))
-    return stamp
+    if date < stamp.start.date() or time < stamp.start.time():
+        print('Tag (%s) must be set after the work day has started (%s).' % (date, stamp.start.date()))
+    else:
+        stamp.tags.append(Tag(recorded=datetime(date.year, date.month, date.day, time.hour, time.minute),
+                              tag=tag, id_under_workday=_id_under_workday))
+        return stamp
 
 
 def _create_pdf(args):
@@ -328,18 +325,13 @@ def add(args):
 
 
 def end(args):
-    if args['company'] is not STANDARD_COMPANY:
-        print('Company can only be set when stamping in')
     _stamp_out(args)
     return
 
 
 def tag(args):
     stamp = _current_stamp()
-    if args['company'] is not STANDARD_COMPANY:
-        print('Company can only be set when stamping in')
-    date, time = _determine_time_and_date(args['time'], args['date'], 'tag')
-    stamp = _tag_stamp(date, time, stamp, args['tag'])
+    stamp = _tag_stamp(args.date, args.time, stamp, args.tag)
     _write_pickle(stamp)
     return
 
@@ -356,7 +348,7 @@ def export(args):
 
 
 def delete(args):
-    _delete_workday_or_tag(args['delete'], args['tag'])
+    _delete_workday_or_tag(args.id, args.tag)
     return
 
 
@@ -385,9 +377,9 @@ def main():
 
     # Date parameters
     date_parameters = argparse.ArgumentParser(add_help=False)
-    date_parameters.add_argument('-D', '--date', type=str, default=str(datetime.now().date()),
-                                 help='Set date manually. Default is now.')
-    date_parameters.add_argument('-T', '--time', type=str, default=str(datetime.now().time()).split('.')[0],
+    date_parameters.add_argument('-D', '--date', type=lambda date: datetime.strptime(date, '%Y-%m-%d').date(), default=datetime.now().date(),
+                                 help='Set date manually. Format is \'YYYY-mm-dd\' Default is now.')
+    date_parameters.add_argument('-T', '--time', type=lambda time: datetime.strptime(time, '%H:%M').time(), default=datetime.now().time(),
                                  help='Set time manually. Default is now.')
 
     # Filter parameters
@@ -397,35 +389,40 @@ def main():
                                    in combination with other arguments, f.ex status and company:
                                    "status -f -c MyCompany"''')
 
+    # Company parameters
+    company_parameters = argparse.ArgumentParser(add_help=False)
+    company_parameters.add_argument('-c', '--company', type=str, default=STANDARD_COMPANY,
+                                    help='Set company to bill hours to.')
+
     # [Subparsers]
     subparsers = main_parser.add_subparsers()
 
     # Add parser
     add_parser = subparsers.add_parser('add', help='''Add hours. If added with
                                        two separate times and/or dates the stamp
-                                       will automaticall finish.''', parents=[date_parameters])
-    add_parser.add_argument('-c', '--company', type=str, default=STANDARD_COMPANY,
-                            help='Set company to bill hours to.')
+                                       will automaticall finish.''', parents=[date_parameters,
+                                                                              company_parameters])
     add_parser.set_defaults(func=add)
 
     # End parser
     end_parser = subparsers.add_parser('end', help='End current stamp.',
-                                       parents=[date_parameters])
+                                       parents=[date_parameters,
+                                                company_parameters])
     end_parser.set_defaults(func=end)
 
     # Tag parser
     tag_parser = subparsers.add_parser('tag', help='Tag a stamp.', parents=[date_parameters])
+    tag_parser.add_argument('tag', type=str)
     tag_parser.set_defaults(func=tag)
 
     # Status parser
     status_parser = subparsers.add_parser('status', help='Show registered hours.',
-                                          parents=[filter_parameters])
+                                          parents=[filter_parameters,
+                                                   company_parameters])
     status_parser.add_argument('-s', '--status', action='store_true',
                                help='Print current state of stamp.')
     status_parser.add_argument('-a', '--all', action='store_true',
                                help='Show status of all registered days.')
-    status_parser.add_argument('-c', '--company', type=str,
-                               help='Filter on company.')
     status_parser.set_defaults(func=status)
 
     # Export parser
@@ -435,7 +432,7 @@ def main():
     export_parser.set_defaults(func=export)
 
     # Delete parser
-    delete_parser = subparsers.add_parser('delete')
+    delete_parser = subparsers.add_parser('delete', help='Delete a registered worktime')
     delete_parser.add_argument('id', type=int)
     delete_parser.add_argument('-t', '--tag', type=int)
     delete_parser.set_defaults(func=delete)
@@ -447,7 +444,6 @@ def main():
     edit_parser.set_defaults(func=edit)
 
     args = main_parser.parse_args()
-    print(args.time)
     args.func(args)
 
 
