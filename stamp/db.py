@@ -36,6 +36,6 @@ def query_for_workdays(workday_id=None, tag_id=None, args=None):
 def current_stamp():
     try:
         stamp = DB_SESSION.query(Workday).filter(Workday.end.is_(None))[0]
-    except TypeError:
+    except IndexError:
         stamp = None
     return stamp

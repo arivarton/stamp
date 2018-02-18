@@ -175,7 +175,7 @@ def main():
 
     # Delete parser
     delete_parser = subparsers.add_parser('delete', help='Delete a registered worktime.')
-    delete_parser.add_argument('id', type=str, default='current', help='''Choose
+    delete_parser.add_argument('--id', type=str, default='current', help='''Choose
                                id to delete (or to delete tag under).
                                Default is to delete current stamp.''')
     delete_parser.add_argument('-t', '--tag', type=int, help='''Choose tag id to
