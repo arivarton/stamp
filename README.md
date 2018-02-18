@@ -71,3 +71,13 @@ Works but is not perfected
 - [ ] Config file.
 - [ ] Add to linux distribution package managers starting with Arch Linux.
 - [ ] Connect to git.
+
+
+## Database
+
+Workday | Tag
+--------|---------
+start (datetime) | recorded (datetime)
+end (datetime, default=None) | tag (string)
+company (string) | workday_id (ForeignKey to Workday id)
+tags (OneToMany relationship to Tag) | id_under_workday (integer acting as an id)
