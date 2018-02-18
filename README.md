@@ -65,8 +65,9 @@ Works but is not perfected
 
 
 ## Functionality to add
-- Trigger mail to customers with pdf invoice.
-- Add an boolean option to mark for paid or not paid.
-- Config file.
-- Add to linux distribution package managers starting with Arch Linux.
-- Connect to git.
+- [ ] Make filter work properly with status using the same options as editing.
+- [ ] Trigger mail to customers with pdf invoice.
+- [ ] Add an boolean option to mark for paid or not paid.
+- [ ] Config file.
+- [ ] Add to linux distribution package managers starting with Arch Linux.
+- [ ] Connect to git.
