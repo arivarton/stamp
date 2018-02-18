@@ -1,0 +1,2 @@
+class TagOutsideTimeBoundaryError(Exception):
+    pass

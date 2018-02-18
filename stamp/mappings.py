@@ -21,7 +21,7 @@ class Workday(Base):
 
     id = Column(Integer, primary_key=True)
     start = Column(DateTime)
-    end = Column(DateTime)
+    end = Column(DateTime, default=None)
     company = Column(String)
 
     tags = relationship('Tag', order_by='Tag.recorded', cascade='all, delete, delete-orphan',
@@ -37,6 +37,7 @@ class Tag(Base):
 
     workday_id = Column(ForeignKey('workday.id'))
     id_under_workday = Column(Integer)
+
 
 Base.metadata.create_all(engine)
 session = sessionmaker(bind=engine)
