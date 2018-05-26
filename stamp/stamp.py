@@ -15,15 +15,16 @@ from datetime import datetime
 import argparse
 import re
 
-from __init__ import __version__, STANDARD_COMPANY
-from add import stamp_in
-from end import stamp_out
-from edit import edit_regex_resolver, edit_workday
-from status import print_status, print_current_stamp
-from export import create_pdf
-from delete import delete_workday_or_tag
-from tag import tag_stamp
-from db import query_for_workdays, current_stamp
+from .__init__ import __version__
+from .settings import STANDARD_COMPANY
+from .add import stamp_in
+from .end import stamp_out
+from .edit import edit_regex_resolver, edit_workday
+from .status import print_status, print_current_stamp
+from .export import create_pdf
+from .delete import delete_workday_or_tag
+from .tag import tag_stamp
+from .db import query_for_workdays, current_stamp
 
 
 def _get_value_from_time_parameter(time):

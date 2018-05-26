@@ -1,6 +1,6 @@
 import math
 
-from __init__ import MINIMUM_HOURS, WAGE_PER_HOUR, CURRENCY
+from .settings import MINIMUM_HOURS, WAGE_PER_HOUR, CURRENCY
 
 
 def determine_total_hours_worked_and_wage_earned(workdays):

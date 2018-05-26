@@ -38,7 +38,8 @@ Not perfected yet
 
 ### Export to pdf
 `./stamp.py export`
-Works but is not perfected
+Works but is not perfected.
+Will save document to '~/.stamp/' if STAMP_REPORT_DIR environment variable is not set.
 
 
 ### Delete workday or tags

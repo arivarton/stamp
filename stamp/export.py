@@ -2,7 +2,7 @@ import os
 
 from reportlab.pdfgen import canvas
 
-from __init__ import REPORT_DIR, BASE_DIR
+from .settings import DATA_DIR, REPORT_DIR
 from db import query_for_workdays
 from helpers import output_for_total_hours_date_and_wage
 
@@ -44,7 +44,7 @@ def create_pdf(args):
     pdf.drawString(font_padding, height_placement, 'Total hours: %s' % (output_total_hours))
     height_placement -= font_size
     pdf.drawString(font_padding, height_placement, 'Total wage: %s' % (output_total_wage))
-    pdf.drawImage(os.path.join(BASE_DIR, 'logo.png'), width - 100, height - 110, width=100, height=100, mask=[0, 0, 0, 0, 0, 0])
+    pdf.drawImage(os.path.join(DATA_DIR, 'logo.png'), width - 100, height - 110, width=100, height=100, mask=[0, 0, 0, 0, 0, 0])
     pdf.showPage()
     pdf.save()
     return
