@@ -1,8 +1,7 @@
 import re
-from datetime import datetime
 
-from __init__ import DB_SESSION
-from db import query_for_workdays
+from . import DB_SESSION
+from .db import query_for_workdays
 
 
 def edit_regex_resolver(edit_string):

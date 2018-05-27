@@ -1,5 +1,5 @@
-from db import query_for_workdays, current_stamp
-from helpers import output_for_total_hours_date_and_wage
+from .db import query_for_workdays, current_stamp
+from .helpers import output_for_total_hours_date_and_wage
 
 
 def print_status(args):

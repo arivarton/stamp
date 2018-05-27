@@ -1,7 +1,7 @@
 from sqlalchemy.orm import exc
 
-from __init__ import DB_SESSION
-from mappings import Workday, Tag
+from . import DB_SESSION
+from .mappings import Workday, Tag
 
 
 def query_for_workdays(workday_id=None, tag_id=None, args=None):

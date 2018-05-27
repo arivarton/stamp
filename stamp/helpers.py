@@ -40,10 +40,10 @@ def determine_total_hours_worked_and_wage_earned(workdays):
         if total_hours >= 24:
             total_days += 1
             total_hours -= 24
-    # Add to wage
-    total_wage = ((total_days*24) * WAGE_PER_HOUR) + (total_hours * WAGE_PER_HOUR)
-    if minutes is 30:
-        total_wage += WAGE_PER_HOUR * 0.5
+        # Add to wage
+        total_wage = ((total_days*24) * WAGE_PER_HOUR) + (total_hours * WAGE_PER_HOUR)
+        if minutes is 30:
+            total_wage += WAGE_PER_HOUR * 0.5
     return total_days, total_hours, total_minutes, total_wage
 
 

@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from __init__ import DB_SESSION
-from db import current_stamp
+from . import DB_SESSION
+from .db import current_stamp
 
 
 def stamp_out(args):

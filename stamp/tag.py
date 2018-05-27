@@ -1,8 +1,8 @@
 from datetime import datetime
 
-from __init__ import DB_SESSION
-from mappings import Tag
-from exceptions import TagOutsideTimeBoundaryError
+from . import DB_SESSION
+from .mappings import Tag
+from .exceptions import TagOutsideTimeBoundaryError
 
 
 def tag_stamp(date, time, stamp, tag):

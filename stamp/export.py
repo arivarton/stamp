@@ -3,8 +3,8 @@ import os
 from reportlab.pdfgen import canvas
 
 from .settings import DATA_DIR, REPORT_DIR
-from db import query_for_workdays
-from helpers import output_for_total_hours_date_and_wage
+from .db import query_for_workdays
+from .helpers import output_for_total_hours_date_and_wage
 
 
 def create_pdf(args):
