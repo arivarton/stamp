@@ -15,7 +15,7 @@ def _create_stamp(args, stamp):
 
 def stamp_in(args):
     stamp = current_stamp()
-    preserved_message = 'Former stamp preserved.'
+    preserved_message = 'Former stamp preserved!'
     if stamp:
         try:
             user_choice = input('Already stamped in, do you wish to recreate the stamp with current date and time [Y/n]? ')
@@ -23,6 +23,7 @@ def stamp_in(args):
             user_choice = 'n'
             preserved_message = '\n' + preserved_message
         if user_choice.lower() in ['y', '']:
+            print('Overwriting current stamp!')
             stamp = _create_stamp(args, stamp)
         else:
             print(preserved_message)
@@ -30,6 +31,6 @@ def stamp_in(args):
         stamp = Workday(company=args.company)
         stamp = _create_stamp(args, stamp)
 
-    print('Stamp: %s - %s' % (stamp.start.date().isoformat(),
-                              stamp.start.time().isoformat()))
+    print('Stamped in at %s - %s' % (stamp.start.date().isoformat(),
+                                     stamp.start.time().isoformat()))
     return stamp

@@ -15,7 +15,7 @@ from datetime import datetime
 import argparse
 import re
 
-from .__init__ import __version__
+from . import __version__
 from .settings import STANDARD_COMPANY
 from .add import stamp_in
 from .end import stamp_out
@@ -198,8 +198,10 @@ def main():
     edit_parser.set_defaults(func=edit)
 
     args = main_parser.parse_args()
-    args.func(args)
-    main_parser.print_help()
+    if vars(args):
+        args.func(args)
+    else:
+        main_parser.print_help()
 
 
 if __name__ == '__main__':

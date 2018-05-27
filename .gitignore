@@ -82,6 +82,10 @@ celerybeat-schedule
 venv/
 ENV/
 
+# vagrant
+Vagrantfile
+.vagrant/
+
 # Spyder project settings
 .spyderproject
 
@@ -90,8 +94,10 @@ ENV/
 
 # Vim
 *.swp
+sessions/
 
 # App specific
 current_stamp.pickle
 workhours.db
+stamp.db
 *.pdf
