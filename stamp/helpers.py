@@ -1,6 +1,6 @@
 import math
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from . import DB_SESSION
 from .settings import MINIMUM_HOURS, WAGE_PER_HOUR, CURRENCY
@@ -12,53 +12,38 @@ def determine_total_hours_worked_and_wage_earned(workdays):
         workdays = list(workdays)
     except TypeError:
         workdays = [workdays]
-    total_days = 0
-    total_hours = 0
-    total_minutes = 0
+
+    total_time = timedelta()
     total_wage = 0
+
     for workday in workdays:
-        total = workday.end - workday.start
-        hours = total.seconds / 3600
-        total_days += total.days
-        # Rounds up hours
-        if round(hours) == math.ceil(hours):
-            minutes = 0
-        else:
-            minutes = 30
-        # If total work time is under MINIMUM_HOURS then set work time to
-        # MINIMUM_HOURS instead
-        if total.days is 0 and hours < MINIMUM_HOURS:
+        worktime = workday.end - workday.start
+        total_seconds = worktime.total_seconds()
+        hours = total_seconds // 3600
+        if hours < MINIMUM_HOURS:
             hours = MINIMUM_HOURS
-            total_hours += hours
-            minutes = 0
-        else:
-            hours = round(hours)
-            total_hours += hours
-        # Increment hour if minutes has passed 60
-        if minutes is 30 and total_minutes is 30:
-            total_hours += 1
-            total_minutes = 0
-        total_minutes = minutes
-        # Increment days if total hours has passed 23
-        if total_hours >= 24:
-            total_days += 1
-            total_hours -= 24
+            worktime = timedelta(hours=MINIMUM_HOURS)
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+
         # Add to wage
-        total_wage = ((total_days*24) * WAGE_PER_HOUR) + (total_hours * WAGE_PER_HOUR)
-        if minutes is 30:
+        total_wage += hours * WAGE_PER_HOUR
+        if minutes >= 15 and minutes < 45:
             total_wage += WAGE_PER_HOUR * 0.5
-    return total_days, total_hours, total_minutes, total_wage
+        elif minutes >= 45:
+            total_wage += WAGE_PER_HOUR * 1
+
+        total_time += worktime
+
+        print(minutes)
+
+    return total_time.total_seconds() // 3600, (total_time.total_seconds() % 3600) // 60, total_wage
 
 
 def output_for_total_hours_date_and_wage(workday):
-    days, hours, minutes, wage = determine_total_hours_worked_and_wage_earned(workday)
+    hours, minutes, wage = determine_total_hours_worked_and_wage_earned(workday)
     output_total_wage = '%d%s' % (wage, CURRENCY)
-    if days:
-        output_total_hours = '%dd' % days
-        if hours:
-            output_total_hours += ', %dh' % hours
-    else:
-        output_total_hours = '%dh' % hours
+    output_total_hours = '%dh' % hours
     if minutes:
         output_total_hours += ', %dm' % minutes
     # Add output date if the workday is not a list

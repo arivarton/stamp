@@ -16,7 +16,7 @@ def query_for_workdays(workday_id=None, tag_id=None, args=None):
         # Used with status or export argument
         else:
             # Query with filter
-            if args.filter:
+            if hasattr(args, 'filter') and args.filter:
                 if args.company:
                     workdays = DB_SESSION.query(Workday).filter(Workday.company is args.company).order_by(Workday.start)
                 elif args.time and args.date:
