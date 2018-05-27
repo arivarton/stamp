@@ -1,6 +1,8 @@
 import math
 
+from . import DB_SESSION
 from .settings import MINIMUM_HOURS, WAGE_PER_HOUR, CURRENCY
+from .mappings import Workday
 
 
 def determine_total_hours_worked_and_wage_earned(workdays):
@@ -70,3 +72,12 @@ def output_for_total_hours_date_and_wage(workday):
     except AttributeError:
         output_date = None
     return output_total_hours, output_date, output_total_wage
+
+
+def auto_correct_tag(tag):
+    stamp = DB_SESSION.query(Workday).filter(Workday.id.is_(tag.workday_id)).first()
+    if tag.recorded < stamp.start:
+        tag.recorded = stamp.start
+    elif stamp.end:
+        if tag.recorded > stamp.end:
+            tag.recorded = stamp.end
