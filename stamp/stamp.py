@@ -141,8 +141,8 @@ def main():
     # Add parser
     add_parser = subparsers.add_parser('add', help='''Add hours. If added with
                                        two separate times and/or dates the stamp
-                                       will automaticall finish.''', parents=[date_parameters,
-                                                                              company_parameters])
+                                       will automatically finish.''', parents=[date_parameters,
+                                                                               company_parameters])
     add_parser.set_defaults(func=add)
 
     # End parser
@@ -198,10 +198,8 @@ def main():
     edit_parser.set_defaults(func=edit)
 
     args = main_parser.parse_args()
-    try:
-        args.func(args)
-    except AttributeError:
-        main_parser.print_help()
+    args.func(args)
+    main_parser.print_help()
 
 
 if __name__ == '__main__':
