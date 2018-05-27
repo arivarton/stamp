@@ -1,6 +1,8 @@
 def yes_or_no(question,
-              no_message=None, no_function=None, no_function_args=(),
-              yes_message=None, yes_function=None, yes_function_args=()):
+              no_message=None,
+              no_function=None, no_function_args=(), no_function_kwargs={},
+              yes_message=None,
+              yes_function=None, yes_function_args=(), yes_function_kwargs={}):
     try:
         user_choice = input(question + ' [Y/n] ')
     except KeyboardInterrupt:
@@ -12,7 +14,7 @@ def yes_or_no(question,
         if yes_message:
             print(yes_message)
         if yes_function:
-            return yes_function(*yes_function_args)
+            return yes_function(*yes_function_args, **yes_function_kwargs)
         else:
             return None
 
@@ -20,6 +22,6 @@ def yes_or_no(question,
         if no_message:
             print(no_message)
         if no_function:
-            return no_function(*no_function_args)
+            return no_function(*no_function_args, **no_function_kwargs)
         else:
             return None

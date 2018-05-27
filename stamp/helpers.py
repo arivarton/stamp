@@ -1,8 +1,9 @@
 import math
+import sys
+from datetime import datetime
 
 from . import DB_SESSION
 from .settings import MINIMUM_HOURS, WAGE_PER_HOUR, CURRENCY
-from .mappings import Workday
 
 
 def determine_total_hours_worked_and_wage_earned(workdays):
@@ -74,10 +75,33 @@ def output_for_total_hours_date_and_wage(workday):
     return output_total_hours, output_date, output_total_wage
 
 
-def auto_correct_tag(tag):
-    stamp = DB_SESSION.query(Workday).filter(Workday.id.is_(tag.workday_id)).first()
+def auto_correct_tag(tag, stamp):
     if tag.recorded < stamp.start:
         tag.recorded = stamp.start
     elif stamp.end:
         if tag.recorded > stamp.end:
             tag.recorded = stamp.end
+    DB_SESSION.add(tag)
+
+    return True
+
+
+def manually_correct_tag(tag, stamp):
+    print('\nTag is recorded at: %s.' % tag.recorded.strftime('%Y-%m-%d %H:%M'))
+    print('Boundary is from %s to %s.\n' % (stamp.start.strftime('%Y-%m-%d %H:%M'), stamp.end.strftime('%Y-%m-%d %H:%M')))
+    while tag.recorded < stamp.start or tag.recorded > stamp.end:
+        try:
+            manual_time = datetime.strptime(input('Please input the new time and date for tag in this format YYYY-mm-dd HH:MM: '), '%Y-%m-%d %H:%M')
+            tag.recorded = manual_time
+        except KeyboardInterrupt:
+            print('Exiting...')
+            sys.exit(0)
+        except ValueError:
+            manual_time = None
+            print('Wrong format. Use this format: YYYY-mm-dd HH:MM')
+        if manual_time:
+            if manual_time < stamp.start or manual_time > stamp.end:
+                print('New time is still out of bounds... Try again!')
+            else:
+                DB_SESSION.add(tag)
+                return True
