@@ -10,10 +10,10 @@ from sqlalchemy import create_engine, exc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, sessionmaker
-from .settings import DATA_DIR
+from .settings import DATA_DIR, DB_FILE
 
-db_file = os.path.join(DATA_DIR, 'stamp.db')
-engine = create_engine('sqlite:///' + db_file)
+db_path = os.path.join(DATA_DIR, DB_FILE)
+engine = create_engine('sqlite:///' + db_path)
 Base = declarative_base()
 
 
