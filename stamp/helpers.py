@@ -37,8 +37,6 @@ def determine_total_hours_worked_and_wage_earned(workdays):
 
         total_time += timedelta(hours=hours, minutes=minutes)
 
-        print(minutes)
-
     return total_time.total_seconds() // 3600, (total_time.total_seconds() % 3600) // 60, total_wage
 
 
