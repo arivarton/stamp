@@ -1,4 +1,3 @@
-import math
 import sys
 from datetime import datetime, timedelta
 
@@ -17,12 +16,11 @@ def determine_total_hours_worked_and_wage_earned(workdays):
     total_wage = 0
 
     for workday in workdays:
-        worktime = workday.end - workday.start
-        total_seconds = worktime.total_seconds()
+        total_seconds = (workday.end - workday.start).total_seconds()
         hours = total_seconds // 3600
         if hours < MINIMUM_HOURS:
             hours = MINIMUM_HOURS
-            worktime = timedelta(hours=MINIMUM_HOURS)
+            minutes = 0
         minutes = (total_seconds % 3600) // 60
         seconds = total_seconds % 60
 
@@ -30,10 +28,14 @@ def determine_total_hours_worked_and_wage_earned(workdays):
         total_wage += hours * WAGE_PER_HOUR
         if minutes >= 15 and minutes < 45:
             total_wage += WAGE_PER_HOUR * 0.5
+            minutes = 30
         elif minutes >= 45:
             total_wage += WAGE_PER_HOUR * 1
+            minutes = 60
+        else:
+            minutes = 0
 
-        total_time += worktime
+        total_time += timedelta(hours=hours, minutes=minutes)
 
         print(minutes)
 
