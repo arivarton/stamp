@@ -8,7 +8,7 @@
 import os
 from sqlalchemy import create_engine, exc
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship, sessionmaker
 from .settings import DATA_DIR, DB_FILE
 
@@ -24,6 +24,7 @@ class Workday(Base):
     start = Column(DateTime)
     end = Column(DateTime, default=None)
     company = Column(String)
+    paid = Column(Boolean, default=False)
 
     tags = relationship('Tag', order_by='Tag.recorded', cascade='all, delete, delete-orphan',
                         lazy='dynamic')

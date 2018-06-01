@@ -24,8 +24,14 @@ def determine_total_hours_worked_and_wage_earned(workdays):
         minutes = (total_seconds % 3600) // 60
         seconds = total_seconds % 60
 
-        # Add to wage
+        # Add hours to wage
         total_wage += hours * WAGE_PER_HOUR
+
+        # Add minutes to wage
+        # Minutes logic:
+        # If worktime has not reached 15 minutes there will be no added wage.
+        # If minutes is between 15 and 44.59 there will be half an hour added.
+        # If minutes is 45+ there will be added an hour...
         if minutes >= 15 and minutes < 45:
             total_wage += WAGE_PER_HOUR * 0.5
             minutes = 30
