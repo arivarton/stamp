@@ -56,11 +56,7 @@ def output_for_total_hours_date_and_wage(workday):
     # If workday is a list, then it means total hours are being calculated
     # and the date is unneccesary
     try:
-        if workday.start.date() == workday.end.date():
-            output_date = workday.start.date().isoformat()
-        else:
-            output_date = '%s-%s' % (workday.start.date().isoformat(),
-                                     workday.end.date().isoformat())
+        output_date = workday.start.date().isoformat()
     except AttributeError:
         output_date = None
     return output_total_hours, output_date, output_total_wage
