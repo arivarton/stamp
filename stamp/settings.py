@@ -17,7 +17,7 @@ REPORT_DIR = os.path.expanduser(os.environ.get('STAMP_REPORT_DIR', DEFAULT_DIR))
 
 # User settings
 MINIMUM_HOURS = int(os.getenv('STAMP_MINIMUM_HOURS') or 2)
-HOURS = os.getenv('STAMP_HOURS') or '08:00-16:00'
+STANDARD_HOURS = os.getenv('STAMP_STANDARD_HOURS') or '08:00-16:00'
 LUNCH = os.getenv('STAMP_LUNCH') or '00:30'
 STANDARD_COMPANY = os.getenv('STAMP_STANDARD_COMPANY') or 'Not specified'
 STANDARD_PROJECT = os.getenv('STAMP_STANDARD_PROJECT') or 'Main project'

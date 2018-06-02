@@ -5,6 +5,15 @@ Stamp in before starting the workday, tag points in time with comments and stamp
 
 Hours are saved to a sqlite database and exportable to pdf.
 
+Environment variables:
+STAMP_MINIMUM_HOURS - Default: 2
+STAMP_STANDARD_HOURS - Default: 08:00-16:00
+STAMP_LUNCH - Default: 00:30
+STAMP_STANDARD_COMPANY - Default: Not specified
+STAMP_STANDARD_PROJECT - Default: Main project
+STAMP_WAGE_PER_HOUR - Default: 300
+STAMP_CURRENCY - Default: NKR
+
 # Install
 
 `python3 setup.py install`
@@ -13,7 +22,7 @@ Hours are saved to a sqlite database and exportable to pdf.
 
 ### Start worktime
 ##### With current time
-`stamp add -c 'Billed company'`
+`stamp add -c 'Billed company' -p 'My project'`
 ##### With modified time
 `stamp add -D 2013-03-03 -T 21:00`
 
