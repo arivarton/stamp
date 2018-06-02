@@ -5,7 +5,7 @@ Stamp in before starting the workday, tag points in time with comments and stamp
 
 Hours are saved to a sqlite database and exportable to pdf.
 
-Environment variables:
+Environment variables:  
 STAMP_MINIMUM_HOURS - Default: 2  
 STAMP_STANDARD_HOURS - Default: 08:00-16:00  
 STAMP_LUNCH - Default: 00:30  
