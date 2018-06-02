@@ -21,15 +21,16 @@ class Customer(Base):
     __tablename__ = 'customer'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String)
-    contact_person = Column(String, default=None)
-    org_nr = Column(String, default=None)
-    address = Column(String, default=None)
-    mail = Column(String, default=None)
-    phone = Column(String, default=None)
+    name = Column('Customer name', String, unique=True)
+    contact_person = Column('Contact person', String, default=None)
+    org_nr = Column('Organisation number', String, default=None)
+    address = Column('Address', String, default=None)
+    mail = Column('Invoice e-mail', String, default=None)
+    phone = Column('Phone number', String, default=None)
 
     workdays = relationship('Workday', order_by='Workday.start',
-                            cascade='all, delete, delete-orphan', lazy='dynamic')
+                            cascade='all, delete, delete-orphan', lazy='dynamic',
+                            backref='customer')
     projects = relationship('Project', order_by='Project.id',
                             cascade='all, delete, delete-orphan', lazy='dynamic')
 
@@ -38,13 +39,12 @@ class Project(Base):
     __tablename__ = 'project'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String)
-    link = Column(String)
+    name = Column('Project name', String)
+    link = Column('Project url', String, default=None)
 
     customer_id = Column(ForeignKey('customer.id'))
 
-    workdays = relationship('Workday', order_by='Workday.start',
-                            cascade='all, delete, delete-orphan', lazy='dynamic')
+    workdays = relationship('Workday', order_by='Workday.start', lazy='dynamic')
 
 
 class Workday(Base):
@@ -53,7 +53,6 @@ class Workday(Base):
     id = Column(Integer, primary_key=True)
     start = Column(DateTime)
     end = Column(DateTime, default=None)
-    company = Column(String)
     paid = Column(Boolean, default=False)
 
     project_id = Column(ForeignKey('project.id'))

@@ -9,26 +9,26 @@ def print_status(args):
 
     # Headlines
     date_headline = 'Date'
-    company_headline = 'Company'
+    customer_headline = 'Customer'
     from_headline = 'From'
     to_headline = 'To'
 
     # Width for columns
     date_width = max(len(workdays.first().start.date().isoformat()), len(date_headline)) + 3
-    company_width = max(len(max([x.company for x in workdays.all()], key=len)), len(company_headline)) + 4
+    customer_width = max(len(max([x.customer.name for x in workdays.all()], key=len)), len(customer_headline)) + 4
     from_width = max(len(workdays.first().start.strftime(time_format)), len(from_headline))
     to_width = max(len(workdays.first().end.strftime(time_format)), len(to_headline))
     id_width = len(max([str(x.id) for x in workdays.all()], key=len)) + 2
 
     # Header
-    print('{0:<{id_width}} {1:<{date_width}} {2:<{company_width}} {3:<{from_width}}   {4:<{to_width}}'.format(
+    print('{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{from_width}}   {4:<{to_width}}'.format(
         '',
         date_headline,
-        company_headline,
+        customer_headline,
         from_headline,
         to_headline,
         date_width=date_width,
-        company_width=company_width,
+        customer_width=customer_width,
         from_width=from_width,
         to_width=to_width,
         id_width=id_width,
@@ -37,16 +37,16 @@ def print_status(args):
     # Output for each day
     for workday in workdays:
         output_total_hours, output_date, output_total_wage = output_for_total_hours_date_and_wage(workday)
-        print('{0:<{id_width}} {1:<{date_width}} {2:<{company_width}} {3:<{from_width}} - {4:<{to_width}} {5:_>30}'.format(
+        print('{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{from_width}} - {4:<{to_width}} {5:_>30}'.format(
             workday.id,
             output_date,
-            workday.company,
+            workday.customer.name,
             workday.start.strftime(time_format),
             workday.end.strftime(time_format),
             output_total_hours + ' for ' + output_total_wage,
 
             date_width=date_width,
-            company_width=company_width,
+            customer_width=customer_width,
             from_width=from_width,
             to_width=to_width,
             id_width=id_width,

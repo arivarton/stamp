@@ -20,5 +20,6 @@ MINIMUM_HOURS = int(os.getenv('STAMP_MINIMUM_HOURS') or 2)
 HOURS = os.getenv('STAMP_HOURS') or '08:00-16:00'
 LUNCH = os.getenv('STAMP_LUNCH') or '00:30'
 STANDARD_COMPANY = os.getenv('STAMP_STANDARD_COMPANY') or 'Not specified'
+STANDARD_PROJECT = os.getenv('STAMP_STANDARD_PROJECT') or 'Main project'
 WAGE_PER_HOUR = int(os.getenv('STAMP_WAGE_PER_HOUR') or 300)
 CURRENCY = os.getenv('STAMP_CURRENCY') or 'NKR'

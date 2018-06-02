@@ -16,7 +16,7 @@ import argparse
 import re
 
 from . import __version__
-from .settings import STANDARD_COMPANY
+from .settings import STANDARD_COMPANY, STANDARD_PROJECT
 from .add import stamp_in
 from .end import stamp_out
 from .edit import edit_regex_resolver, edit_workday
@@ -135,6 +135,11 @@ def main():
     company_parameters.add_argument('-c', '--company', type=str, default=STANDARD_COMPANY,
                                     help='Set company to bill hours to.')
 
+    # Project parameters
+    project_parameters = argparse.ArgumentParser(add_help=False)
+    project_parameters.add_argument('-p', '--project', type=str, default=STANDARD_PROJECT,
+                                    help='Set the project to add hours to.')
+
     # [Subparsers]
     subparsers = main_parser.add_subparsers()
 
@@ -142,13 +147,13 @@ def main():
     add_parser = subparsers.add_parser('add', help='''Add hours. If added with
                                        two separate times and/or dates the stamp
                                        will automatically finish.''', parents=[date_parameters,
-                                                                               company_parameters])
+                                                                               company_parameters,
+                                                                               project_parameters])
     add_parser.set_defaults(func=add)
 
     # End parser
     end_parser = subparsers.add_parser('end', help='End current stamp.',
-                                       parents=[date_parameters,
-                                                company_parameters])
+                                       parents=[date_parameters])
     end_parser.set_defaults(func=end)
 
     # Tag parser
@@ -161,7 +166,8 @@ def main():
     # Status parser
     status_parser = subparsers.add_parser('status', help='Show registered hours.',
                                           parents=[filter_parameters,
-                                                   company_parameters])
+                                                   company_parameters,
+                                                   project_parameters])
     status_parser.add_argument('-s', '--status', action='store_true',
                                help='Print current state of stamp.')
     status_parser.add_argument('-a', '--all', action='store_true',

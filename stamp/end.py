@@ -18,7 +18,7 @@ def stamp_out(args):
                       no_message='Not auto correcting tags!',
                       no_function=yes_or_no,
                       no_function_args=('Do you wish to manually edit the tag?',),
-                      no_function_kwargs={'no_message': 'Exiting...',
+                      no_function_kwargs={'no_message': 'Canceling...',
                                           'no_function': sys.exit,
                                           'no_function_args': (0,),
                                           'yes_function': manually_correct_tag,
