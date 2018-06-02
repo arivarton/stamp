@@ -17,6 +17,36 @@ engine = create_engine('sqlite:///' + db_path)
 Base = declarative_base()
 
 
+class Customer(Base):
+    __tablename__ = 'customer'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    contact_person = Column(String, default=None)
+    org_nr = Column(String, default=None)
+    address = Column(String, default=None)
+    mail = Column(String, default=None)
+    phone = Column(String, default=None)
+
+    workdays = relationship('Workday', order_by='Workday.start',
+                            cascade='all, delete, delete-orphan', lazy='dynamic')
+    projects = relationship('Project', order_by='Project.id',
+                            cascade='all, delete, delete-orphan', lazy='dynamic')
+
+
+class Project(Base):
+    __tablename__ = 'project'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    link = Column(String)
+
+    customer_id = Column(ForeignKey('customer.id'))
+
+    workdays = relationship('Workday', order_by='Workday.start',
+                            cascade='all, delete, delete-orphan', lazy='dynamic')
+
+
 class Workday(Base):
     __tablename__ = 'workday'
 
@@ -26,8 +56,11 @@ class Workday(Base):
     company = Column(String)
     paid = Column(Boolean, default=False)
 
-    tags = relationship('Tag', order_by='Tag.recorded', cascade='all, delete, delete-orphan',
-                        lazy='dynamic')
+    project_id = Column(ForeignKey('project.id'))
+    customer_id = Column(ForeignKey('customer.id'))
+
+    tags = relationship('Tag', order_by='Tag.recorded',
+                        cascade='all, delete, delete-orphan', lazy='dynamic')
 
 
 class Tag(Base):

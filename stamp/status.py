@@ -34,6 +34,7 @@ def print_status(args):
         id_width=id_width,
         ))
 
+    # Output for each day
     for workday in workdays:
         output_total_hours, output_date, output_total_wage = output_for_total_hours_date_and_wage(workday)
         print('{0:<{id_width}} {1:<{date_width}} {2:<{company_width}} {3:<{from_width}} - {4:<{to_width}} {5:_>30}'.format(
@@ -50,6 +51,8 @@ def print_status(args):
             to_width=to_width,
             id_width=id_width,
         ))
+
+    # Total
     output_total_hours, __, output_total_wage = output_for_total_hours_date_and_wage(workdays)
     print('\nTotal hours: %s' % output_total_hours)
     print('Total wage earned: %s' % output_total_wage)
