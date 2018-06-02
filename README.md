@@ -13,28 +13,28 @@ Hours are saved to a sqlite database and exportable to pdf.
 
 ### Start worktime
 ##### With current time
-`stamp.py add -c 'Billed company'`
+`stamp add -c 'Billed company'`
 ##### With modified time
-`stamp.py add -D 2013-03-03 -T 21:00`
+`stamp add -D 2013-03-03 -T 21:00`
 
 
 ### Tag a point in time
 ##### With current time
-`stamp.py tag 'My message for the tag'`
+`stamp tag 'My message for the tag'`
 ##### With modified time
-`stamp.py tag 'My message for the tag' -D 2013-03-03 -T 21:00`
+`stamp tag 'My message for the tag' -D 2013-03-03 -T 21:00`
 
 
 ### End worktime
 ##### With current time
-`stamp.py end`
+`stamp end`
 ##### With modified time
-`stamp.py end -D 2013-03-03 -T 21:00`
+`stamp end -D 2013-03-03 -T 21:00`
 
 
 ### Get status of registered and current hours
 ##### Get status of all registered hours
-`stamp.py status`
+`stamp status`
 ##### Get status with filter
 Not implemented properly yet.
 
@@ -45,25 +45,25 @@ Not implemented properly yet.
 
 ### Delete workday or tags
 ##### Delete workday
-`stamp.py delete --id 15`
+`stamp delete --id 15`
 ##### Delete tag under workday
-`stamp.py delete --id 15 --tag 3`
+`stamp delete --id 15 --tag 3`
 
 
 ### Edit registered or current hours
 ##### Edit registered hours
-`stamp.py edit --id 15 'company="My second customer",date="2015-02-02"'`
+`stamp edit --id 15 'company="My second customer",date="2015-02-02"'`
 ##### Edit current hours (just remove the id argument)
-`stamp.py edit 'company="My second customer",date="2015-02-02"'`
+`stamp edit 'company="My second customer",date="2015-02-02"'`
 ##### It is also possible to explicitly declare current hours
-`stamp.py edit --id 'current' 'company="My second customer",date="2015-02-02"'`
+`stamp edit --id 'current' 'company="My second customer",date="2015-02-02"'`
 
 
 ### Edit tags
 ##### Edit registered tag
-`stamp.py edit --id 15 -t 1 'comment="This is my tag",date="2015-02-02"'`
+`stamp edit --id 15 -t 1 'comment="This is my tag",date="2015-02-02"'`
 ##### Edit tag under current workday (just remove the id argument)
-`stamp.py edit -t 1 'comment="This is my tag",date="2015-02-02"'`
+`stamp edit -t 1 'comment="This is my tag",date="2015-02-02"'`
 
 
 ## Functionality to add
