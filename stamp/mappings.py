@@ -6,6 +6,7 @@
 ##############################
 
 import os
+from datetime import datetime
 from sqlalchemy import create_engine, exc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
@@ -44,7 +45,18 @@ class Project(Base):
 
     customer_id = Column(ForeignKey('customer.id'))
 
-    workdays = relationship('Workday', order_by='Workday.start', lazy='dynamic')
+    workdays = relationship('Workday', order_by='Workday.start', lazy='dynamic',
+                            backref='project')
+
+
+class Invoice(Base):
+    __tablename__ = 'invoice'
+
+    id = Column(Integer, primary_key=True)
+    created = Column(DateTime, default=datetime.now())
+
+    workdays = relationship('Workday', order_by='Workday.start',
+                            backref='invoice')
 
 
 class Workday(Base):
@@ -55,8 +67,9 @@ class Workday(Base):
     end = Column(DateTime, default=None)
     paid = Column(Boolean, default=False)
 
-    project_id = Column(ForeignKey('project.id'))
     customer_id = Column(ForeignKey('customer.id'))
+    project_id = Column(ForeignKey('project.id'))
+    invoice_id = Column(ForeignKey('invoice.id'), default=None)
 
     tags = relationship('Tag', order_by='Tag.recorded',
                         cascade='all, delete, delete-orphan', lazy='dynamic')
