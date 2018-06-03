@@ -3,9 +3,10 @@ Register work hours in cli.
 
 Stamp in before starting the workday, tag points in time with comments and stamp out when workday is over.
 
-Hours are saved to a sqlite database and exportable to pdf.
+Hours are saved to a sqlite database and exportable to pdf.  
 
-Environment variables:  
+
+# Environment variables
 
 Name | Default value
 -----|-----
