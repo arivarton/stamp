@@ -1,5 +1,6 @@
 import os
 
+
 # Directories
 DEFAULT_DIR = os.path.join(os.environ.get('HOME'), '.stamp')
 CONFIG_DIR = os.path.join(os.environ.get('XDG_CONFIG_HOME',
@@ -19,7 +20,7 @@ REPORT_DIR = os.path.expanduser(os.environ.get('STAMP_REPORT_DIR', DEFAULT_DIR))
 MINIMUM_HOURS = int(os.getenv('STAMP_MINIMUM_HOURS') or 2)
 STANDARD_HOURS = os.getenv('STAMP_STANDARD_HOURS') or '08:00-16:00'
 LUNCH = os.getenv('STAMP_LUNCH') or '00:30'
-STANDARD_COMPANY = os.getenv('STAMP_STANDARD_COMPANY') or 'Not specified'
-STANDARD_PROJECT = os.getenv('STAMP_STANDARD_PROJECT') or 'Main project'
+STANDARD_CUSTOMER = os.getenv('STAMP_STANDARD_CUSTOMER') or None
+STANDARD_PROJECT = os.getenv('STAMP_STANDARD_PROJECT') or None
 WAGE_PER_HOUR = int(os.getenv('STAMP_WAGE_PER_HOUR') or 300)
 CURRENCY = os.getenv('STAMP_CURRENCY') or 'NKR'

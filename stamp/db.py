@@ -4,6 +4,7 @@ from sqlalchemy.orm import exc
 
 from . import DB_SESSION
 from .mappings import Workday, Tag, Customer
+from .exceptions import NoMatchingDatabaseEntryError
 
 
 def query_for_workdays(workday_id=None, tag_id=None, args=None):
@@ -55,4 +56,16 @@ def db_entry_exists(Table, column_name, search_string):
         sys.exit(0)
     else:
         # [TODO] Log that no matching database entries were found
-        return None
+        _err_msg = 'No matching database entry found with search string: %s' % search_string
+        print(_err_msg)
+        raise NoMatchingDatabaseEntryError(_err_msg)
+
+
+def get_last_workday_entry(*args):
+    _result = DB_SESSION.query(Workday).order_by(Workday.id).first()
+    if not _result:
+        raise NoMatchingDatabaseEntryError('No matching database entry found with args: %s' % '.'.join(args))
+    else:
+        for attr in args:
+            _result = getattr(_result, attr)
+        return _result

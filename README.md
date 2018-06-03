@@ -9,7 +9,7 @@ Environment variables:
 STAMP_MINIMUM_HOURS - Default: 2  
 STAMP_STANDARD_HOURS - Default: 08:00-16:00  
 STAMP_LUNCH - Default: 00:30  
-STAMP_STANDARD_COMPANY - Default: Not specified  
+STAMP_STANDARD_CUSTOMER - Default: Last customer from DB OR create new customer
 STAMP_STANDARD_PROJECT - Default: Main project  
 STAMP_WAGE_PER_HOUR - Default: 300  
 STAMP_CURRENCY - Default: NKR  

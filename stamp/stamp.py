@@ -16,7 +16,7 @@ import argparse
 import re
 
 from . import __version__
-from .settings import STANDARD_COMPANY, STANDARD_PROJECT
+from .settings import STANDARD_CUSTOMER, STANDARD_PROJECT
 from .add import stamp_in
 from .end import stamp_out
 from .edit import edit_regex_resolver, edit_workday
@@ -132,7 +132,7 @@ def main():
 
     # Company parameters
     company_parameters = argparse.ArgumentParser(add_help=False)
-    company_parameters.add_argument('-c', '--company', type=str, default=STANDARD_COMPANY,
+    company_parameters.add_argument('-c', '--company', type=str, default=STANDARD_CUSTOMER,
                                     help='Set company to bill hours to.')
 
     # Project parameters
