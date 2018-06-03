@@ -6,8 +6,9 @@ Stamp in before starting the workday, tag points in time with comments and stamp
 Hours are saved to a sqlite database and exportable to pdf.
 
 Environment variables:  
+
 Name | Default value
---------|--------
+-----|-----
 STAMP_MINIMUM_HOURS | 2  
 STAMP_STANDARD_HOURS | 08:00-16:00  
 STAMP_LUNCH | 00:30  
@@ -84,3 +85,13 @@ Not implemented properly yet.
 - [ ] Config file.
 - [ ] Add to linux distribution package managers starting with Arch Linux.
 - [ ] Connect to git.
+
+
+## Database
+
+Workday | Tag
+--------|---------
+start (datetime) | recorded (datetime)
+end (datetime, default=None) | tag (string)
+company (string) | workday_id (ForeignKey to Workday id)
+tags (OneToMany relationship to Tag) | id_under_workday (integer acting as an id)
