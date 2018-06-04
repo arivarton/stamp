@@ -3,7 +3,7 @@ from datetime import datetime
 
 from .exceptions import NoMatchingDatabaseEntryError
 from .mappings import Workday, Project, Customer
-from .db import current_stamp, db_entry_exists, get_last_workday_entry
+from .db import current_stamp, get_one_db_entry, get_last_workday_entry
 from .pprint import yes_or_no
 from . import DB_SESSION
 
@@ -75,10 +75,11 @@ def stamp_in(args):
     else:
         try:
             if args.company:
-                customer_id = db_entry_exists(Customer, 'name', args.company)
+                customer_id = get_one_db_entry(Customer, 'name', args.company).id
             else:
                 customer_id = get_last_workday_entry('customer', 'id')
-        except NoMatchingDatabaseEntryError:
+        except NoMatchingDatabaseEntryError as _err_msg:
+            print(_err_msg)
             __ = yes_or_no('Do you wish to create a new customer?',
                            no_message='Canceling...',
                            no_function=sys.exit,
@@ -86,16 +87,16 @@ def stamp_in(args):
                            yes_message='Creating database entry!',
                            yes_function=create_customer,
                            yes_function_args=(args.company,))
-            customer_id = __.id
 
-        _workday = Workday(customer_id=customer_id)
+            customer_id = __.id
 
         try:
             if args.project:
-                project_id = db_entry_exists(Project, 'name', args.project)
+                project_id = get_one_db_entry(Project, 'name', args.project).id
             else:
                 project_id = get_last_workday_entry('project', 'id')
-        except NoMatchingDatabaseEntryError:
+        except NoMatchingDatabaseEntryError as _err_msg:
+            print(_err_msg)
             __ = yes_or_no('Do you wish to create a new project?', # NOQA
                            no_message='Canceling...',
                            no_function=sys.exit,
@@ -104,9 +105,10 @@ def stamp_in(args):
                            yes_function=create_project,
                            yes_function_args=(customer_id,),
                            yes_function_kwargs={'project_name': args.project})
+
             project_id = __.id
 
-        _workday.project_id = project_id
+        _workday = Workday(customer_id=customer_id, project_id=project_id)
 
         stamp = _create_stamp(args, _workday)
 

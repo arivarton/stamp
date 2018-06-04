@@ -44,28 +44,53 @@ def current_stamp():
     return stamp
 
 
-def db_entry_exists(Table, column_name, search_string):
-    _filter = getattr(Table, column_name)
-    _filter = _filter.is_(search_string)
-    _query = DB_SESSION.query(Table).filter(_filter)
-    if _query.count() == 1:
-        return _query.first().id
-    elif _query.count() > 1:
+def query_db_export_filter(Table, export_filter):
+    table = eval(Table) # NOQA
+    query = DB_SESSION.query(table)
+    for key, value in export_filter.items():
+        query = query.filter(value['op_func'](getattr(table, key), value['value']))
+        if not query.count():
+            raise NoMatchingDatabaseEntryError('No matching database entry found with search string: %s' % value['value'])
+
+    return query.all()
+
+
+def query_db(Table, column_name, search_string):
+    table = eval(Table) # NOQA
+    db_filter = getattr(table, column_name)
+    db_filter = db_filter.is_(search_string)
+
+    return DB_SESSION.query(table).filter(db_filter)
+
+
+def get_db_entries(Table, column_name, search_string):
+    query = query_db(Table, column_name, search_string)
+
+    if query.count():
+        return query.all()
+    else:
+        raise NoMatchingDatabaseEntryError('No matching database entry found with search string: %s' % search_string)
+
+
+def get_one_db_entry(Table, column_name, search_string):
+    query = query_db(Table, column_name, search_string)
+
+    if query.count() == 1:
+        return query.first()
+    elif query.count() > 1:
         print('Several database entries found matching', search_string + '!')
         print('Canceling...')
         sys.exit(0)
     else:
         # [TODO] Log that no matching database entries were found
-        _err_msg = 'No matching database entry found with search string: %s' % search_string
-        print(_err_msg)
-        raise NoMatchingDatabaseEntryError(_err_msg)
+        raise NoMatchingDatabaseEntryError('No matching database entry found with search string: %s' % search_string)
 
 
 def get_last_workday_entry(*args):
-    _result = DB_SESSION.query(Workday).order_by(Workday.id).first()
-    if not _result:
+    query = DB_SESSION.query(Workday).order_by(Workday.id).first()
+    if not query:
         raise NoMatchingDatabaseEntryError('No matching database entry found with args: %s' % '.'.join(args))
     else:
         for attr in args:
-            _result = getattr(_result, attr)
-        return _result
+            query = getattr(query, attr)
+        return query

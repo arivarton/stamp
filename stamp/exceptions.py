@@ -8,3 +8,11 @@ class TagOutsideTimeBoundaryError(StampError):
 
 class NoMatchingDatabaseEntryError(StampError):
     pass
+
+
+class TooManyMatchesError(StampError):
+    pass
+
+
+class ArgumentError(StampError):
+    pass

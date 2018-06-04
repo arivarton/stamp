@@ -177,7 +177,10 @@ def main():
     # Export parser
     export_parser = subparsers.add_parser('export', help='Export hours to file.',
                                           parents=[filter_parameters])
-    export_parser.add_argument('type', type=str, choices=['pdf'])
+    export_parser.add_argument('month', type=str)
+    export_parser.add_argument('year', type=str)
+    export_parser.add_argument('customer', type=str, nargs='?')
+    export_parser.add_argument('project', type=str, nargs='?')
     export_parser.set_defaults(func=export)
 
     # Delete parser
