@@ -5,9 +5,13 @@ import operator
 
 from datetime import datetime, timedelta
 
-from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Spacer, Table
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
 
-from .settings import FILE_DIR, REPORT_DIR
+from .settings import (REPORT_DIR, ORG_NR, FILE_DIR, COMPANY_NAME, COMPANY_ADDRESS,
+                       COMPANY_ZIP_CODE, MAIL, PHONE)
 from .db import get_one_db_entry, query_db_export_filter
 from .exceptions import TooManyMatchesError, ArgumentError, NoMatchingDatabaseEntryError
 from .helpers import output_for_total_hours_date_and_wage
@@ -75,41 +79,89 @@ def create_pdf(args):
 
     output_filename = os.path.join(REPORT_DIR, 'report.pdf')
 
-    # A4 paper, 210mm*297mm displayed on a 96dpi monitor
-    width = 210 / 25.4 * 96
-    height = 297 / 25.4 * 96
+    # Document settings
+    PAGE_HEIGHT = A4[1]
+    PAGE_WIDTH = A4[0]
+    logo_file = os.path.join(FILE_DIR, 'logo.png')
+    invoice_date = datetime.now()
+    maturity_date = datetime.now() + timedelta(days=60)
+    delivery_date = datetime.now()
+    company_info_start_height = PAGE_HEIGHT - 20
+    company_info_start_width = 50
+    company_info2_start_height = PAGE_HEIGHT - 130
+    company_info2_start_width = 50
+    invoice_start_height = 130
+    invoice_start_width = PAGE_WIDTH - 150
 
-    pdf = canvas.Canvas(output_filename, pagesize=(width, height))
-    pdf.setStrokeColorRGB(0, 0, 0)
-    pdf.setFillColorRGB(0, 0, 0)
-    font_size = 12
-    font_padding = 20
-    pdf.setFont("Helvetica", font_size)
-    height_placement = height - font_size
+    def myFirstPage(canvas, doc):
+        canvas.saveState()
+        if os.path.isfile(logo_file):
+            canvas.drawImage(logo_file, PAGE_WIDTH - 60, company_info_start_height - 30, width=40, height=40, mask=[0, 0, 0, 0, 0, 0],
+                             preserveAspectRatio=True)
+
+        # Sellers company info
+        canvas.setFont('Times-Bold', 12)
+        canvas.drawString(company_info_start_width, company_info_start_height, COMPANY_NAME)
+        canvas.setFont('Times-Bold', 9)
+        canvas.drawString(company_info_start_width, company_info_start_height - 37, "Org nr:")
+        canvas.drawString(company_info_start_width, company_info_start_height - 48, "Epost:")
+        canvas.drawString(company_info_start_width, company_info_start_height - 59, "Tlf:")
+        canvas.setFont('Times-Roman', 9)
+        canvas.drawString(company_info_start_width, company_info_start_height - 10, COMPANY_ADDRESS)
+        canvas.drawString(company_info_start_width, company_info_start_height - 21, COMPANY_ZIP_CODE)
+        canvas.drawString(company_info_start_width + 50, company_info_start_height - 37, ORG_NR)
+        canvas.drawString(company_info_start_width + 50, company_info_start_height - 48, MAIL)
+        canvas.drawString(company_info_start_width + 50, company_info_start_height - 59, PHONE)
+
+        # Buyers company info
+        canvas.setFont('Times-Bold', 12)
+        canvas.drawString(company_info2_start_width, company_info2_start_height,
+                          workdays[0].customer.name)
+        canvas.setFont('Times-Roman', 9)
+        canvas.drawString(company_info2_start_width, company_info2_start_height - 10, 'Klepp stasjon')
+        canvas.drawString(company_info2_start_width, company_info2_start_height - 21, '4353')
+
+        # Invoice
+        canvas.setFont('Times-Bold', 14)
+        canvas.drawString(invoice_start_width, PAGE_HEIGHT-invoice_start_height, "Faktura")
+        canvas.setFont('Times-Bold', 9)
+        canvas.drawString(invoice_start_width, PAGE_HEIGHT-(invoice_start_height + 15), "Kunde nr:")
+        canvas.drawString(invoice_start_width, PAGE_HEIGHT-(invoice_start_height + 26), "Faktura nr:")
+        canvas.drawString(invoice_start_width, PAGE_HEIGHT-(invoice_start_height + 37), "Faktura dato:")
+        canvas.drawString(invoice_start_width, PAGE_HEIGHT-(invoice_start_height + 48), "Forfalls dato:")
+        canvas.drawString(invoice_start_width, PAGE_HEIGHT-(invoice_start_height + 59), "Leverings dato:")
+        canvas.setFont('Times-Roman', 9)
+        canvas.drawString(invoice_start_width + 80, PAGE_HEIGHT-(invoice_start_height + 15), "01")
+        canvas.drawString(invoice_start_width + 80, PAGE_HEIGHT-(invoice_start_height + 26), "01")
+        canvas.drawString(invoice_start_width + 80, PAGE_HEIGHT-(invoice_start_height + 37), invoice_date.strftime('%d.%m.%Y'))
+        canvas.drawString(invoice_start_width + 80, PAGE_HEIGHT-(invoice_start_height + 48), maturity_date.strftime('%d.%m.%Y'))
+        canvas.drawString(invoice_start_width + 80, PAGE_HEIGHT-(invoice_start_height + 59), delivery_date.strftime('%d.%m.%Y'))
+        canvas.restoreState()
+
+    def myLaterPages(canvas, doc):
+        canvas.saveState()
+        canvas.setFont('Times-Bold', 9)
+        canvas.restoreState()
+
+    doc = SimpleDocTemplate(output_filename)
+    Story = [Spacer(1, 2*inch)]
+    workday_info = [['Dato', 'Fra', 'Til', 'Timer', 'Lønn'],]
     for workday in workdays:
         output_hours, output_date, output_wage = output_for_total_hours_date_and_wage(workday)
-        height_placement -= font_size
-        # Date
-        pdf.drawString(font_padding, height_placement, '%s %s-%s' % (output_date,
-                                                                     workday.start.time().strftime('%H:%M'),
-                                                                     workday.end.time().strftime('%H:%M')))
-        height_placement -= font_size
-        # Worktime
-        pdf.drawString(font_padding, height_placement, 'Total hours: %s' % (output_hours))
-        height_placement -= font_size
-        pdf.drawString(font_padding, height_placement, 'Wage: %s' % (output_wage))
-        for tag in workday.tags:
-            height_placement -= font_size
-            pdf.drawString(font_padding, height_placement, '%s - %s' % (tag.recorded.time().isoformat(), tag.tag))
-        height_placement -= font_size
-    output_total_hours, __, output_total_wage = output_for_total_hours_date_and_wage(workdays)
-    height_placement -= font_size * 2
-    pdf.drawString(font_padding, height_placement, 'Total hours: %s' % (output_total_hours))
-    height_placement -= font_size
-    pdf.drawString(font_padding, height_placement, 'Total wage: %s' % (output_total_wage))
-    logo_file = os.path.join(FILE_DIR, 'logo.png')
-    if os.path.isfile(logo_file):
-        pdf.drawImage(logo_file, width - 100, height - 110, width=100, height=100, mask=[0, 0, 0, 0, 0, 0])
-    pdf.showPage()
-    pdf.save()
+        workday_info.append([output_date,
+                             workday.start.time().strftime('%H:%M'),
+                             workday.end.time().strftime('%H:%M'),
+                             output_hours,
+                             output_wage])
+    output_hours, output_date, output_wage = output_for_total_hours_date_and_wage(workdays)
+    workday_info.append(['', '', '', '', 'Totalt'])
+    workday_info.append(['', '', '', '', output_hours + ' ' + output_wage])
+    t = Table(workday_info, colWidths=100, style=[
+        ('FONTNAME', (0, 0), (-1, -1), 'Times-Roman'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Times-Bold')
+    ]
+    )
+    Story.append(t)
+    doc.build(Story, onFirstPage=myFirstPage, onLaterPages=myLaterPages)
+
     return
