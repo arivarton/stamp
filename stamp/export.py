@@ -11,7 +11,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 
 from .settings import (REPORT_DIR, ORG_NR, FILE_DIR, COMPANY_NAME, COMPANY_ADDRESS,
-                       COMPANY_ZIP_CODE, MAIL, PHONE)
+                       COMPANY_ZIP_CODE, COMPANY_ACCOUNT_NUMBER, MAIL, PHONE)
 from .db import get_one_db_entry, query_db_export_filter
 from .exceptions import TooManyMatchesError, ArgumentError, NoMatchingDatabaseEntryError
 from .helpers import output_for_total_hours_date_and_wage
@@ -92,8 +92,12 @@ def create_pdf(args):
     company_info2_start_width = 50
     invoice_start_height = 130
     invoice_start_width = PAGE_WIDTH - 150
+    bottom_start_width = 18
+    bottom_end_width = PAGE_WIDTH - 108
+    bottom_start_height = 18
 
     def myFirstPage(canvas, doc):
+        output_hours, output_date, output_wage = output_for_total_hours_date_and_wage(workdays)
         canvas.saveState()
         if os.path.isfile(logo_file):
             canvas.drawImage(logo_file, PAGE_WIDTH - 60, company_info_start_height - 30, width=40, height=40, mask=[0, 0, 0, 0, 0, 0],
@@ -136,16 +140,28 @@ def create_pdf(args):
         canvas.drawString(invoice_start_width + 80, PAGE_HEIGHT-(invoice_start_height + 37), invoice_date.strftime('%d.%m.%Y'))
         canvas.drawString(invoice_start_width + 80, PAGE_HEIGHT-(invoice_start_height + 48), maturity_date.strftime('%d.%m.%Y'))
         canvas.drawString(invoice_start_width + 80, PAGE_HEIGHT-(invoice_start_height + 59), delivery_date.strftime('%d.%m.%Y'))
+
+        # Bottom info
+        canvas.setFont('Times-Roman', 9)
+        canvas.drawCentredString(PAGE_WIDTH/2.0, bottom_start_height, output_wage)
+        canvas.drawString(bottom_start_width, bottom_start_height, COMPANY_NAME)
+        canvas.drawString(bottom_end_width, bottom_start_height, COMPANY_ACCOUNT_NUMBER)
+
         canvas.restoreState()
 
     def myLaterPages(canvas, doc):
+        output_hours, output_date, output_wage = output_for_total_hours_date_and_wage(workdays)
         canvas.saveState()
-        canvas.setFont('Times-Bold', 9)
+        # Bottom info
+        canvas.setFont('Times-Roman', 9)
+        canvas.drawCentredString(PAGE_WIDTH/2.0, bottom_start_height, output_wage)
+        canvas.drawString(bottom_start_width, bottom_start_height, COMPANY_NAME)
+        canvas.drawString(bottom_end_width, bottom_start_height, COMPANY_ACCOUNT_NUMBER)
         canvas.restoreState()
 
     doc = SimpleDocTemplate(output_filename)
     Story = [Spacer(1, 2*inch)]
-    workday_info = [['Dato', 'Fra', 'Til', 'Timer', 'Lønn'],]
+    workday_info = [['Dato', 'Fra', 'Til', 'Timer', 'Lønn']]
     for workday in workdays:
         output_hours, output_date, output_wage = output_for_total_hours_date_and_wage(workday)
         workday_info.append([output_date,
@@ -153,13 +169,9 @@ def create_pdf(args):
                              workday.end.time().strftime('%H:%M'),
                              output_hours,
                              output_wage])
-    output_hours, output_date, output_wage = output_for_total_hours_date_and_wage(workdays)
-    workday_info.append(['', '', '', '', 'Totalt'])
-    workday_info.append(['', '', '', '', output_hours + ' ' + output_wage])
     t = Table(workday_info, colWidths=100, style=[
         ('FONTNAME', (0, 0), (-1, -1), 'Times-Roman'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Times-Bold')
-    ]
+        ('FONTNAME', (0, 0), (-1, 0), 'Times-Bold')]
     )
     Story.append(t)
     doc.build(Story, onFirstPage=myFirstPage, onLaterPages=myLaterPages)
