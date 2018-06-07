@@ -26,6 +26,7 @@ class Customer(Base):
     contact_person = Column('Contact person', String, default=None)
     org_nr = Column('Organisation number', String, default=None)
     address = Column('Address', String, default=None)
+    zip_code = Column('ZIP Code', String, default=None)
     mail = Column('Invoice e-mail', String, default=None)
     phone = Column('Phone number', String, default=None)
 
@@ -54,6 +55,7 @@ class Invoice(Base):
 
     id = Column(Integer, primary_key=True)
     created = Column(DateTime, default=datetime.now())
+    pdf = Column('PDF Directory', String, unique=True, default=None)
 
     workdays = relationship('Workday', order_by='Workday.start',
                             backref='invoice')

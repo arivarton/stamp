@@ -1,10 +1,8 @@
-from .db import query_for_workdays, current_stamp
+from .db import current_stamp
 from .helpers import output_for_total_hours_date_and_wage
 
 
-def print_status(args):
-    workdays = query_for_workdays(args=args)
-
+def print_status(workdays):
     time_format = '%H:%M'
 
     # Headlines

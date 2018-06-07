@@ -14,17 +14,21 @@
 from datetime import datetime
 import argparse
 import re
+import sys
 
 from . import __version__
 from .settings import STANDARD_CUSTOMER, STANDARD_PROJECT
-from .add import stamp_in
+from .add import stamp_in, create_invoice
 from .end import stamp_out
 from .edit import edit_regex_resolver, edit_workday
 from .status import print_status, print_current_stamp
 from .export import create_pdf
 from .delete import delete_workday_or_tag
 from .tag import tag_stamp
-from .db import query_for_workdays, current_stamp
+from .db import query_for_workdays, current_stamp, query_db_export_filter
+from .export import parse_export_filter
+from .exceptions import NoMatchingDatabaseEntryError
+from .pprint import yes_or_no
 
 
 def _get_value_from_time_parameter(time):
@@ -68,13 +72,30 @@ def tag(args):
 
 
 def status(args):
-    print_status(args)
+    workdays = query_for_workdays(args=args)
+    print_status(workdays)
     print_current_stamp()
     return
 
 
 def export(args):
-    create_pdf(args)
+    export_filter = parse_export_filter(args.month, args.year, args.customer,
+                                         args.project)
+    try:
+        workdays = query_db_export_filter('Workday', export_filter)
+    except NoMatchingDatabaseEntryError as _err_msg:
+        print(_err_msg)
+        sys.exit(0)
+
+    print_status(workdays)
+    invoice = yes_or_no('Do you wish to create a Invoice containing these workdays?',
+              no_message='Canceled...',
+              no_function=sys.exit,
+              no_function_args=(0,),
+              yes_message='Creating new invoice!',
+              yes_function=create_invoice,
+              yes_function_args=(workdays,),
+              yes_function_kwargs={'export_to_pdf': True})
     return
 
 

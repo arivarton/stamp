@@ -52,7 +52,7 @@ def query_db_export_filter(Table, export_filter):
         if not query.count():
             raise NoMatchingDatabaseEntryError('No matching database entry found with search string: %s' % value['value'])
 
-    return query.all()
+    return query
 
 
 def query_db(Table, column_name, search_string):

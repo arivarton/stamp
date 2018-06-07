@@ -4,7 +4,8 @@ def yes_or_no(question,
               yes_message=None,
               yes_function=None, yes_function_args=(), yes_function_kwargs={}):
     try:
-        user_choice = input(question + ' [Y/n] ')
+        print(question + ' [Y/n]')
+        user_choice = input()
     except KeyboardInterrupt:
         user_choice = 'n'
         if no_message:
