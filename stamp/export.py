@@ -12,7 +12,8 @@ from reportlab.lib.units import inch
 from .settings import (REPORT_DIR, ORG_NR, FILE_DIR, COMPANY_NAME, COMPANY_ADDRESS,
                        COMPANY_ZIP_CODE, COMPANY_ACCOUNT_NUMBER, MAIL, PHONE)
 from .db import get_one_db_entry
-from .exceptions import TooManyMatchesError, ArgumentError, NoMatchingDatabaseEntryError
+from .exceptions import (TooManyMatchesError, ArgumentError,
+                         NoMatchingDatabaseEntryError, TooManyMatchingDatabaseEntriesError)
 from .helpers import output_for_total_hours_date_and_wage
 
 
@@ -51,6 +52,9 @@ def parse_export_filter(selected_month, selected_year, selected_customer=None,
         except NoMatchingDatabaseEntryError as _err_msg:
             print(_err_msg)
             sys.exit(0)
+        except TooManyMatchingDatabaseEntriesError as _err_msg:
+            print(_err_msg)
+            sys.exit(0)
         export_filter.update({'customer_id': {'op_func': operator.eq,
                                               'value': selected_customer.id}})
 
@@ -59,6 +63,9 @@ def parse_export_filter(selected_month, selected_year, selected_customer=None,
         try:
             selected_project = get_one_db_entry('Project', 'name', selected_project)
         except NoMatchingDatabaseEntryError as _err_msg:
+            print(_err_msg)
+            sys.exit(0)
+        except TooManyMatchingDatabaseEntriesError as _err_msg:
             print(_err_msg)
             sys.exit(0)
         export_filter.update({'project_id': {'op_func': operator.eq,

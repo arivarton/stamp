@@ -4,7 +4,8 @@ from sqlalchemy.orm import exc
 
 from . import DB_SESSION
 from .mappings import Workday, Tag, Customer
-from .exceptions import NoMatchingDatabaseEntryError
+from .exceptions import (NoMatchingDatabaseEntryError, TooManyMatchesError,
+                         TooManyMatchingDatabaseEntriesError)
 
 
 def query_for_workdays(workday_id=None, tag_id=None, args=None):
@@ -63,24 +64,14 @@ def query_db(Table, column_name, search_string):
     return DB_SESSION.query(table).filter(db_filter)
 
 
-def get_db_entries(Table, column_name, search_string):
-    query = query_db(Table, column_name, search_string)
-
-    if query.count():
-        return query.all()
-    else:
-        raise NoMatchingDatabaseEntryError('No matching database entry found with search string: %s' % search_string)
-
-
 def get_one_db_entry(Table, column_name, search_string):
     query = query_db(Table, column_name, search_string)
 
     if query.count() == 1:
         return query.first()
     elif query.count() > 1:
-        print('Several database entries found matching', search_string + '!')
-        print('Canceling...')
-        sys.exit(0)
+        raise TooManyMatchingDatabaseEntriesError('Several database entries found matching', search_string + '!\n' +
+                                                  'Canceling...')
     else:
         # [TODO] Log that no matching database entries were found
         raise NoMatchingDatabaseEntryError('No matching database entry found with search string: %s' % search_string)

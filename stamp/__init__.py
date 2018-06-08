@@ -12,5 +12,5 @@ if not os.path.exists(REPORT_DIR):
 if not os.path.exists(FILE_DIR):
     os.makedirs(FILE_DIR)
 
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 DB_SESSION = session()
