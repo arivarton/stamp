@@ -22,7 +22,6 @@ from .add import stamp_in, create_invoice
 from .end import stamp_out
 from .edit import edit_regex_resolver, edit_workday
 from .status import print_status, print_current_stamp
-from .export import create_pdf
 from .delete import delete_workday_or_tag
 from .tag import tag_stamp
 from .db import query_for_workdays, current_stamp, query_db_export_filter
@@ -72,7 +71,11 @@ def tag(args):
 
 
 def status(args):
-    workdays = query_for_workdays(args=args)
+    try:
+        workdays = query_for_workdays(args=args)
+    except NoMatchingDatabaseEntryError as _err_msg:
+        print(_err_msg)
+        sys.exit(0)
     print_status(workdays)
     print_current_stamp()
     return
@@ -80,7 +83,7 @@ def status(args):
 
 def export(args):
     export_filter = parse_export_filter(args.month, args.year, args.customer,
-                                         args.project)
+                                        args.project)
     try:
         workdays = query_db_export_filter('Workday', export_filter)
     except NoMatchingDatabaseEntryError as _err_msg:
@@ -89,14 +92,14 @@ def export(args):
 
     print_status(workdays)
     invoice = yes_or_no('Do you wish to create a Invoice containing these workdays?',
-              no_message='Canceled...',
-              no_function=sys.exit,
-              no_function_args=(0,),
-              yes_message='Creating new invoice!',
-              yes_function=create_invoice,
-              yes_function_args=(workdays,),
-              yes_function_kwargs={'export_to_pdf': True})
-    return
+                        no_message='Canceled...',
+                        no_function=sys.exit,
+                        no_function_args=(0,),
+                        yes_message='Creating new invoice!',
+                        yes_function=create_invoice,
+                        yes_function_args=(workdays,),
+                        yes_function_kwargs={'export_to_pdf': True})
+    return invoice
 
 
 def delete(args):
@@ -154,7 +157,7 @@ def main():
     # Company parameters
     customer_parameters = argparse.ArgumentParser(add_help=False)
     customer_parameters.add_argument('-c', '--customer', type=str, default=STANDARD_CUSTOMER,
-                                    help='Set customer to bill hours to.')
+                                     help='Set customer to bill hours to.')
 
     # Project parameters
     project_parameters = argparse.ArgumentParser(add_help=False)

@@ -32,6 +32,8 @@ def query_for_workdays(workday_id=None, tag_id=None, args=None):
                 workdays = DB_SESSION.query(Workday).filter(Workday.end.isnot(None)).order_by(Workday.start)
     except exc.UnmappedInstanceError:
         print('Specified id not found')
+    if not workdays.count():
+        raise NoMatchingDatabaseEntryError('No workday has been completed yet.')
     return workdays
 
 
