@@ -26,7 +26,7 @@ STAMP_CURRENCY | NKR
 
 ### Start worktime
 ##### With current time
-`stamp add -c 'Billed company' -p 'My project'`
+`stamp add -c 'Billed customer' -p 'My project'`
 ##### With modified time
 `stamp add -D 2013-03-03 -T 21:00`
 
@@ -65,11 +65,11 @@ Not implemented properly yet.
 
 ### Edit registered or current hours
 ##### Edit registered hours
-`stamp edit --id 15 'company="My second customer",date="2015-02-02"'`
+`stamp edit --id 15 'customer="My second customer",date="2015-02-02"'`
 ##### Edit current hours (just remove the id argument)
-`stamp edit 'company="My second customer",date="2015-02-02"'`
+`stamp edit 'customer="My second customer",date="2015-02-02"'`
 ##### It is also possible to explicitly declare current hours
-`stamp edit --id 'current' 'company="My second customer",date="2015-02-02"'`
+`stamp edit --id 'current' 'customer="My second customer",date="2015-02-02"'`
 
 
 ### Edit tags

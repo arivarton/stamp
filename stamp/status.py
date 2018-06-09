@@ -61,7 +61,7 @@ def print_current_stamp():
     if stamp is not None:
         print('\n\nCurrent stamp:')
         print('%s %s' % (stamp.start.date().isoformat(), stamp.start.time().isoformat().split('.')[0]))
-        print('Company: %s' % stamp.company)
+        print('Customer: %s' % stamp.customer)
         print('%d tag(s):' % len(stamp.tags.all()))
         for tag in stamp.tags:
             print('\t[id: %d] [Tagged: %s | %s]\n\t%s' % (tag.id_under_workday, tag.recorded.date().isoformat(), tag.recorded.time().isoformat(), tag.tag))

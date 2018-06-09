@@ -1,10 +1,8 @@
-import sys
-
 from sqlalchemy.orm import exc
 
 from . import DB_SESSION
 from .mappings import Workday, Tag, Customer
-from .exceptions import (NoMatchingDatabaseEntryError, TooManyMatchesError,
+from .exceptions import (NoMatchingDatabaseEntryError,
                          TooManyMatchingDatabaseEntriesError)
 
 
@@ -21,8 +19,8 @@ def query_for_workdays(workday_id=None, tag_id=None, args=None):
         else:
             # Query with filter
             if hasattr(args, 'filter') and args.filter:
-                if args.company:
-                    workdays = DB_SESSION.query(Customer).filter(Customer.name is args.company).order_by(workdays.start)
+                if args.customer:
+                    workdays = DB_SESSION.query(Customer).filter(Customer.name is args.customer).order_by(workdays.start)
                 elif args.time and args.date:
                     print('Not implemented yet')
                 elif args.date:

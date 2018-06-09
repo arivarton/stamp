@@ -108,7 +108,7 @@ def delete(args):
     return
 
 
-# Edit only supports company for now
+# Edit only supports customer for now
 def edit(args):
     args.edit = edit_regex_resolver(args.edit)
     if args.id == 'current':
@@ -148,13 +148,13 @@ def main():
     filter_parameters = argparse.ArgumentParser(add_help=False)
     filter_parameters.add_argument('-f', '--filter', action='store_true',
                                    help='''Filter the output of status or pdf export. Use
-                                   in combination with other arguments, f.ex status and company:
+                                   in combination with other arguments, f.ex status and customer:
                                    "status -f -c MyCompany"''')
 
     # Company parameters
-    company_parameters = argparse.ArgumentParser(add_help=False)
-    company_parameters.add_argument('-c', '--company', type=str, default=STANDARD_CUSTOMER,
-                                    help='Set company to bill hours to.')
+    customer_parameters = argparse.ArgumentParser(add_help=False)
+    customer_parameters.add_argument('-c', '--customer', type=str, default=STANDARD_CUSTOMER,
+                                    help='Set customer to bill hours to.')
 
     # Project parameters
     project_parameters = argparse.ArgumentParser(add_help=False)
@@ -168,7 +168,7 @@ def main():
     add_parser = subparsers.add_parser('add', help='''Add hours. If added with
                                        two separate times and/or dates the stamp
                                        will automatically finish.''', parents=[date_parameters,
-                                                                               company_parameters,
+                                                                               customer_parameters,
                                                                                project_parameters])
     add_parser.set_defaults(func=add)
 
@@ -187,7 +187,7 @@ def main():
     # Status parser
     status_parser = subparsers.add_parser('status', help='Show registered hours.',
                                           parents=[filter_parameters,
-                                                   company_parameters,
+                                                   customer_parameters,
                                                    project_parameters])
     status_parser.add_argument('-s', '--status', action='store_true',
                                help='Print current state of stamp.')
@@ -223,7 +223,7 @@ def main():
     edit_parser.add_argument('edit', type=str, help='''
                              Add edit message in this format:
                              "date=2018-02-18,comment='Changing this'".
-                             Valid arguments: date, time, comment, company.
+                             Valid arguments: date, time, comment, customer.
                              ''')
     edit_parser.set_defaults(func=edit)
 

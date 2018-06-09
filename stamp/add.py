@@ -104,8 +104,8 @@ def stamp_in(args):
                           yes_function_args=(args, stamp))
     else:
         try:
-            if args.company:
-                customer_id = get_one_db_entry(Customer, 'name', args.company).id
+            if args.customer:
+                customer_id = get_one_db_entry(Customer, 'name', args.customer).id
             else:
                 customer_id = get_last_workday_entry('customer', 'id')
         except NoMatchingDatabaseEntryError:
@@ -114,7 +114,7 @@ def stamp_in(args):
                            no_function=sys.exit,
                            no_function_args=(0,),
                            yes_function=create_customer,
-                           yes_function_args=(args.company,))
+                           yes_function_args=(args.customer,))
 
             customer_id = __.id
 

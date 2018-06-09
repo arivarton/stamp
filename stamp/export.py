@@ -89,66 +89,66 @@ def create_pdf(workdays, invoice_id=None): # NOQA
     invoice_date = workdays[0].invoice.created
     maturity_date = datetime.now() + timedelta(days=60)
     delivery_date = datetime.now()
-    company_info_start_height = PAGE_HEIGHT - 20
-    company_info_start_width = 50
-    company_info2_start_height = PAGE_HEIGHT - 130
-    company_info2_start_width = 50
-    invoice_start_height = PAGE_HEIGHT - 130
-    invoice_start_width = PAGE_WIDTH - 150
-    bottom_start_width = 18
+    customer_height = PAGE_HEIGHT - 20
+    customer_width = 50
+    customer_height2 = PAGE_HEIGHT - 130
+    customer_width2 = 50
+    invoice_height = PAGE_HEIGHT - 130
+    invoice_width = PAGE_WIDTH - 150
+    bottom_width = 18
     bottom_end_width = PAGE_WIDTH - 108
-    bottom_start_height = 18
+    bottom_height = 18
 
     def myFirstPage(canvas, doc):
         __, __, output_wage = output_for_total_hours_date_and_wage(workdays)
         canvas.saveState()
         if os.path.isfile(logo_file):
-            canvas.drawImage(logo_file, PAGE_WIDTH - 60, company_info_start_height - 30, width=40, height=40, mask=[0, 0, 0, 0, 0, 0],
+            canvas.drawImage(logo_file, PAGE_WIDTH - 60, customer_height - 30, width=40, height=40, mask=[0, 0, 0, 0, 0, 0],
                              preserveAspectRatio=True)
 
-        # Sellers company info
+        # Sellers customer info
         canvas.setFont('Times-Bold', 12)
-        canvas.drawString(company_info_start_width, company_info_start_height, COMPANY_NAME)
+        canvas.drawString(customer_width, customer_height, COMPANY_NAME)
         canvas.setFont('Times-Bold', 9)
-        canvas.drawString(company_info_start_width, company_info_start_height - 37, "Org nr:")
-        canvas.drawString(company_info_start_width, company_info_start_height - 48, "Epost:")
-        canvas.drawString(company_info_start_width, company_info_start_height - 59, "Tlf:")
+        canvas.drawString(customer_width, customer_height - 37, "Org nr:")
+        canvas.drawString(customer_width, customer_height - 48, "Epost:")
+        canvas.drawString(customer_width, customer_height - 59, "Tlf:")
         canvas.setFont('Times-Roman', 9)
-        canvas.drawString(company_info_start_width, company_info_start_height - 10, COMPANY_ADDRESS)
-        canvas.drawString(company_info_start_width, company_info_start_height - 21, COMPANY_ZIP_CODE)
-        canvas.drawString(company_info_start_width + 50, company_info_start_height - 37, ORG_NR)
-        canvas.drawString(company_info_start_width + 50, company_info_start_height - 48, MAIL)
-        canvas.drawString(company_info_start_width + 50, company_info_start_height - 59, PHONE)
+        canvas.drawString(customer_width, customer_height - 10, COMPANY_ADDRESS)
+        canvas.drawString(customer_width, customer_height - 21, COMPANY_ZIP_CODE)
+        canvas.drawString(customer_width + 50, customer_height - 37, ORG_NR)
+        canvas.drawString(customer_width + 50, customer_height - 48, MAIL)
+        canvas.drawString(customer_width + 50, customer_height - 59, PHONE)
 
-        # Buyers company info
+        # Buyers customer info
         canvas.setFont('Times-Bold', 12)
-        canvas.drawString(company_info2_start_width, company_info2_start_height,
+        canvas.drawString(customer_width2, customer_height2,
                           workdays[0].customer.name)
         canvas.setFont('Times-Roman', 9)
-        canvas.drawString(company_info2_start_width, company_info2_start_height - 10, workdays[0].customer.address)
-        canvas.drawString(company_info2_start_width, company_info2_start_height - 21, workdays[0].customer.zip_code)
+        canvas.drawString(customer_width2, customer_height2 - 10, workdays[0].customer.address)
+        canvas.drawString(customer_width2, customer_height2 - 21, workdays[0].customer.zip_code)
 
         # Invoice
         canvas.setFont('Times-Bold', 14)
-        canvas.drawString(invoice_start_width, invoice_start_height, "Faktura")
+        canvas.drawString(invoice_width, invoice_height, "Faktura")
         canvas.setFont('Times-Bold', 9)
-        canvas.drawString(invoice_start_width, invoice_start_height + 15, "Kunde nr:")
-        canvas.drawString(invoice_start_width, invoice_start_height + 26, "Faktura nr:")
-        canvas.drawString(invoice_start_width, invoice_start_height + 37, "Faktura dato:")
-        canvas.drawString(invoice_start_width, invoice_start_height + 48, "Forfalls dato:")
-        canvas.drawString(invoice_start_width, invoice_start_height + 59, "Leverings dato:")
+        canvas.drawString(invoice_width, invoice_height + 15, "Kunde nr:")
+        canvas.drawString(invoice_width, invoice_height + 26, "Faktura nr:")
+        canvas.drawString(invoice_width, invoice_height + 37, "Faktura dato:")
+        canvas.drawString(invoice_width, invoice_height + 48, "Forfalls dato:")
+        canvas.drawString(invoice_width, invoice_height + 59, "Leverings dato:")
         canvas.setFont('Times-Roman', 9)
-        canvas.drawString(invoice_start_width + 80, invoice_start_height + 15, str(workdays[0].customer.id))
-        canvas.drawString(invoice_start_width + 80, invoice_start_height + 26, str(invoice_id))
-        canvas.drawString(invoice_start_width + 80, invoice_start_height + 37, invoice_date.strftime('%d.%m.%Y'))
-        canvas.drawString(invoice_start_width + 80, invoice_start_height + 48, maturity_date.strftime('%d.%m.%Y'))
-        canvas.drawString(invoice_start_width + 80, invoice_start_height + 59, delivery_date.strftime('%d.%m.%Y'))
+        canvas.drawString(invoice_width + 80, invoice_height + 15, str(workdays[0].customer.id))
+        canvas.drawString(invoice_width + 80, invoice_height + 26, str(invoice_id))
+        canvas.drawString(invoice_width + 80, invoice_height + 37, invoice_date.strftime('%d.%m.%Y'))
+        canvas.drawString(invoice_width + 80, invoice_height + 48, maturity_date.strftime('%d.%m.%Y'))
+        canvas.drawString(invoice_width + 80, invoice_height + 59, delivery_date.strftime('%d.%m.%Y'))
 
         # Bottom info
         canvas.setFont('Times-Roman', 9)
-        canvas.drawCentredString(PAGE_WIDTH/2.0, bottom_start_height, output_wage)
-        canvas.drawString(bottom_start_width, bottom_start_height, COMPANY_NAME)
-        canvas.drawString(bottom_end_width, bottom_start_height, COMPANY_ACCOUNT_NUMBER)
+        canvas.drawCentredString(PAGE_WIDTH/2.0, bottom_height, output_wage)
+        canvas.drawString(bottom_width, bottom_height, COMPANY_NAME)
+        canvas.drawString(bottom_end_width, bottom_height, COMPANY_ACCOUNT_NUMBER)
 
         canvas.restoreState()
 
@@ -157,9 +157,9 @@ def create_pdf(workdays, invoice_id=None): # NOQA
         canvas.saveState()
         # Bottom info
         canvas.setFont('Times-Roman', 9)
-        canvas.drawCentredString(PAGE_WIDTH/2.0, bottom_start_height, output_wage)
-        canvas.drawString(bottom_start_width, bottom_start_height, COMPANY_NAME)
-        canvas.drawString(bottom_end_width, bottom_start_height, COMPANY_ACCOUNT_NUMBER)
+        canvas.drawCentredString(PAGE_WIDTH/2.0, bottom_height, output_wage)
+        canvas.drawString(bottom_width, bottom_height, COMPANY_NAME)
+        canvas.drawString(bottom_end_width, bottom_height, COMPANY_ACCOUNT_NUMBER)
         canvas.restoreState()
 
     doc = SimpleDocTemplate(file_dir)
