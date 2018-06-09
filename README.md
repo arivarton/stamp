@@ -17,6 +17,13 @@ STAMP_STANDARD_CUSTOMER | Last customer from DB OR create new customer
 STAMP_STANDARD_PROJECT | Last customer from DB OR create new customer
 STAMP_WAGE_PER_HOUR | 300  
 STAMP_CURRENCY | NKR  
+STAMP_ORG_NR | str(Not set)
+STAMP_NAME | str(Not set)
+STAMP_ADDRESS | str(Not set)
+STAMP_ZIP_CODE | str(Not set)
+STAMP_ACCOUNT_NUMBER | str(Not set)
+STAMP_PHONE | str(Not set)
+STAMP_MAIL | str(Not set)
 
 # Install
 
