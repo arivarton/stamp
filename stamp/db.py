@@ -22,18 +22,18 @@ def query_for_workdays(workday_id=None, tag_id=None, args=None):
                 if args.customer:
                     workdays = DB_SESSION.query(Customer).filter(Customer.name is args.customer).order_by(workdays.start)
                 elif args.time and args.date:
-                    print('Not implemented yet')
+                    raise NotImplementedError('Filtering on time and date not implemented yet!')
                 elif args.date:
-                    print('Not implemented yet')
+                    raise NotImplementedError('Filtering on date not implemented yet!')
                 elif args.time:
-                    print('Not implemented yet')
+                    raise NotImplementedError('Filtering on time not implemented yet!')
             # Query for everything (excludes current stamp)
             else:
                 workdays = DB_SESSION.query(Workday).filter(Workday.end.isnot(None)).order_by(Workday.start)
     except exc.UnmappedInstanceError:
-        print('Specified id not found')
+        raise NoMatchingDatabaseEntryError('Specified id not found!')
     if not workdays.count():
-        raise NoMatchingDatabaseEntryError('No workday has been completed yet.')
+        raise NoMatchingDatabaseEntryError('No workday has been completed yet!')
     return workdays
 
 
