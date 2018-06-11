@@ -1,4 +1,3 @@
-from .db import current_stamp
 from .helpers import output_for_total_hours_date_and_wage
 
 
@@ -56,15 +55,18 @@ def print_status(workdays):
     print('Total wage earned: %s' % output_total_wage)
 
 
-def print_current_stamp():
-    stamp = current_stamp()
+def print_current_stamp(db):
+    stamp = db.current_stamp()
+    result = str()
     if stamp is not None:
-        print('\n\nCurrent stamp:')
-        print('%s %s' % (stamp.start.date().isoformat(), stamp.start.time().isoformat().split('.')[0]))
-        print('Customer: %s' % stamp.customer)
-        print('%d tag(s):' % len(stamp.tags.all()))
+        result = result + '\n\nCurrent stamp:\n'
+        result = result + '%s %s\n' % (stamp.start.date().isoformat(), stamp.start.time().isoformat().split('.')[0])
+        result = result + 'Customer: %s\n' % stamp.customer.name
+        result = result + '%d tag(s)\n' % len(stamp.tags.all())
         for tag in stamp.tags:
-            print('\t[id: %d] [Tagged: %s | %s]\n\t%s' % (tag.id_under_workday, tag.recorded.date().isoformat(), tag.recorded.time().isoformat(), tag.tag))
-        print('')
+            result = result + '\t[id: %d] [Tagged: %s | %s]\n\t%s' % (tag.id_under_workday, tag.recorded.date().isoformat(), tag.recorded.time().isoformat(), tag.tag)
+        result = result + '\n'
     else:
-        print('\nNot stamped in.')
+        result = None
+
+    return result

@@ -5,16 +5,11 @@
 #
 ##############################
 
-import os
 from datetime import datetime
-from sqlalchemy import create_engine, exc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
-from sqlalchemy.orm import relationship, sessionmaker
-from .settings import DATA_DIR, DB_FILE
+from sqlalchemy.orm import relationship
 
-db_path = os.path.join(DATA_DIR, DB_FILE)
-engine = create_engine('sqlite:///' + db_path)
 Base = declarative_base()
 
 
@@ -86,15 +81,3 @@ class Tag(Base):
 
     workday_id = Column(ForeignKey('workday.id'))
     id_under_workday = Column(Integer)
-
-
-try:
-    Base.metadata.create_all(engine)
-except exc.OperationalError as err:
-    if not os.path.exists(DATA_DIR):
-        os.makedirs(DATA_DIR)
-        Base.metadata.create_all(engine)
-    else:
-        raise err
-
-session = sessionmaker(bind=engine)

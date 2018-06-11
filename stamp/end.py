@@ -2,14 +2,14 @@ import sys
 
 from datetime import datetime
 
-from . import DB_SESSION
-from .db import current_stamp
+from .db import Database
 from .pprint import yes_or_no
 from .helpers import auto_correct_tag, manually_correct_tag
 
 
 def stamp_out(args):
-    stamp = current_stamp()
+    db = Database(args.db)
+    stamp = db.current_stamp()
     stamp.end = datetime.combine(args.date, args.time)
     for tag in stamp.tags:
         if tag.recorded > stamp.end or tag.recorded < stamp.start:
@@ -22,11 +22,12 @@ def stamp_out(args):
                                           'no_function': sys.exit,
                                           'no_function_args': (0,),
                                           'yes_function': manually_correct_tag,
-                                          'yes_function_args': (tag, stamp,)},
+                                          'yes_function_args': (tag, stamp,
+                                                                db.session)},
                       yes_message='Auto correcting tags!',
                       yes_function=auto_correct_tag,
-                      yes_function_args=(tag, stamp,))
-    DB_SESSION.add(stamp)
-    DB_SESSION.commit()
+                      yes_function_args=(tag, stamp, db.session,))
+    db.session.add(stamp)
+    db.session.commit()
     print('Stamped out at %s - %s' % (args.date.isoformat(), args.time.isoformat()))
     return

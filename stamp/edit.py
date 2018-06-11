@@ -1,8 +1,5 @@
 import re
 
-from . import DB_SESSION
-from .db import query_for_workdays
-
 
 def edit_regex_resolver(edit_string):
     return_value = {'date': re.findall('date=[\'"]?([^\'",]*)', edit_string) or None,
@@ -17,14 +14,14 @@ def _edit_tag():
     pass
 
 
-def edit_workday(args):
-    workday = query_for_workdays(workday_id=args.id)
-    if args.edit['date']:
-        workday.date = args.edit['date'][0]
-    if args.edit['time']:
-        workday.time = args.edit['time'][0]
-    if args.edit['comment']:
-        workday.comment = args.edit['comment'][0]
-    if args.edit['customer']:
-        workday.customer = args.edit['customer'][0]
-    DB_SESSION.commit()
+def edit_workday(workday_id, edit, db):
+    workday = db.query_for_workdays(workday_id=workday_id)
+    if edit['date']:
+        workday.date = edit['date'][0]
+    if edit['time']:
+        workday.time = edit['time'][0]
+    if edit['comment']:
+        workday.comment = edit['comment'][0]
+    if edit['customer']:
+        workday.customer = edit['customer'][0]
+    db.session.commit()

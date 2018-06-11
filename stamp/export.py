@@ -11,14 +11,13 @@ from reportlab.lib.units import inch
 
 from .settings import (REPORT_DIR, ORG_NR, FILE_DIR, COMPANY_NAME, COMPANY_ADDRESS,
                        COMPANY_ZIP_CODE, COMPANY_ACCOUNT_NUMBER, MAIL, PHONE)
-from .db import get_one_db_entry
 from .exceptions import (TooManyMatchesError, ArgumentError,
                          NoMatchingDatabaseEntryError, TooManyMatchingDatabaseEntriesError)
 from .helpers import output_for_total_hours_date_and_wage
 
 
-def parse_export_filter(selected_month, selected_year, selected_customer=None,
-                        selected_project=None):
+def parse_export_filter(selected_month, selected_year, db,
+                        selected_customer=None, selected_project=None):
     export_filter = dict()
     # Validate month
     _valid_months = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -48,7 +47,7 @@ def parse_export_filter(selected_month, selected_year, selected_customer=None,
     # Validate customer
     if selected_customer:
         try:
-            selected_customer = get_one_db_entry('Customer', 'name', selected_customer)
+            selected_customer = db.get_one_db_entry('Customer', 'name', selected_customer)
         except NoMatchingDatabaseEntryError as _err_msg:
             print(_err_msg)
             sys.exit(0)
@@ -61,7 +60,7 @@ def parse_export_filter(selected_month, selected_year, selected_customer=None,
     # Validate project
     if selected_project:
         try:
-            selected_project = get_one_db_entry('Project', 'name', selected_project)
+            selected_project = db.get_one_db_entry('Project', 'name', selected_project)
         except NoMatchingDatabaseEntryError as _err_msg:
             print(_err_msg)
             sys.exit(0)

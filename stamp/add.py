@@ -3,32 +3,31 @@ from datetime import datetime
 
 from .exceptions import NoMatchingDatabaseEntryError
 from .mappings import Workday, Project, Customer, Invoice
-from .db import current_stamp, get_one_db_entry, get_last_workday_entry
+from .db import Database
 from .pprint import yes_or_no
 from .export import create_pdf
-from . import DB_SESSION
 
 
-def _create_stamp(args, stamp):
-    stamp.start = datetime.combine(args.date, args.time)
-    DB_SESSION.add(stamp)
-    DB_SESSION.commit()
+def _create_stamp(Session, date, time, stamp):
+    stamp.start = datetime.combine(date, time)
+    Session.add(stamp)
+    Session.commit()
 
     return stamp
 
 
-def _add_details(Table):
+def _add_details(Session, Table):
     for key, column_info in Table.__mapper__.columns.items():
         if not key.endswith('id'):
             if not getattr(Table, key):
                 print('Value for ' + column_info.name.lower() + ': ')
                 user_value = input()
                 setattr(Table, key, user_value)
-    DB_SESSION.add(Table)
-    DB_SESSION.commit()
+    Session.add(Table)
+    Session.commit()
 
 
-def create_project(customer_id, project_name=None):
+def create_project(Session, customer_id, project_name=None):
     if not project_name:
         project_name = input('Provide project name: ')
         if not project_name:
@@ -40,15 +39,15 @@ def create_project(customer_id, project_name=None):
               no_message='Skipping project details!',
               yes_message='Adding project details. When entering a empty string the value will be set to None.',
               yes_function=_add_details,
-              yes_function_args=(project,))
+              yes_function_args=(Session, project))
 
-    DB_SESSION.add(project)
-    DB_SESSION.commit()
+    Session.add(project)
+    Session.commit()
 
     return project
 
 
-def create_customer(customer_name=None):
+def create_customer(Session, customer_name=None):
     if not customer_name:
         print('Provide customer name: ')
         customer_name = input()
@@ -61,15 +60,15 @@ def create_customer(customer_name=None):
               no_message='Skipping customer details!',
               yes_message='Adding customer details. When entering a empty string the value will be set to None.',
               yes_function=_add_details,
-              yes_function_args=(customer,))
+              yes_function_args=(Session, customer))
 
-    DB_SESSION.add(customer)
-    DB_SESSION.commit()
+    Session.add(customer)
+    Session.commit()
 
     return customer
 
 
-def create_invoice(workdays, export_to_pdf=False):
+def create_invoice(Session, workdays, export_to_pdf=False):
     invoice_detected = False
     for workday in workdays.all():
         if workday.invoice:
@@ -88,55 +87,57 @@ def create_invoice(workdays, export_to_pdf=False):
         pdf_file = create_pdf(workdays.all(), invoice.id)
         invoice.pdf = pdf_file
 
-    DB_SESSION.add(invoice)
-    DB_SESSION.commit()
+    Session.add(invoice)
+    Session.commit()
 
     return invoice
 
 
 def stamp_in(args):
-    stamp = current_stamp()
+    db = Database(args.db)
+    stamp = db.current_stamp()
     if stamp:
         stamp = yes_or_no('Already stamped in, do you wish to recreate the stamp with current date and time?',
                           no_message='Former stamp preserved!',
                           yes_message='Overwriting current stamp!',
                           yes_function=_create_stamp,
-                          yes_function_args=(args, stamp))
+                          yes_function_args=(db.session, args.date, args.time,
+                                             stamp))
     else:
         try:
             if args.customer:
-                customer_id = get_one_db_entry(Customer, 'name', args.customer).id
+                customer_id = db.get_one_db_entry(Customer, 'name', args.customer).id
             else:
-                customer_id = get_last_workday_entry('customer', 'id')
+                customer_id = db.get_last_workday_entry('customer', 'id')
         except NoMatchingDatabaseEntryError:
             __ = yes_or_no('Do you wish to create a new customer?',
                            no_message='Canceling...',
                            no_function=sys.exit,
                            no_function_args=(0,),
                            yes_function=create_customer,
-                           yes_function_args=(args.customer,))
+                           yes_function_args=(db.session, args.customer,))
 
             customer_id = __.id
 
         try:
             if args.project:
-                project_id = get_one_db_entry(Project, 'name', args.project).id
+                project_id = db.get_one_db_entry(Project, 'name', args.project).id
             else:
-                project_id = get_last_workday_entry('project', 'id')
+                project_id = db.get_last_workday_entry('project', 'id')
         except NoMatchingDatabaseEntryError:
             __ = yes_or_no('Do you wish to create a new project?', # NOQA
                            no_message='Canceling...',
                            no_function=sys.exit,
                            no_function_args=(0,),
                            yes_function=create_project,
-                           yes_function_args=(customer_id,),
+                           yes_function_args=(db.session, customer_id),
                            yes_function_kwargs={'project_name': args.project})
 
             project_id = __.id
 
         _workday = Workday(customer_id=customer_id, project_id=project_id)
 
-        stamp = _create_stamp(args, _workday)
+        stamp = _create_stamp(db.session, args.date, args.time, _workday)
 
     print('Stamped in at %s - %s' % (stamp.start.date().isoformat(),
                                      stamp.start.time().isoformat()))

@@ -1,7 +1,6 @@
 import sys
 from datetime import datetime, timedelta
 
-from . import DB_SESSION
 from .settings import MINIMUM_HOURS, WAGE_PER_HOUR, CURRENCY
 
 
@@ -22,7 +21,7 @@ def determine_total_hours_worked_and_wage_earned(workdays):
             hours = MINIMUM_HOURS
             minutes = 0
         minutes = (total_seconds % 3600) // 60
-        seconds = total_seconds % 60
+        seconds = total_seconds % 60 # NOQA
 
         # Add hours to wage
         total_wage += hours * WAGE_PER_HOUR
@@ -62,18 +61,18 @@ def output_for_total_hours_date_and_wage(workday):
     return output_total_hours, output_date, output_total_wage
 
 
-def auto_correct_tag(tag, stamp):
+def auto_correct_tag(tag, stamp, Session):
     if tag.recorded < stamp.start:
         tag.recorded = stamp.start
     elif stamp.end:
         if tag.recorded > stamp.end:
             tag.recorded = stamp.end
-    DB_SESSION.add(tag)
+    Session.add(tag)
 
     return True
 
 
-def manually_correct_tag(tag, stamp):
+def manually_correct_tag(tag, stamp, Session):
     print('\nTag is recorded at: %s.' % tag.recorded.strftime('%Y-%m-%d %H:%M'))
     print('Boundary is from %s to %s.\n' % (stamp.start.strftime('%Y-%m-%d %H:%M'), stamp.end.strftime('%Y-%m-%d %H:%M')))
     while tag.recorded < stamp.start or tag.recorded > stamp.end:
@@ -90,5 +89,5 @@ def manually_correct_tag(tag, stamp):
             if manual_time < stamp.start or manual_time > stamp.end:
                 print('New time is still out of bounds... Try again!')
             else:
-                DB_SESSION.add(tag)
+                Session.add(tag)
                 return True

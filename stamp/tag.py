@@ -1,11 +1,10 @@
 from datetime import datetime
 
-from . import DB_SESSION
 from .mappings import Tag
 from .exceptions import TagOutsideTimeBoundaryError
 
 
-def tag_stamp(date, time, stamp, tag):
+def tag_stamp(date, time, stamp, tag, Session):
     _id_under_workday = len(stamp.tags.all()) + 1
     if stamp.end:
         if date > stamp.end.date():
@@ -19,6 +18,6 @@ def tag_stamp(date, time, stamp, tag):
     else:
         stamp.tags.append(Tag(recorded=datetime.combine(date, time),
                               tag=tag, id_under_workday=_id_under_workday))
-        DB_SESSION.add(stamp)
-        DB_SESSION.commit()
+        Session.add(stamp)
+        Session.commit()
     return stamp

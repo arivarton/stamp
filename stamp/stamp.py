@@ -25,7 +25,7 @@ from .edit import edit_regex_resolver, edit_workday
 from .status import print_status, print_current_stamp
 from .delete import delete_workday_or_tag
 from .tag import tag_stamp
-from .db import query_for_workdays, current_stamp, query_db_export_filter
+from .db import Database
 from .export import parse_export_filter
 from .exceptions import NoMatchingDatabaseEntryError
 from .pprint import yes_or_no
@@ -62,31 +62,38 @@ def end(args):
 
 
 def tag(args):
+    db = Database(args.db)
     if args.id == 'current':
-        stamp = current_stamp()
+        stamp = db.current_stamp()
     else:
-        stamp = query_for_workdays(workday_id=int(args.id))
+        stamp = db.query_for_workdays(workday_id=int(args.id))
 
-    stamp = tag_stamp(args.date, args.time, stamp, args.tag)
+    stamp = tag_stamp(args.date, args.time, stamp, args.tag, db.session)
     return
 
 
 def status(args):
+    db = Database(args.db)
+    current_stamp = print_current_stamp(db)
     try:
-        workdays = query_for_workdays(args=args)
+        workdays = db.query_for_workdays(args=args)
     except NoMatchingDatabaseEntryError as _err_msg:
-        print(_err_msg)
+        if current_stamp:
+            print(current_stamp)
+        else:
+            print(_err_msg)
         sys.exit(0)
     print_status(workdays)
-    print_current_stamp()
+    print(current_stamp)
     return
 
 
 def export(args):
-    export_filter = parse_export_filter(args.month, args.year, args.customer,
+    db = Database(args.db)
+    export_filter = parse_export_filter(args.month, args.year, db, args.customer,
                                         args.project)
     try:
-        workdays = query_db_export_filter('Workday', export_filter)
+        workdays = db.query_db_export_filter('Workday', export_filter)
     except NoMatchingDatabaseEntryError as _err_msg:
         print(_err_msg)
         sys.exit(0)
@@ -98,28 +105,30 @@ def export(args):
                         no_function_args=(0,),
                         yes_message='Creating new invoice!',
                         yes_function=create_invoice,
-                        yes_function_args=(workdays,),
+                        yes_function_args=(db.session, workdays,),
                         yes_function_kwargs={'export_to_pdf': True})
     return invoice
 
 
 def delete(args):
+    db = Database(args.db)
     if args.id == 'current':
-        args.id = current_stamp().id
+        args.id = db.current_stamp().id
     else:
         args.id = int(args.id)
-    delete_workday_or_tag(args.id, args.tag)
+    delete_workday_or_tag(args.id, args.tag, db)
     return
 
 
 # Edit only supports customer for now
 def edit(args):
+    db = Database(args.db)
     args.edit = edit_regex_resolver(args.edit)
     if args.id == 'current':
-        args.id = current_stamp().id
+        args.id = db.current_stamp().id
     else:
         args.id = int(args.id)
-    edit_workday(args)
+    edit_workday(args.id, args.edit, db)
 
     return
 
