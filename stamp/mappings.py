@@ -51,6 +51,8 @@ class Invoice(Base):
     id = Column(Integer, primary_key=True)
     created = Column(DateTime, default=datetime.now())
     pdf = Column('PDF Directory', String, unique=True, default=None)
+    paid = Column(Boolean, default=False)
+    sent = Column(Integer, default=0)
 
     workdays = relationship('Workday', order_by='Workday.start',
                             backref='invoice')
@@ -62,7 +64,6 @@ class Workday(Base):
     id = Column(Integer, primary_key=True)
     start = Column(DateTime)
     end = Column(DateTime, default=None)
-    paid = Column(Boolean, default=False)
 
     customer_id = Column(ForeignKey('customer.id'))
     project_id = Column(ForeignKey('project.id'))

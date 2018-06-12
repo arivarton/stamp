@@ -102,7 +102,7 @@ def create_pdf(workdays, invoice_id=None): # NOQA
         __, __, output_wage = output_for_total_hours_date_and_wage(workdays)
         canvas.saveState()
         if os.path.isfile(logo_file):
-            canvas.drawImage(logo_file, PAGE_WIDTH - 60, customer_height - 30, width=40, height=40, mask=[0, 0, 0, 0, 0, 0],
+            canvas.drawImage(logo_file, PAGE_WIDTH - 110, customer_height - 75, width=81, height=81, mask=[0, 0, 0, 0, 0, 0],
                              preserveAspectRatio=True)
 
         # Sellers customer info
@@ -131,17 +131,17 @@ def create_pdf(workdays, invoice_id=None): # NOQA
         canvas.setFont('Times-Bold', 14)
         canvas.drawString(invoice_width, invoice_height, "Faktura")
         canvas.setFont('Times-Bold', 9)
-        canvas.drawString(invoice_width, invoice_height + 15, "Kunde nr:")
-        canvas.drawString(invoice_width, invoice_height + 26, "Faktura nr:")
-        canvas.drawString(invoice_width, invoice_height + 37, "Faktura dato:")
-        canvas.drawString(invoice_width, invoice_height + 48, "Forfalls dato:")
-        canvas.drawString(invoice_width, invoice_height + 59, "Leverings dato:")
+        canvas.drawString(invoice_width, invoice_height - 15, "Kunde nr:")
+        canvas.drawString(invoice_width, invoice_height - 26, "Faktura nr:")
+        canvas.drawString(invoice_width, invoice_height - 37, "Faktura dato:")
+        canvas.drawString(invoice_width, invoice_height - 48, "Forfalls dato:")
+        canvas.drawString(invoice_width, invoice_height - 59, "Leverings dato:")
         canvas.setFont('Times-Roman', 9)
-        canvas.drawString(invoice_width + 80, invoice_height + 15, str(workdays[0].customer.id))
-        canvas.drawString(invoice_width + 80, invoice_height + 26, str(invoice_id))
-        canvas.drawString(invoice_width + 80, invoice_height + 37, invoice_date.strftime('%d.%m.%Y'))
-        canvas.drawString(invoice_width + 80, invoice_height + 48, maturity_date.strftime('%d.%m.%Y'))
-        canvas.drawString(invoice_width + 80, invoice_height + 59, delivery_date.strftime('%d.%m.%Y'))
+        canvas.drawString(invoice_width + 80, invoice_height - 15, str(workdays[0].customer.id))
+        canvas.drawString(invoice_width + 80, invoice_height - 26, str(invoice_id))
+        canvas.drawString(invoice_width + 80, invoice_height - 37, invoice_date.strftime('%d.%m.%Y'))
+        canvas.drawString(invoice_width + 80, invoice_height - 48, maturity_date.strftime('%d.%m.%Y'))
+        canvas.drawString(invoice_width + 80, invoice_height - 59, delivery_date.strftime('%d.%m.%Y'))
 
         # Bottom info
         canvas.setFont('Times-Roman', 9)
@@ -169,8 +169,10 @@ def create_pdf(workdays, invoice_id=None): # NOQA
         workday_info.append([output_date,
                              workday.start.time().strftime('%H:%M'),
                              workday.end.time().strftime('%H:%M'),
-                             output_hours,
+                             output_hours.strip('h'),
                              output_wage])
+        for tag in workday.tags:
+            workday_info.append(['', tag.recorded.strftime('%H:%M'), tag.tag])
     t = Table(workday_info, colWidths=100, style=[
         ('FONTNAME', (0, 0), (-1, -1), 'Times-Roman'),
         ('FONTNAME', (0, 0), (-1, 0), 'Times-Bold')])

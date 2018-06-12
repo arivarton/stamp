@@ -48,6 +48,18 @@ def print_status(workdays):
             to_width=to_width,
             id_width=id_width,
         ))
+        if workday.tags:
+            print('Tags:')
+
+            for tag in workday.tags:
+                print('{0:<{id_width}} {1} {2} {3}'.format(
+                    tag.id,
+                    tag.recorded.date().isoformat(),
+                    tag.recorded.strftime(time_format),
+                    tag.tag,
+                    id_width=id_width
+                ))
+            print()
 
     # Total
     output_total_hours, __, output_total_wage = output_for_total_hours_date_and_wage(workdays)

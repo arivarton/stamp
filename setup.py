@@ -17,7 +17,7 @@ setup(
     description='Register workhours in terminal.',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/arivarton/stamp/',
+    url='https://gitlab.com/arivarton/stamp/',
     author='arivarton',
     author_email='packager@arivarton.com',
     license='GNU GPL v3',
