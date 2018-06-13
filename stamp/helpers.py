@@ -20,7 +20,8 @@ def determine_total_hours_worked_and_wage_earned(workdays):
         if hours < MINIMUM_HOURS:
             hours = MINIMUM_HOURS
             minutes = 0
-        minutes = (total_seconds % 3600) // 60
+        else:
+            minutes = (total_seconds % 3600) // 60
         seconds = total_seconds % 60 # NOQA
 
         # Add hours to wage
