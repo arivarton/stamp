@@ -74,6 +74,7 @@ def tag(args):
 
 def status(args):
     db = Database(args.db)
+    print(args.db)
     current_stamp = print_current_stamp(db)
     try:
         workdays = db.query_for_workdays(args=args)
@@ -84,7 +85,8 @@ def status(args):
             print(_err_msg)
         sys.exit(0)
     print_status(workdays)
-    print(current_stamp)
+    if current_stamp:
+        print(current_stamp)
     return
 
 

@@ -48,7 +48,7 @@ def print_status(workdays):
             to_width=to_width,
             id_width=id_width,
         ))
-        if workday.tags:
+        if workday.tags.count():
             print('Tags:')
 
             for tag in workday.tags:
