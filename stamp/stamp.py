@@ -58,7 +58,7 @@ def add(args):
 
 def end(args):
     stamp_out(args)
-    return
+    return True
 
 
 def tag(args):
@@ -87,7 +87,7 @@ def status(args):
     print_status(workdays)
     if current_stamp:
         print(current_stamp)
-    return
+    return True
 
 
 def export(args):
@@ -140,7 +140,7 @@ def version(*args, **kwargs):
     return
 
 
-def main():
+def parse_args(args):
     # [Main parser]
     main_parser = argparse.ArgumentParser(description='''Register work hours.
                                           Hours get automatically sorted by date, and
@@ -258,11 +258,15 @@ def main():
                              ''')
     edit_parser.set_defaults(func=edit)
 
-    args = main_parser.parse_args()
-    if vars(args):
-        args.func(args)
+    return main_parser.parse_args(args)
+
+
+def main():
+    parser = parse_args(sys.argv[1:])
+    if vars(parser):
+        parser.func(parser)
     else:
-        main_parser.print_help()
+        parser.print_help()
 
 
 if __name__ == '__main__':

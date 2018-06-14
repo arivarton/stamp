@@ -72,7 +72,10 @@ class Database():
         return query
 
     def query_db(self, Table, column_name, search_string):
-        table = eval(Table) # NOQA
+        try:
+            table = eval(Table) # NOQA
+        except TypeError:
+            raise NoMatchingDatabaseEntryError('Table was not found.')
         db_filter = getattr(table, column_name)
         db_filter = db_filter.is_(search_string)
 

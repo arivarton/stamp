@@ -52,7 +52,8 @@ def print_status(workdays):
             print('Tags:')
 
             for tag in workday.tags:
-                print('{0:<{id_width}} {1} {2} {3}'.format(
+                print('{0:<{id_width}} {1} {2} {3} {4}'.format(
+                    '',
                     tag.id,
                     tag.recorded.date().isoformat(),
                     tag.recorded.strftime(time_format),
