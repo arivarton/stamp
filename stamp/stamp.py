@@ -185,20 +185,20 @@ def parse_args(args):
     subparsers = main_parser.add_subparsers()
 
     # Add parser
-    add_parser = subparsers.add_parser('add', help='''Add hours. If added with
+    in_parser = subparsers.add_parser('in', help='''Add stamp. If added with
                                        two separate times and/or dates the stamp
                                        will automatically finish.''',
-                                       parents=[date_parameters,
-                                                customer_parameters,
-                                                project_parameters,
-                                                db_parameters])
-    add_parser.set_defaults(func=add)
+                                      parents=[date_parameters,
+                                               customer_parameters,
+                                               project_parameters,
+                                               db_parameters])
+    in_parser.set_defaults(func=add)
 
     # End parser
-    end_parser = subparsers.add_parser('end', help='End current stamp.',
+    out_parser = subparsers.add_parser('out', help='End current stamp.',
                                        parents=[date_parameters,
                                                 db_parameters])
-    end_parser.set_defaults(func=end)
+    out_parser.set_defaults(func=end)
 
     # Tag parser
     tag_parser = subparsers.add_parser('tag', help='Tag a stamp.',

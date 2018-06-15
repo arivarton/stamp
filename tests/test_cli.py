@@ -15,7 +15,7 @@ class TestStampCLI(unittest.TestCase):
 
     @patch('builtins.input', lambda: 'y')
     def test_completing_workday_with_tags(self):
-        parser = stamp.parse_args(['add', '-c', 'test_company', '-p',
+        parser = stamp.parse_args(['in', '-c', 'test_company', '-p',
                                    'test_project', '--db', testing_db])
         self.assertTrue(parser.func(parser))
 
@@ -23,7 +23,7 @@ class TestStampCLI(unittest.TestCase):
         parser = stamp.parse_args(['tag', 'testing tag 2', '--db', testing_db])
         self.assertTrue(parser.func(parser))
 
-        parser = stamp.parse_args(['end', '--db', testing_db])
+        parser = stamp.parse_args(['out', '--db', testing_db])
         self.assertTrue(parser.func(parser))
 
         parser = stamp.parse_args(['status', '--db', testing_db])
