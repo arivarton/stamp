@@ -69,12 +69,11 @@ def tag(args):
         stamp = db.query_for_workdays(workday_id=int(args.id))
 
     stamp = tag_stamp(args.date, args.time, stamp, args.tag, db.session)
-    return
+    return True
 
 
 def status(args):
     db = Database(args.db)
-    print(args.db)
     current_stamp = print_current_stamp(db)
     try:
         workdays = db.query_for_workdays(args=args)

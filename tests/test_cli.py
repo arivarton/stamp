@@ -5,25 +5,33 @@ from unittest.mock import patch
 
 sys.path.append('../stamp')
 
-from stamp import stamp # NOQA
+from stamp import stamp, settings # NOQA
 
 testing_db = 'test'
+testing_db_path = os.path.join(settings.DATA_DIR, testing_db) + '.db'
 
 
-class TestStringMethods(unittest.TestCase):
+class TestStampCLI(unittest.TestCase):
+
     @patch('builtins.input', lambda: 'y')
-    def test_add(self):
-        parser = stamp.parse_args(['add', '-c', 'test_company', '-p', 'test_project', '--db', testing_db])
-        os.remove(parser.db)
+    def test_completing_workday_with_tags(self):
+        parser = stamp.parse_args(['add', '-c', 'test_company', '-p',
+                                   'test_project', '--db', testing_db])
         self.assertTrue(parser.func(parser))
 
-    def test_end(self):
+        parser = stamp.parse_args(['tag', 'testing tag', '--db', testing_db])
+        parser = stamp.parse_args(['tag', 'testing tag 2', '--db', testing_db])
+        self.assertTrue(parser.func(parser))
+
         parser = stamp.parse_args(['end', '--db', testing_db])
         self.assertTrue(parser.func(parser))
 
-    def test_status(self):
         parser = stamp.parse_args(['status', '--db', testing_db])
         self.assertTrue(parser.func(parser))
+
+
+def tearDownModule():
+    os.remove(testing_db_path)
 
 
 if __name__ == '__main__':
