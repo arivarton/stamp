@@ -27,7 +27,7 @@ from .delete import delete_workday_or_tag
 from .tag import tag_stamp
 from .db import Database
 from .export import parse_export_filter
-from .exceptions import NoMatchingDatabaseEntryError
+from .exceptions import NoMatchingDatabaseEntryError, CurrentStampNotFoundError
 from .pprint import yes_or_no
 
 
@@ -57,7 +57,11 @@ def add(args):
 
 
 def end(args):
-    stamp_out(args)
+    try:
+        stamp_out(args)
+    except CurrentStampNotFoundError as _err_msg:
+        print(_err_msg)
+        sys.exit(0)
     return True
 
 

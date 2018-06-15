@@ -5,11 +5,14 @@ from datetime import datetime
 from .db import Database
 from .pprint import yes_or_no
 from .helpers import auto_correct_tag, manually_correct_tag
+from .exceptions import CurrentStampNotFoundError
 
 
 def stamp_out(args):
     db = Database(args.db)
     stamp = db.current_stamp()
+    if not stamp:
+        raise CurrentStampNotFoundError('No stamp present. Stamp in first!')
     stamp.end = datetime.combine(args.date, args.time)
     for tag in stamp.tags:
         if tag.recorded > stamp.end or tag.recorded < stamp.start:

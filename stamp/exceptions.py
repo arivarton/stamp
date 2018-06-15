@@ -20,3 +20,7 @@ class TooManyMatchesError(StampError):
 
 class ArgumentError(StampError):
     pass
+
+
+class CurrentStampNotFoundError(StampError):
+    pass
