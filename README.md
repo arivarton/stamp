@@ -9,21 +9,21 @@ Hours are saved to a sqlite database and exportable to pdf.
 # Environment variables
 
 Name | Default value
------|-----
-STAMP_MINIMUM_HOURS | 2  
-STAMP_STANDARD_HOURS | 08:00-16:00  
-STAMP_LUNCH | 00:30  
+:----------------------:|:-------------:
+STAMP_MINIMUM_HOURS     | 2  
+STAMP_STANDARD_HOURS    | 08:00-16:00  
+STAMP_LUNCH             | 00:30  
 STAMP_STANDARD_CUSTOMER | Last customer from DB OR create new customer
-STAMP_STANDARD_PROJECT | Last customer from DB OR create new customer
-STAMP_WAGE_PER_HOUR | 300  
-STAMP_CURRENCY | NKR  
-STAMP_ORG_NR | str(Not set)
-STAMP_NAME | str(Not set)
-STAMP_ADDRESS | str(Not set)
-STAMP_ZIP_CODE | str(Not set)
-STAMP_ACCOUNT_NUMBER | str(Not set)
-STAMP_PHONE | str(Not set)
-STAMP_MAIL | str(Not set)
+STAMP_STANDARD_PROJECT  | Last customer from DB OR create new customer
+STAMP_WAGE_PER_HOUR     | 300  
+STAMP_CURRENCY          | NKR  
+STAMP_ORG_NR            | str(Not set)
+STAMP_NAME              | str(Not set)
+STAMP_ADDRESS           | str(Not set)
+STAMP_ZIP_CODE          | str(Not set)
+STAMP_ACCOUNT_NUMBER    | str(Not set)
+STAMP_PHONE             | str(Not set)
+STAMP_MAIL              | str(Not set)
 
 # Install
 
@@ -60,7 +60,8 @@ Not implemented properly yet.
 
 
 ### Export to pdf
-Not implemented properly yet.
+stamp export <month> <year> 
+`stamp export jan 2018`
 
 
 ### Delete workday or tags
