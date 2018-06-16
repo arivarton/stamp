@@ -30,48 +30,53 @@ STAMP_MAIL              | str(Not set)
 `python3 setup.py install`
 
 # Usage
+CLI usage examples.
+## Stamp in
 
-### Start worktime
-##### With current time
-`stamp in -c 'Billed customer' -p 'My project'`
-##### With modified time
-`stamp in -D 2013-03-03 -T 21:00`
+#### With current time
+ `stamp in -c 'Billed customer' -p 'My project'`
+
+#### With modified time
+ `stamp in -D 2013-03-03 -T 21:00`
 
 
-### Tag a point in time
+
+## Tag a point in time
 ##### With current time
 `stamp tag 'My message for the tag'`
 ##### With modified time
-`stamp tag 'My message for the tag' -D 2013-03-03 -T 21:00`
+`stamp tag 'My message for the tag' -D 2013-03-03 -T 21:00`  
 
 
-### End worktime
+
+## Stamp out
 ##### With current time
 `stamp out`
 ##### With modified time
 `stamp out -D 2013-03-03 -T 21:00`
 
 
-### Get status of registered and current hours
+
+## Get status of registered and current hours
 ##### Get status of all registered hours
 `stamp status`
 ##### Get status with filter
 Not implemented properly yet.
 
 
-### Export to pdf
-stamp export <month> <year> 
+
+## Export to pdf
 `stamp export jan 2018`
 
 
-### Delete workday or tags
+## Delete workday or tags
 ##### Delete workday
 `stamp delete --id 15`
 ##### Delete tag under workday
 `stamp delete --id 15 --tag 3`
 
 
-### Edit registered or current hours
+## Edit registered or current hours
 ##### Edit registered hours
 `stamp edit --id 15 'customer="My second customer",date="2015-02-02"'`
 ##### Edit current hours (just remove the id argument)
@@ -80,7 +85,7 @@ stamp export <month> <year>
 `stamp edit --id 'current' 'customer="My second customer",date="2015-02-02"'`
 
 
-### Edit tags
+## Edit tags
 ##### Edit registered tag
 `stamp edit --id 15 -t 1 'comment="This is my tag",date="2015-02-02"'`
 ##### Edit tag under current workday (just remove the id argument)
