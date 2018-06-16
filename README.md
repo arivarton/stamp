@@ -33,9 +33,9 @@ STAMP_MAIL | str(Not set)
 
 ### Start worktime
 ##### With current time
-`stamp add -c 'Billed customer' -p 'My project'`
+`stamp in -c 'Billed customer' -p 'My project'`
 ##### With modified time
-`stamp add -D 2013-03-03 -T 21:00`
+`stamp in -D 2013-03-03 -T 21:00`
 
 
 ### Tag a point in time
@@ -47,9 +47,9 @@ STAMP_MAIL | str(Not set)
 
 ### End worktime
 ##### With current time
-`stamp end`
+`stamp out`
 ##### With modified time
-`stamp end -D 2013-03-03 -T 21:00`
+`stamp out -D 2013-03-03 -T 21:00`
 
 
 ### Get status of registered and current hours
