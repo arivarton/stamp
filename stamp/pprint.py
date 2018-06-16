@@ -1,3 +1,6 @@
+from .helpers import get_terminal_width
+
+
 def yes_or_no(question,
               no_message=None,
               no_function=None, no_function_args=(), no_function_kwargs={},
@@ -26,3 +29,9 @@ def yes_or_no(question,
             return no_function(*no_function_args, **no_function_kwargs)
         else:
             return None
+
+
+def divider(divider_type='-'):
+    print('{0:{divider_type}<{width}}'.format('',
+                                              divider_type=divider_type,
+                                              width=get_terminal_width()))

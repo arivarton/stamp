@@ -1,4 +1,5 @@
 import sys
+import shutil
 from datetime import datetime, timedelta
 
 from .settings import MINIMUM_HOURS, WAGE_PER_HOUR, CURRENCY
@@ -92,3 +93,7 @@ def manually_correct_tag(tag, stamp, Session):
             else:
                 Session.add(tag)
                 return True
+
+
+def get_terminal_width():
+    return shutil.get_terminal_size((80, 80)).columns
