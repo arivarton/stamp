@@ -31,7 +31,7 @@ STAMP_MAIL              | str(Not set)
 
 # Usage
 
-### Start worktime
+### Stamp in
 ##### With current time
 `stamp in -c 'Billed customer' -p 'My project'`
 ##### With modified time
@@ -42,14 +42,16 @@ STAMP_MAIL              | str(Not set)
 ##### With current time
 `stamp tag 'My message for the tag'`
 ##### With modified time
-`stamp tag 'My message for the tag' -D 2013-03-03 -T 21:00`
+`stamp tag 'My message for the tag' -D 2013-03-03 -T 21:00`  
 
 
-### End worktime
+
+### Stamp out
 ##### With current time
 `stamp out`
 ##### With modified time
 `stamp out -D 2013-03-03 -T 21:00`
+
 
 
 ### Get status of registered and current hours
@@ -59,8 +61,8 @@ STAMP_MAIL              | str(Not set)
 Not implemented properly yet.
 
 
+
 ### Export to pdf
-stamp export <month> <year> 
 `stamp export jan 2018`
 
 
