@@ -6,7 +6,8 @@ from sqlalchemy.orm import exc as orm_exc
 
 from .mappings import Workday, Tag, Customer, Base
 from .exceptions import (NoMatchingDatabaseEntryError,
-                         TooManyMatchingDatabaseEntriesError)
+                         TooManyMatchingDatabaseEntriesError,
+                         CurrentStampNotFoundError)
 from .settings import DATA_DIR
 
 
@@ -58,7 +59,7 @@ class Database():
         try:
             stamp = self.session.query(Workday).filter(Workday.end.is_(None))[0]
         except IndexError:
-            stamp = None
+            raise CurrentStampNotFoundError('Not stamped in!')
         return stamp
 
     def query_db_export_filter(self, Table, export_filter):

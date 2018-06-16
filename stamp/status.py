@@ -68,15 +68,14 @@ def print_status(workdays):
     print('Total wage earned: %s' % output_total_wage)
 
 
-def print_current_stamp(db):
-    stamp = db.current_stamp()
+def print_current_stamp(current_stamp):
     result = str()
-    if stamp is not None:
-        result = result + '\n\nCurrent stamp:\n'
-        result = result + '%s %s\n' % (stamp.start.date().isoformat(), stamp.start.time().isoformat().split('.')[0])
-        result = result + 'Customer: %s\n' % stamp.customer.name
-        result = result + '%d tag(s)\n' % len(stamp.tags.all())
-        for tag in stamp.tags:
+    if current_stamp is not None:
+        result = result + '\nCurrent stamp:\n'
+        result = result + '%s %s\n' % (current_stamp.start.date().isoformat(), current_stamp.start.time().isoformat().split('.')[0])
+        result = result + 'Customer: %s\n' % current_stamp.customer.name
+        result = result + '%d tag(s)\n' % len(current_stamp.tags.all())
+        for tag in current_stamp.tags:
             result = result + '\t[id: %d] [Tagged: %s | %s]\n\t%s' % (tag.id_under_workday, tag.recorded.date().isoformat(), tag.recorded.time().isoformat(), tag.tag)
         result = result + '\n'
     else:

@@ -68,7 +68,10 @@ def end(args):
 def tag(args):
     db = Database(args.db)
     if args.id == 'current':
-        stamp = db.current_stamp()
+        try:
+            stamp = db.current_stamp()
+        except CurrentStampNotFoundError as _err_msg:
+            print(_err_msg)
     else:
         stamp = db.query_for_workdays(workday_id=int(args.id))
 
@@ -78,18 +81,14 @@ def tag(args):
 
 def status(args):
     db = Database(args.db)
-    current_stamp = print_current_stamp(db)
     try:
         workdays = db.query_for_workdays(args=args)
+        print_status(workdays)
+        print(print_current_stamp(db.current_stamp()))
     except NoMatchingDatabaseEntryError as _err_msg:
-        if current_stamp:
-            print(current_stamp)
-        else:
-            print(_err_msg)
-        sys.exit(0)
-    print_status(workdays)
-    if current_stamp:
-        print(current_stamp)
+        print(_err_msg)
+    except CurrentStampNotFoundError as _err_msg:
+        print(_err_msg)
     return True
 
 
@@ -118,7 +117,10 @@ def export(args):
 def delete(args):
     db = Database(args.db)
     if args.id == 'current':
-        args.id = db.current_stamp().id
+        try:
+            args.id = db.current_stamp().id
+        except CurrentStampNotFoundError as _err_msg:
+            print(_err_msg)
     else:
         args.id = int(args.id)
     delete_workday_or_tag(args.id, args.tag, db)
@@ -130,7 +132,10 @@ def edit(args):
     db = Database(args.db)
     args.edit = edit_regex_resolver(args.edit)
     if args.id == 'current':
-        args.id = db.current_stamp().id
+        try:
+            args.id = db.current_stamp().id
+        except CurrentStampNotFoundError as _err_msg:
+            print(_err_msg)
     else:
         args.id = int(args.id)
     edit_workday(args.id, args.edit, db)
