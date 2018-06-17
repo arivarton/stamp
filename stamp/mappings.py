@@ -81,4 +81,3 @@ class Tag(Base):
     tag = Column(String)
 
     workday_id = Column(ForeignKey('workday.id'))
-    id_under_workday = Column(Integer)

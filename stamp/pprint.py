@@ -31,7 +31,8 @@ def yes_or_no(question,
             return None
 
 
-def divider(divider_type='-'):
-    print('{0:{divider_type}<{width}}'.format('',
-                                              divider_type=divider_type,
-                                              width=get_terminal_width()))
+def divider(divider_type='-', alignment='<', text=''):
+    print('{0:{divider_type}{alignment}{width}}'.format(text,
+                                                        divider_type=divider_type,
+                                                        alignment=alignment,
+                                                        width=get_terminal_width()))

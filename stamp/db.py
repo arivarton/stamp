@@ -4,7 +4,7 @@ from sqlalchemy import exc, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import exc as orm_exc
 
-from .mappings import Workday, Tag, Customer, Base
+from .mappings import Workday, Customer, Base
 from .exceptions import (NoMatchingDatabaseEntryError,
                          TooManyMatchingDatabaseEntriesError,
                          CurrentStampNotFoundError)
@@ -30,7 +30,8 @@ class Database():
             # Used with delete or edit argument
             if workday_id or tag_id:
                 if tag_id:
-                    workdays = self.session.query(Workday).get(workday_id).tags.filter(Tag.id_under_workday == tag_id)
+                    #  workdays = self.session.query(Workday).get(workday_id).tags.filter(Tag.id_under_workday == tag_id)
+                    raise NotImplementedError('Must figure out a way to match selected id with the actual tag id.')
                 else:
                     workdays = self.session.query(Workday).get(workday_id)
 

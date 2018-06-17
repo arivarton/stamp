@@ -16,7 +16,7 @@ def stamp_out(args):
     stamp.end = datetime.combine(args.date, args.time)
     for tag in stamp.tags:
         if tag.recorded > stamp.end or tag.recorded < stamp.start:
-            print('Tag with id %d has a recorded date/time that is out of the stamp\'s bounds. Please correct the recorded tag date/time.' % tag.id_under_workday)
+            print('Tag with id %d has a recorded date/time that is out of the stamp\'s bounds. Please correct the recorded tag date/time.' % tag.id)
             yes_or_no('Do you wish for the tag to be auto corrected?',
                       no_message='Not auto correcting tags!',
                       no_function=yes_or_no,

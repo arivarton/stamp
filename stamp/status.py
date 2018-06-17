@@ -23,7 +23,8 @@ def print_status(workdays):
     widths.update({'total': sum(widths.values()) + 6})
 
     # Header
-    print('\n{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{from_width}}   {4:<{to_width}}{5:>{summary_width}}'.format(
+    divider()
+    print('{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{from_width}}   {4:<{to_width}}{5:>{summary_width}}'.format(
         '',
         date_headline,
         customer_headline,
@@ -37,7 +38,6 @@ def print_status(workdays):
         id_width=widths['id'],
         summary_width=get_terminal_width() - widths['total']
         ))
-
     divider()
 
     # Output for each day
@@ -83,9 +83,9 @@ def print_current_stamp(current_stamp):
         result = result + '\nCurrent stamp:\n'
         result = result + '%s %s\n' % (current_stamp.start.date().isoformat(), current_stamp.start.time().isoformat().split('.')[0])
         result = result + 'Customer: %s\n' % current_stamp.customer.name
-        result = result + '%d tag(s)\n' % len(current_stamp.tags.all())
+        result = result + '%d tag(s)' % len(current_stamp.tags.all())
         for tag in current_stamp.tags:
-            result = result + '\t[id: %d] [Tagged: %s | %s]\n\t%s' % (tag.id_under_workday, tag.recorded.date().isoformat(), tag.recorded.time().isoformat(), tag.tag)
+            result = result + '\n\t[id: %d] [Tagged: %s | %s]\n\t%s' % (tag.id, tag.recorded.date().isoformat(), tag.recorded.time().isoformat(), tag.tag)
         result = result + '\n'
     else:
         result = None

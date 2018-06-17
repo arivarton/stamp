@@ -5,7 +5,6 @@ from .exceptions import TagOutsideTimeBoundaryError
 
 
 def tag_stamp(date, time, stamp, tag, Session):
-    _id_under_workday = len(stamp.tags.all()) + 1
     if stamp.end:
         if date > stamp.end.date():
             raise TagOutsideTimeBoundaryError('Tag (%s %s) must be set before the work day has ended (%s %s).' % (date, time, stamp.end.date(), stamp.end.time()))
@@ -17,7 +16,7 @@ def tag_stamp(date, time, stamp, tag, Session):
         raise TagOutsideTimeBoundaryError('Tag (%s) must be set after the work day has started (%s).' % (date, stamp.start.date()))
     else:
         stamp.tags.append(Tag(recorded=datetime.combine(date, time),
-                              tag=tag, id_under_workday=_id_under_workday))
+                              tag=tag))
         Session.add(stamp)
         Session.commit()
     return stamp
