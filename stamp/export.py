@@ -9,15 +9,15 @@ from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Spacer, Table
 from reportlab.lib.units import inch
 
-from .settings import (REPORT_DIR, ORG_NR, FILE_DIR, COMPANY_NAME, COMPANY_ADDRESS,
+from .settings import (ORG_NR, FILE_DIR, COMPANY_NAME, COMPANY_ADDRESS,
                        COMPANY_ZIP_CODE, COMPANY_ACCOUNT_NUMBER, MAIL, PHONE)
 from .exceptions import (TooManyMatchesError, ArgumentError,
                          NoMatchingDatabaseEntryError, TooManyMatchingDatabaseEntriesError)
 from .helpers import output_for_total_hours_date_and_wage
 
 
-def parse_export_filter(selected_month, selected_year, db,
-                        selected_customer=None, selected_project=None):
+def parse_export_filter(selected_month, selected_year, selected_customer,
+                        db, selected_project=None):
     export_filter = dict()
     # Validate month
     _valid_months = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -44,18 +44,16 @@ def parse_export_filter(selected_month, selected_year, db,
     export_filter.update({'start': {'op_func': operator.ge, 'value': date_from},
                           'end': {'op_func': operator.lt, 'value': date_to}})
 
-    # Validate customer
-    if selected_customer:
-        try:
-            selected_customer = db.get_one_db_entry('Customer', 'name', selected_customer)
-        except NoMatchingDatabaseEntryError as _err_msg:
-            print(_err_msg)
-            sys.exit(0)
-        except TooManyMatchingDatabaseEntriesError as _err_msg:
-            print(_err_msg)
-            sys.exit(0)
-        export_filter.update({'customer_id': {'op_func': operator.eq,
-                                              'value': selected_customer.id}})
+    try:
+        selected_customer = db.get_one_db_entry('Customer', 'name', selected_customer)
+    except NoMatchingDatabaseEntryError as _err_msg:
+        print(_err_msg)
+        sys.exit(0)
+    except TooManyMatchingDatabaseEntriesError as _err_msg:
+        print(_err_msg)
+        sys.exit(0)
+    export_filter.update({'customer_id': {'op_func': operator.eq,
+                                          'value': selected_customer.id}})
 
     # Validate project
     if selected_project:
@@ -73,13 +71,16 @@ def parse_export_filter(selected_month, selected_year, db,
     return export_filter
 
 
-def create_pdf(workdays, invoice_id=None): # NOQA
+def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
     if invoice_id:
         file_name = str(invoice_id) + '-invoice.pdf'
     else:
         file_name = 'report.pdf'
 
-    file_dir = os.path.join(REPORT_DIR, file_name)
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    file_dir = os.path.join(save_dir, file_name)
 
     # Document settings
     PAGE_HEIGHT = A4[1]

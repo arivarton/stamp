@@ -4,7 +4,7 @@ from sqlalchemy import exc, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import exc as orm_exc
 
-from .mappings import Workday, Customer, Base
+from .mappings import Workday, Customer, Base, Invoice # NOQA
 from .exceptions import (NoMatchingDatabaseEntryError,
                          TooManyMatchingDatabaseEntriesError,
                          CurrentStampNotFoundError)
@@ -62,6 +62,10 @@ class Database():
         except IndexError:
             raise CurrentStampNotFoundError('Not stamped in!')
         return stamp
+
+    def query_db_all(self, Table):
+        table = eval(Table) # NOQA
+        return self.session.query(table).all()
 
     def query_db_export_filter(self, Table, export_filter):
         table = eval(Table) # NOQA

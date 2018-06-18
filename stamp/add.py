@@ -1,3 +1,4 @@
+import os
 import sys
 from datetime import datetime
 
@@ -6,6 +7,7 @@ from .mappings import Workday, Project, Customer, Invoice
 from .db import Database
 from .pprint import yes_or_no
 from .export import create_pdf
+from .settings import REPORT_DIR
 
 
 def _create_stamp(Session, date, time, stamp):
@@ -68,12 +70,13 @@ def create_customer(Session, customer_name=None):
     return customer
 
 
-def create_invoice(Session, workdays, export_to_pdf=False):
+def create_invoice(db, workdays, customer, year, month, export_to_pdf=False):
+    if isinstance(db, str):
+        db = Database(db)
     invoice_detected = False
     for workday in workdays.all():
         if workday.invoice:
             invoice_detected = True
-            break
 
     if invoice_detected:
         yes_or_no('Work day with invoice id already assigned detected. Continue?',
@@ -82,13 +85,23 @@ def create_invoice(Session, workdays, export_to_pdf=False):
                   no_function_args=(0,),
                   yes_message='Reassigning invoice id.')
 
-    invoice = Invoice(workdays=workdays.all())
+    customer = db.get_one_db_entry('Customer', 'name', customer)
+
+    invoice = Invoice(workdays=workdays.all(),
+                      customer_id=customer.id)
+
     if export_to_pdf:
-        pdf_file = create_pdf(workdays.all(), invoice.id)
+        save_dir = os.path.join(REPORT_DIR,
+                                # DB name
+                                db.session.connection().engine.url.database.split('/')[-1].split('.')[0],
+                                customer.name,
+                                year,
+                                month)
+        pdf_file = create_pdf(workdays.all(), save_dir, invoice.id)
         invoice.pdf = pdf_file
 
-    Session.add(invoice)
-    Session.commit()
+    db.session.add(invoice)
+    db.session.commit()
 
     return invoice
 
@@ -106,7 +119,7 @@ def stamp_in(args):
     except CurrentStampNotFoundError:
         try:
             if args.customer:
-                customer_id = db.get_one_db_entry(Customer, 'name', args.customer).id
+                customer_id = db.get_one_db_entry('Customer', 'name', args.customer).id
             else:
                 customer_id = db.get_last_workday_entry('customer', 'id')
         except NoMatchingDatabaseEntryError:
@@ -121,7 +134,7 @@ def stamp_in(args):
 
         try:
             if args.project:
-                project_id = db.get_one_db_entry(Project, 'name', args.project).id
+                project_id = db.get_one_db_entry('Project', 'name', args.project).id
             else:
                 project_id = db.get_last_workday_entry('project', 'id')
         except NoMatchingDatabaseEntryError:

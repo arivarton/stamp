@@ -22,7 +22,7 @@ from .settings import STANDARD_CUSTOMER, STANDARD_PROJECT, DATA_DIR, DB_FILE
 from .add import stamp_in, create_invoice
 from .end import stamp_out
 from .edit import edit_regex_resolver, edit_workday
-from .status import print_status, print_current_stamp
+from .status import print_status, print_current_stamp, print_invoices
 from .delete import delete_workday_or_tag
 from .tag import tag_stamp
 from .db import Database
@@ -82,9 +82,12 @@ def tag(args):
 def status(args):
     db = Database(args.db)
     try:
-        workdays = db.query_for_workdays(args=args)
-        print_status(workdays)
-        print(print_current_stamp(db.current_stamp()))
+        if args.invoices:
+            print_invoices(db.query_db_all('Invoice'))
+        else:
+            status_query = db.query_for_workdays(args=args)
+            print_status(status_query)
+            print(print_current_stamp(db.current_stamp()))
     except NoMatchingDatabaseEntryError as _err_msg:
         print(_err_msg)
     except CurrentStampNotFoundError as _err_msg:
@@ -94,23 +97,22 @@ def status(args):
 
 def export(args):
     db = Database(args.db)
-    export_filter = parse_export_filter(args.month, args.year, db, args.customer,
+    export_filter = parse_export_filter(args.month, args.year, args.customer, db,
                                         args.project)
     try:
         workdays = db.query_db_export_filter('Workday', export_filter)
+        print_status(workdays)
+        invoice = yes_or_no('Do you wish to create a invoice containing these workdays?',
+                            no_message='Canceled...',
+                            no_function=sys.exit,
+                            no_function_args=(0,),
+                            yes_message='Creating new invoice!',
+                            yes_function=create_invoice,
+                            yes_function_args=(db, workdays, args.customer, args.year, args.month),
+                            yes_function_kwargs={'export_to_pdf': args.pdf})
     except NoMatchingDatabaseEntryError as _err_msg:
         print(_err_msg)
         sys.exit(0)
-
-    print_status(workdays)
-    invoice = yes_or_no('Do you wish to create a Invoice containing these workdays?',
-                        no_message='Canceled...',
-                        no_function=sys.exit,
-                        no_function_args=(0,),
-                        yes_message='Creating new invoice!',
-                        yes_function=create_invoice,
-                        yes_function_args=(db.session, workdays,),
-                        yes_function_kwargs={'export_to_pdf': True})
     return invoice
 
 
@@ -170,9 +172,10 @@ def parse_args(args):
     # Filter parameters
     filter_parameters = argparse.ArgumentParser(add_help=False)
     filter_parameters.add_argument('-f', '--filter', action='store_true',
-                                   help='''Filter the output of status or pdf export. Use
-                                   in combination with other arguments, f.ex status and customer:
-                                   "status -f -c MyCompany"''')
+                                   help='''Filter the output of status or pdf export.
+                                   Use this format:
+                                   "date_from=2018-02-18,date_to=2018-04-20,
+                                   company='somecompany'".''')
 
     # Company parameters
     customer_parameters = argparse.ArgumentParser(add_help=False)
@@ -224,10 +227,10 @@ def parse_args(args):
                                                    customer_parameters,
                                                    project_parameters,
                                                    db_parameters])
-    status_parser.add_argument('-s', '--status', action='store_true',
-                               help='Print current state of stamp.')
     status_parser.add_argument('-a', '--all', action='store_true',
                                help='Show status of all registered days.')
+    status_parser.add_argument('-i', '--invoices', action='store_true',
+                               help='Show all created invoices.')
     status_parser.set_defaults(func=status)
 
     # Export parser
@@ -236,7 +239,9 @@ def parse_args(args):
                                                    db_parameters])
     export_parser.add_argument('month', type=str)
     export_parser.add_argument('year', type=str)
-    export_parser.add_argument('customer', type=str, nargs='?')
+    export_parser.add_argument('customer', type=str)
+    export_parser.add_argument('-p', '--pdf', action='store_true',
+                               help='Export to PDF.')
     export_parser.add_argument('project', type=str, nargs='?')
     export_parser.set_defaults(func=export)
 

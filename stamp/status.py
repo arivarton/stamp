@@ -10,6 +10,7 @@ def print_status(workdays):
     customer_headline = 'Customer'
     from_headline = 'From'
     to_headline = 'To'
+    invoice_id_headline = 'Invoice ID'
 
     # Width for columns
     widths = {
@@ -17,24 +18,27 @@ def print_status(workdays):
         'customer': max(len(max([x.customer.name for x in workdays.all()], key=len)), len(customer_headline)) + 4,
         'from': max(len(workdays.first().start.strftime(time_format)), len(from_headline)),
         'to': max(len(workdays.first().end.strftime(time_format)), len(to_headline)),
-        'id': len(max([str(x.id) for x in workdays.all()], key=len)) + 2
+        'id': len(max([str(x.id) for x in workdays.all()], key=len)) + 2,
+        'invoice id': max(len(max([str(x.invoice_id) for x in workdays.all()], key=len)), len(invoice_id_headline))
     }
 
-    widths.update({'total': sum(widths.values()) + 6})
+    widths.update({'total': sum(widths.values()) + 7})
 
     # Header
     divider()
-    print('{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{from_width}}   {4:<{to_width}}{5:>{summary_width}}'.format(
+    print('{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{from_width}}   {4:<{to_width}} {5:^{invoice_id_width}}{6:>{summary_width}}'.format(
         '',
         date_headline,
         customer_headline,
         from_headline,
         to_headline,
+        invoice_id_headline,
         'Total',
         date_width=widths['date'],
         customer_width=widths['customer'],
         from_width=widths['from'],
         to_width=widths['to'],
+        invoice_id_width=widths['invoice id'],
         id_width=widths['id'],
         summary_width=get_terminal_width() - widths['total']
         ))
@@ -43,18 +47,20 @@ def print_status(workdays):
     # Output for each day
     for workday in workdays:
         output_total_hours, output_date, output_total_wage = output_for_total_hours_date_and_wage(workday)
-        print('{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{from_width}} - {4:<{to_width}}{5:>{summary_width}}'.format(
+        print('{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{from_width}} - {4:<{to_width}} {5:^{invoice_id_width}}{6:>{summary_width}}'.format(
             workday.id,
             output_date,
             workday.customer.name,
             workday.start.strftime(time_format),
             workday.end.strftime(time_format),
+            workday.invoice_id or '',
             output_total_hours + ' for ' + output_total_wage,
 
             date_width=widths['date'],
             customer_width=widths['customer'],
             from_width=widths['from'],
             to_width=widths['to'],
+            invoice_id_width=widths['invoice id'],
             id_width=widths['id'],
             summary_width=get_terminal_width() - widths['total']
         ))
@@ -75,6 +81,67 @@ def print_status(workdays):
 
         summary_width=get_terminal_width()
     ))
+
+
+def print_invoices(invoices):
+    # Headlines
+    created_headline = 'Created on'
+    pdf_headline = 'PDF'
+    sent_headline = 'Sent'
+    paid_headline = 'Paid'
+
+    # Width for columns
+    widths = {
+        'id': len(max([str(x.id) for x in invoices], key=len)) + 2,
+        'created': max(len(invoices[0].created.date().isoformat()), len(created_headline)) + 3,
+        'pdf': max(len(max([x.pdf if x.pdf else '' for x in invoices], key=len)), len(pdf_headline)) + 4,
+        'sent': max(len('Yes'), len(sent_headline)),
+        'paid': max(len('Yes'), len(paid_headline))
+    }
+
+    widths.update({'total': sum(widths.values()) + 7})
+
+    divider()
+    print('{0:<{id_width}} {1:<{created_width}} {2:<{pdf_width}} {3:<{sent_width}} {4:<{paid_width}}'.format(
+        '',
+        created_headline,
+        pdf_headline,
+        sent_headline,
+        paid_headline,
+        id_width=widths['id'],
+        created_width=widths['created'],
+        pdf_width=widths['pdf'],
+        sent_width=widths['sent'],
+        paid_width=widths['paid']
+        ))
+    divider()
+
+    # Output for each invoice
+    for invoice in invoices:
+
+        if invoice.sent:
+            invoice_sent = 'Yes'
+        else:
+            invoice_sent = 'No'
+
+        if invoice.paid:
+            invoice_paid = 'Yes'
+        else:
+            invoice_paid = 'No'
+
+        print('{0:<{id_width}} {1:<{created_width}} {2:<{pdf_width}} {3:<{sent_width}} {4:<{paid_width}}'.format(
+            invoice.id,
+            invoice.created.date().isoformat(),
+            invoice.pdf,
+            invoice_sent,
+            invoice_paid,
+            id_width=widths['id'],
+            created_width=widths['created'],
+            pdf_width=widths['pdf'],
+            sent_width=widths['sent'],
+            paid_width=widths['paid']
+        ))
+        divider()
 
 
 def print_current_stamp(current_stamp):

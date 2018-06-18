@@ -30,6 +30,8 @@ class Customer(Base):
                             backref='customer')
     projects = relationship('Project', order_by='Project.id',
                             cascade='all, delete, delete-orphan', lazy='dynamic')
+    invoices = relationship('Invoice', order_by='Invoice.created', lazy='dynamic',
+                            backref='customer')
 
 
 class Project(Base):
@@ -52,7 +54,9 @@ class Invoice(Base):
     created = Column(DateTime, default=datetime.now())
     pdf = Column('PDF Directory', String, unique=True, default=None)
     paid = Column(Boolean, default=False)
-    sent = Column(Integer, default=0)
+    sent = Column(Boolean, default=False)
+
+    customer_id = Column(ForeignKey('customer.id'))
 
     workdays = relationship('Workday', order_by='Workday.start',
                             backref='invoice')
