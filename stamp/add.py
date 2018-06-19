@@ -1,4 +1,3 @@
-import os
 import sys
 from datetime import datetime
 
@@ -6,8 +5,6 @@ from .exceptions import NoMatchingDatabaseEntryError, CurrentStampNotFoundError
 from .mappings import Workday, Project, Customer, Invoice
 from .db import Database
 from .pprint import yes_or_no
-from .export import create_pdf
-from .settings import REPORT_DIR
 
 
 def _create_stamp(Session, date, time, stamp):
@@ -70,7 +67,7 @@ def create_customer(Session, customer_name=None):
     return customer
 
 
-def create_invoice(db, workdays, customer, year, month, export_to_pdf=False):
+def create_invoice(db, workdays, customer):
     if isinstance(db, str):
         db = Database(db)
     invoice_detected = False
@@ -89,16 +86,6 @@ def create_invoice(db, workdays, customer, year, month, export_to_pdf=False):
 
     invoice = Invoice(workdays=workdays.all(),
                       customer_id=customer.id)
-
-    if export_to_pdf:
-        save_dir = os.path.join(REPORT_DIR,
-                                # DB name
-                                db.session.connection().engine.url.database.split('/')[-1].split('.')[0],
-                                customer.name,
-                                year,
-                                month)
-        pdf_file = create_pdf(workdays.all(), save_dir, invoice.id)
-        invoice.pdf = pdf_file
 
     db.session.add(invoice)
     db.session.commit()

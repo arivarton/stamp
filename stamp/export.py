@@ -13,18 +13,15 @@ from .settings import (ORG_NR, FILE_DIR, COMPANY_NAME, COMPANY_ADDRESS,
                        COMPANY_ZIP_CODE, COMPANY_ACCOUNT_NUMBER, MAIL, PHONE)
 from .exceptions import (TooManyMatchesError, ArgumentError,
                          NoMatchingDatabaseEntryError, TooManyMatchingDatabaseEntriesError)
-from .helpers import output_for_total_hours_date_and_wage
+from .helpers import output_for_total_hours_date_and_wage, get_month_names
 
 
 def parse_export_filter(selected_month, selected_year, selected_customer,
                         db, selected_project=None):
     export_filter = dict()
     # Validate month
-    _valid_months = ['January', 'February', 'March', 'April', 'May', 'June',
-                     'July', 'August', 'September', 'October', 'November',
-                     'December']
     _selected_month = list()
-    for month in _valid_months:
+    for month in get_month_names():
         if month.startswith(selected_month.capitalize()):
             _selected_month.append(month)
     if len(_selected_month) > 1:
@@ -68,7 +65,7 @@ def parse_export_filter(selected_month, selected_year, selected_customer,
         export_filter.update({'project_id': {'op_func': operator.eq,
                                              'value': selected_project.id}})
 
-    return export_filter
+    return export_filter, selected_month
 
 
 def create_pdf(workdays, save_dir, invoice_id=None): # NOQA

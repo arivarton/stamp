@@ -8,7 +8,9 @@
 from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
+
+from .helpers import get_month_names
 
 Base = declarative_base()
 
@@ -53,6 +55,8 @@ class Invoice(Base):
     id = Column(Integer, primary_key=True)
     created = Column(DateTime, default=datetime.now())
     pdf = Column('PDF Directory', String, unique=True, default=None)
+    month = Column(String, default=None)
+    year = Column(String, default=None)
     paid = Column(Boolean, default=False)
     sent = Column(Boolean, default=False)
 
@@ -60,6 +64,11 @@ class Invoice(Base):
 
     workdays = relationship('Workday', order_by='Workday.start',
                             backref='invoice')
+
+    @validates('month')
+    def validate_month(self, key, value): # NOQA
+        assert value in get_month_names()
+        return value
 
 
 class Workday(Base):

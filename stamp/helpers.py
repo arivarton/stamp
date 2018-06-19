@@ -97,3 +97,8 @@ def manually_correct_tag(tag, stamp, Session):
 
 def get_terminal_width():
     return shutil.get_terminal_size((80, 80)).columns
+
+
+def get_month_names():
+    return ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+            'August', 'September', 'October', 'November', 'December']
