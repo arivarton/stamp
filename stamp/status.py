@@ -89,12 +89,13 @@ def print_invoices(invoices):
     pdf_headline = 'PDF'
     sent_headline = 'Sent'
     paid_headline = 'Paid'
+    not_exported_message = 'Not exported'
 
     # Width for columns
     widths = {
         'id': len(max([str(x.id) for x in invoices], key=len)) + 2,
         'created': max(len(invoices[0].created.date().isoformat()), len(created_headline)) + 3,
-        'pdf': max(len(max([x.pdf if x.pdf else '' for x in invoices], key=len)), len(pdf_headline)) + 4,
+        'pdf': max(len(max([x.pdf if x.pdf else '' for x in invoices], key=len)), len(pdf_headline), len(not_exported_message)) + 4,
         'sent': max(len('Yes'), len(sent_headline)),
         'paid': max(len('Yes'), len(paid_headline))
     }
@@ -132,7 +133,7 @@ def print_invoices(invoices):
         print('{0:<{id_width}} {1:<{created_width}} {2:<{pdf_width}} {3:<{sent_width}} {4:<{paid_width}}'.format(
             invoice.id,
             invoice.created.date().isoformat(),
-            invoice.pdf,
+            invoice.pdf or not_exported_message,
             invoice_sent,
             invoice_paid,
             id_width=widths['id'],
