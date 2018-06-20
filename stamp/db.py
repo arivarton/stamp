@@ -96,7 +96,6 @@ class Database():
             raise TooManyMatchingDatabaseEntriesError('Several database entries found matching', search_string + '!\n' +
                                                       'Canceling...')
         else:
-            # [TODO] Log that no matching database entries were found
             raise NoMatchingDatabaseEntryError('No matching database entry found with search string: %s' % search_string)
 
     def get_last_workday_entry(self, *args):
@@ -107,3 +106,12 @@ class Database():
             for attr in args:
                 query = getattr(query, attr)
             return query
+
+    def get_related_invoice(self, year, month):
+        query = self.session.query(Invoice).filter(Invoice.month == month,
+                                                   Invoice.year == year).order_by(
+                                                       Invoice.id.desc())
+        if query.count() == 0:
+            raise NoMatchingDatabaseEntryError('No invoice found for %s %s!' % (month, year))
+        else:
+            return query.first()

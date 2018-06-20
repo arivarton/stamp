@@ -10,10 +10,14 @@ from reportlab.platypus import SimpleDocTemplate, Spacer, Table
 from reportlab.lib.units import inch
 
 from .settings import (ORG_NR, FILE_DIR, COMPANY_NAME, COMPANY_ADDRESS,
-                       COMPANY_ZIP_CODE, COMPANY_ACCOUNT_NUMBER, MAIL, PHONE)
+                       COMPANY_ZIP_CODE, COMPANY_ACCOUNT_NUMBER, MAIL, PHONE,
+                       INVOICE_DIR)
 from .exceptions import (TooManyMatchesError, ArgumentError,
                          NoMatchingDatabaseEntryError, TooManyMatchingDatabaseEntriesError)
 from .helpers import output_for_total_hours_date_and_wage, get_month_names
+from .pprint import yes_or_no
+from .status import print_status
+from .add import create_invoice
 
 
 def parse_export_filter(selected_month, selected_year, selected_customer,
@@ -178,3 +182,68 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
     doc.build(Story, onFirstPage=myFirstPage, onLaterPages=myLaterPages)
 
     return file_dir
+
+
+def export_pdf(db, year, month, customer, invoice):
+    try:
+        save_dir = os.path.join(INVOICE_DIR,
+                                # DB name
+                                db.session.connection().engine.url.database.split('/')[-1].split('.')[0],
+                                customer,
+                                year,
+                                month)
+        pdf_file = create_pdf(invoice.workdays, save_dir, invoice.id)
+        invoice.pdf = pdf_file
+        invoice.month = month
+        invoice.year = year
+        print('Saved pdf here: %s' % pdf_file)
+        db.session.add(invoice)
+        db.session.commit()
+    except:
+        db.session.delete(invoice)
+        db.session.commit()
+        raise
+
+
+def export_invoice(db, year, month, customer, project, save_pdf=False):
+    export_filter, month = parse_export_filter(month, year, customer, db, project)
+    workdays = db.query_db_export_filter('Workday', export_filter)
+    try:
+        related_invoice = db.get_related_invoice(year, month)
+        if workdays.all() == related_invoice.workdays:
+            if save_pdf and related_invoice.pdf:
+                yes_or_no('This invoice already has an exported pdf, do you wish to create a new one?',
+                          no_message='Canceled...',
+                          no_function=sys.exit,
+                          no_function_args=(0,),
+                          yes_message='Creating new pdf!')
+                invoice = related_invoice
+            elif save_pdf and not related_invoice.pdf:
+                invoice = related_invoice
+            else:
+                print('Invoice already exists. Append --pdf if you want to export pdf!')
+        else:
+            print('Old workdays:')
+            print_status(related_invoice.workdays)
+            print('Current workdays:')
+            print_status(workdays)
+            invoice = yes_or_no('Invoice already exists for this month but does not contain the same work days/hours. Do you wish to create a new invoice for this month? This cannot be undone!',
+                                no_message='Canceled...',
+                                no_function=sys.exit,
+                                no_function_args=(0,),
+                                yes_message='Redoing invoice for specified month!',
+                                yes_function=create_invoice,
+                                yes_function_args=(db, workdays, customer, year,
+                                                   month))
+    except NoMatchingDatabaseEntryError:
+        print_status(workdays)
+        invoice = yes_or_no('Do you wish to create a invoice containing these workdays?',
+                            no_message='Canceled...',
+                            no_function=sys.exit,
+                            no_function_args=(0,),
+                            yes_message='Creating new invoice!',
+                            yes_function=create_invoice,
+                            yes_function_args=(db, workdays, customer, year,
+                                               month))
+    if save_pdf:
+        export_pdf(db, year, month, customer, invoice)

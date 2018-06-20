@@ -18,18 +18,16 @@ import sys
 import os
 
 from . import __version__
-from .settings import (STANDARD_CUSTOMER, STANDARD_PROJECT, DATA_DIR, DB_FILE,
-                       REPORT_DIR)
-from .add import stamp_in, create_invoice
+from .settings import STANDARD_CUSTOMER, STANDARD_PROJECT, DATA_DIR, DB_FILE
+from .add import stamp_in
 from .end import stamp_out
 from .edit import edit_regex_resolver, edit_workday
 from .status import print_status, print_current_stamp, print_invoices
 from .delete import delete_workday_or_tag
 from .tag import tag_stamp
 from .db import Database
-from .export import parse_export_filter, create_pdf
+from .export import export_invoice
 from .exceptions import NoMatchingDatabaseEntryError, CurrentStampNotFoundError
-from .pprint import yes_or_no
 
 
 def _get_value_from_time_parameter(time):
@@ -98,42 +96,12 @@ def status(args):
 
 def export(args):
     db = Database(args.db)
-    export_filter, selected_month = parse_export_filter(args.month, args.year,
-                                                        args.customer, db,
-                                                        args.project)
     try:
-        workdays = db.query_db_export_filter('Workday', export_filter)
-        print_status(workdays)
-        invoice = yes_or_no('Do you wish to create a invoice containing these workdays?',
-                            no_message='Canceled...',
-                            no_function=sys.exit,
-                            no_function_args=(0,),
-                            yes_message='Creating new invoice!',
-                            yes_function=create_invoice,
-                            yes_function_args=(db, workdays, args.customer))
-        try:
-            if args.pdf:
-                save_dir = os.path.join(REPORT_DIR,
-                                        # DB name
-                                        db.session.connection().engine.url.database.split('/')[-1].split('.')[0],
-                                        args.customer,
-                                        args.year,
-                                        selected_month)
-                print(args.db)
-                pdf_file = create_pdf(workdays.all(), save_dir, invoice.id)
-                invoice.pdf = pdf_file
-                invoice.month = selected_month
-                invoice.year = args.year
-                db.session.add(invoice)
-                db.session.commit()
-        except:
-            db.session.delete(invoice)
-            db.session.commit()
-            raise
+        export_invoice(db, args.year, args.month, args.customer,
+                       args.project, args.pdf)
     except NoMatchingDatabaseEntryError as _err_msg:
         print(_err_msg)
         sys.exit(0)
-    return invoice
 
 
 def delete(args):

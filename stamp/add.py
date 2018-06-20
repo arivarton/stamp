@@ -67,25 +67,16 @@ def create_customer(Session, customer_name=None):
     return customer
 
 
-def create_invoice(db, workdays, customer):
+def create_invoice(db, workdays, customer, year, month):
     if isinstance(db, str):
         db = Database(db)
-    invoice_detected = False
-    for workday in workdays.all():
-        if workday.invoice:
-            invoice_detected = True
-
-    if invoice_detected:
-        yes_or_no('Work day with invoice id already assigned detected. Continue?',
-                  no_message='Canceled...',
-                  no_function=sys.exit,
-                  no_function_args=(0,),
-                  yes_message='Reassigning invoice id.')
 
     customer = db.get_one_db_entry('Customer', 'name', customer)
 
     invoice = Invoice(workdays=workdays.all(),
-                      customer_id=customer.id)
+                      customer_id=customer.id,
+                      year=year,
+                      month=month)
 
     db.session.add(invoice)
     db.session.commit()

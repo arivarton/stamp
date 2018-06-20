@@ -3,6 +3,8 @@ from .pprint import divider
 
 
 def print_status(workdays):
+    if not isinstance(workdays, list):
+        workdays = workdays.all()
     time_format = '%H:%M'
 
     # Headlines
@@ -14,12 +16,12 @@ def print_status(workdays):
 
     # Width for columns
     widths = {
-        'date': max(len(workdays.first().start.date().isoformat()), len(date_headline)) + 3,
-        'customer': max(len(max([x.customer.name for x in workdays.all()], key=len)), len(customer_headline)) + 4,
-        'from': max(len(workdays.first().start.strftime(time_format)), len(from_headline)),
-        'to': max(len(workdays.first().end.strftime(time_format)), len(to_headline)),
-        'id': len(max([str(x.id) for x in workdays.all()], key=len)) + 2,
-        'invoice id': max(len(max([str(x.invoice_id) for x in workdays.all()], key=len)), len(invoice_id_headline))
+        'date': max(len(workdays[0].start.date().isoformat()), len(date_headline)) + 3,
+        'customer': max(len(max([x.customer.name for x in workdays], key=len)), len(customer_headline)) + 4,
+        'from': max(len(workdays[0].start.strftime(time_format)), len(from_headline)),
+        'to': max(len(workdays[0].end.strftime(time_format)), len(to_headline)),
+        'id': len(max([str(x.id) for x in workdays], key=len)) + 2,
+        'invoice id': max(len(max([str(x.invoice_id) for x in workdays], key=len)), len(invoice_id_headline))
     }
 
     widths.update({'total': sum(widths.values()) + 7})
