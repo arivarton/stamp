@@ -10,4 +10,4 @@ if not os.path.exists(INVOICE_DIR):
 if not os.path.exists(FILE_DIR):
     os.makedirs(FILE_DIR)
 
-__version__ = '0.0.7'
+__version__ = '0.0.8'
