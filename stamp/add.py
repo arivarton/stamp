@@ -7,8 +7,8 @@ from .db import Database
 from .pprint import yes_or_no
 
 
-def _create_stamp(Session, date, time, stamp):
-    stamp.start = datetime.combine(date, time)
+def _create_stamp(Session, start_date, stamp):
+    stamp.start = start_date
     Session.add(stamp)
     Session.commit()
 
@@ -92,7 +92,8 @@ def stamp_in(args):
                           no_message='Former stamp preserved!',
                           yes_message='Overwriting current stamp!',
                           yes_function=_create_stamp,
-                          yes_function_args=(db.session, args.date, args.time,
+                          yes_function_args=(db.session,
+                                             datetime.combine(args.date, args.time),
                                              stamp))
     except CurrentStampNotFoundError:
         try:
@@ -128,7 +129,8 @@ def stamp_in(args):
 
         _workday = Workday(customer_id=customer_id, project_id=project_id)
 
-        stamp = _create_stamp(db.session, args.date, args.time, _workday)
+        stamp = _create_stamp(db.session,
+                              datetime.combine(args.date, args.time), _workday)
 
     print('Stamped in at %s - %s' % (stamp.start.date().isoformat(),
                                      stamp.start.time().isoformat()))
