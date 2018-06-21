@@ -1,4 +1,5 @@
 import os
+import sys
 
 from sqlalchemy import exc, create_engine
 from sqlalchemy.orm import sessionmaker
@@ -9,19 +10,34 @@ from .exceptions import (NoMatchingDatabaseEntryError,
                          TooManyMatchingDatabaseEntriesError,
                          CurrentStampNotFoundError)
 from .settings import DATA_DIR
+from .pprint import yes_or_no
+
+
+def create_database(db_file):
+    engine = create_engine('sqlite:///' + db_file)
+    try:
+        Base.metadata.create_all(engine)
+    except exc.OperationalError as err:
+        if not os.path.exists(DATA_DIR):
+            os.makedirs(DATA_DIR)
+            Base.metadata.create_all(engine)
+        else:
+            raise err
+    return engine
 
 
 class Database():
     def __init__(self, db_file):
-        engine = create_engine('sqlite:///' + db_file)
-        try:
-            Base.metadata.create_all(engine)
-        except exc.OperationalError as err:
-            if not os.path.exists(DATA_DIR):
-                os.makedirs(DATA_DIR)
-                Base.metadata.create_all(engine)
-            else:
-                raise err
+        if os.path.isfile(db_file):
+            engine = create_database(db_file)
+        else:
+            engine = yes_or_no('Do you wish to create a new database called %s?' % db_file.split('/')[-1].split('.')[0],
+                               no_message='Canceled...',
+                               no_function=sys.exit,
+                               no_function_args=(0,),
+                               yes_message='Creating database!',
+                               yes_function=create_database,
+                               yes_function_args=(db_file,))
         session = sessionmaker(bind=engine)
         self.session = session()
 

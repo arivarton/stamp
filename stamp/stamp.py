@@ -86,9 +86,10 @@ def status(args):
         else:
             status_query = db.query_for_workdays(args=args)
             print_status(status_query)
-            print(print_current_stamp(db.current_stamp()))
     except NoMatchingDatabaseEntryError as _err_msg:
         print(_err_msg)
+    try:
+        print(print_current_stamp(db.current_stamp()))
     except CurrentStampNotFoundError as _err_msg:
         print(_err_msg)
     return True
