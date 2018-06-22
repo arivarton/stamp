@@ -155,7 +155,7 @@ def parse_args(args):
     date_parameters = argparse.ArgumentParser(add_help=False)
     date_parameters.add_argument('-D', '--date', type=lambda date: datetime.strptime(date, '%Y-%m-%d').date(), default=datetime.now().date(),
                                  help='Set date manually. Format is \'YYYY-mm-dd\'. Default is now.')
-    date_parameters.add_argument('-T', '--time', type=lambda time: datetime.strptime(time, '%H:%M').time(), default=datetime.now().time(),
+    date_parameters.add_argument('-T', '--time', type=lambda time: datetime.strptime(time, '%H:%M').time(), default=datetime.now().time().replace(second=0, microsecond=0),
                                  help='Set time manually. Format is \'HH:MM\'. Default is now.')
 
     # Filter parameters
