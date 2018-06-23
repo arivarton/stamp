@@ -81,7 +81,11 @@ class Database():
 
     def query_db_all(self, Table):
         table = eval(Table) # NOQA
-        return self.session.query(table).all()
+        query = self.session.query(table).all()
+        if query:
+            return query
+        else:
+            raise NoMatchingDatabaseEntryError('No database entries in %s table!' % Table)
 
     def query_db_export_filter(self, Table, export_filter):
         table = eval(Table) # NOQA
