@@ -60,8 +60,8 @@ CLI usage examples.
 ## Get status of registered and current hours
 ##### Get status of all registered hours
 `stamp status`
-##### Get status with filter
-Not implemented properly yet.
+##### Get status of all created invoices
+`stamp status --invoices`
 
 
 
