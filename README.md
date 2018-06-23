@@ -66,7 +66,7 @@ CLI usage examples.
 
 
 ## Export to pdf
-`stamp export jan 2018`
+`stamp export Jan 2018 Customer`
 
 
 ## Delete workday or tags
