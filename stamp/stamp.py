@@ -13,7 +13,6 @@
 
 from datetime import datetime
 import argparse
-import re
 import sys
 import os
 
@@ -28,26 +27,7 @@ from .tag import tag_stamp
 from .db import Database
 from .export import export_invoice
 from .exceptions import NoMatchingDatabaseEntryError, CurrentStampNotFoundError
-
-
-def _get_value_from_time_parameter(time):
-    # Separate each part of time that user has put as argument
-    # Argument could f.ex. look like this: 16:45
-    hours, minutes = re.findall(r"[0-9]+", time)
-    try:
-        return datetime.time(datetime(1, 1, 1, int(hours), int(minutes)))
-    except ValueError as error:
-        print('Error in --time parameter:\n', error)
-
-
-def _get_value_from_date_parameter(date):
-    # Separate each part of date that user has put as argument
-    # Argument could f.ex. look like this: 2017/02/20
-    year, month, day = re.findall(r"[\d]+", date)
-    try:
-        return datetime.date(datetime(int(year), int(month), int(day)))
-    except ValueError as error:
-        print('Error in --date parameter:\n', error)
+from .args_helpers import DateAction
 
 
 def add(args):
@@ -134,11 +114,6 @@ def edit(args):
     return
 
 
-def version(*args, **kwargs):
-    print(__version__)
-    return
-
-
 def parse_args(args):
     # [Main parser]
     main_parser = argparse.ArgumentParser(description='''Register work hours.
@@ -153,8 +128,9 @@ def parse_args(args):
 
     # Date parameters
     date_parameters = argparse.ArgumentParser(add_help=False)
-    date_parameters.add_argument('-D', '--date', type=lambda date: datetime.strptime(date, '%Y-%m-%d').date(), default=datetime.now().date(),
-                                 help='Set date manually. Format is \'YYYY-mm-dd\'. Default is now.')
+    date_parameters.add_argument('-D', '--date', type=str, action=DateAction,
+                                 default=datetime.now().date(),
+                                 help='Set date manually. Format is %s with your current locale settings. Default is now.' % datetime.today().strftime('%x'))
     date_parameters.add_argument('-T', '--time', type=lambda time: datetime.strptime(time, '%H:%M').time(), default=datetime.now().time().replace(second=0, microsecond=0),
                                  help='Set time manually. Format is \'HH:MM\'. Default is now.')
 

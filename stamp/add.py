@@ -132,7 +132,7 @@ def stamp_in(args):
         stamp = _create_stamp(db.session,
                               datetime.combine(args.date, args.time), _workday)
 
-    print('Stamped in at %s - %s' % (stamp.start.date().isoformat(),
-                                     stamp.start.time().isoformat()))
+    print('Stamped in at %s %s' % (stamp.start.time().strftime('%H:%M'),
+                                   stamp.start.date().strftime('%x')))
 
     return stamp
