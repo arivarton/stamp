@@ -88,6 +88,9 @@ def print_status(workdays):
 def print_invoices(invoices):
     # Headlines
     created_headline = 'Created on'
+    year_headline = 'Year'
+    month_headline = 'Month'
+    customer_headline = 'Customer'
     pdf_headline = 'PDF'
     sent_headline = 'Sent'
     paid_headline = 'Paid'
@@ -97,22 +100,31 @@ def print_invoices(invoices):
     widths = {
         'id': len(max([str(x.id) for x in invoices], key=len)) + 2,
         'created': max(len(invoices[0].created.date().isoformat()), len(created_headline)) + 3,
+        'customer': max(len(invoices[0].customer.name), len(customer_headline)) + 3,
+        'year': max(len(max([x.year if x.year else '' for x in invoices], key=len)), len(year_headline)) + 1,
+        'month': max(len(max([x.month if x.month else '' for x in invoices], key=len)), len(month_headline)) + 3,
         'pdf': max(len(max([x.pdf if x.pdf else '' for x in invoices], key=len)), len(pdf_headline), len(not_exported_message)) + 4,
-        'sent': max(len('Yes'), len(sent_headline)),
+        'sent': max(len('Yes'), len(sent_headline)) + 1,
         'paid': max(len('Yes'), len(paid_headline))
     }
 
     widths.update({'total': sum(widths.values()) + 7})
 
     divider()
-    print('{0:<{id_width}} {1:<{created_width}} {2:<{pdf_width}} {3:<{sent_width}} {4:<{paid_width}}'.format(
+    print('{0:<{id_width}} {1:<{created_width}} {2:<{customer_width}} {3:<{year_width}} {4:<{month_width}} {5:<{pdf_width}} {6:<{sent_width}} {7:<{paid_width}}'.format(
         '',
         created_headline,
+        customer_headline,
+        year_headline,
+        month_headline,
         pdf_headline,
         sent_headline,
         paid_headline,
         id_width=widths['id'],
         created_width=widths['created'],
+        customer_width=widths['customer'],
+        year_width=widths['year'],
+        month_width=widths['month'],
         pdf_width=widths['pdf'],
         sent_width=widths['sent'],
         paid_width=widths['paid']
@@ -132,14 +144,20 @@ def print_invoices(invoices):
         else:
             invoice_paid = 'No'
 
-        print('{0:<{id_width}} {1:<{created_width}} {2:<{pdf_width}} {3:<{sent_width}} {4:<{paid_width}}'.format(
+        print('{0:<{id_width}} {1:<{created_width}} {2:<{customer_width}} {3:<{year_width}} {4:<{month_width}} {5:<{pdf_width}} {6:<{sent_width}} {7:<{paid_width}}'.format(
             invoice.id,
             invoice.created.date().isoformat(),
+            invoice.customer.name,
+            invoice.year,
+            invoice.month,
             invoice.pdf or not_exported_message,
             invoice_sent,
             invoice_paid,
             id_width=widths['id'],
             created_width=widths['created'],
+            customer_width=widths['customer'],
+            year_width=widths['year'],
+            month_width=widths['month'],
             pdf_width=widths['pdf'],
             sent_width=widths['sent'],
             paid_width=widths['paid']
