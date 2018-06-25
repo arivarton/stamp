@@ -213,7 +213,7 @@ def export_invoice(db, year, month, customer, project, save_pdf=False):
         if workdays.all() == related_invoice.workdays:
             if save_pdf and related_invoice.pdf:
                 yes_or_no('This invoice already has an exported pdf, do you wish to create a new one?',
-                          no_message='Canceled...',
+                          no_message='Canceling...',
                           no_function=sys.exit,
                           no_function_args=(0,),
                           yes_message='Creating new pdf!')
@@ -228,7 +228,7 @@ def export_invoice(db, year, month, customer, project, save_pdf=False):
             print('Current workdays:')
             print_status(workdays)
             invoice = yes_or_no('Invoice already exists for this month but does not contain the same work days/hours. Do you wish to create a new invoice for this month? This cannot be undone!',
-                                no_message='Canceled...',
+                                no_message='Canceling...',
                                 no_function=sys.exit,
                                 no_function_args=(0,),
                                 yes_message='Redoing invoice for specified month!',
@@ -238,12 +238,15 @@ def export_invoice(db, year, month, customer, project, save_pdf=False):
     except NoMatchingDatabaseEntryError:
         print_status(workdays)
         invoice = yes_or_no('Do you wish to create a invoice containing these workdays?',
-                            no_message='Canceled...',
+                            no_message='Canceling...',
                             no_function=sys.exit,
                             no_function_args=(0,),
                             yes_message='Creating new invoice!',
                             yes_function=create_invoice,
                             yes_function_args=(db, workdays, customer, year,
                                                month))
+    except KeyboardInterrupt:
+        print('Canceling...')
+        sys.exit(0)
     if save_pdf:
         export_pdf(db, year, month, customer, invoice)

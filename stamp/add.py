@@ -4,7 +4,7 @@ from datetime import datetime
 from .exceptions import NoMatchingDatabaseEntryError, CurrentStampNotFoundError
 from .mappings import Workday, Project, Customer, Invoice
 from .db import Database
-from .pprint import yes_or_no
+from .pprint import yes_or_no, provide_input, value_for
 
 
 def _create_stamp(Session, start_date, stamp):
@@ -19,8 +19,7 @@ def _add_details(Session, Table):
     for key, column_info in Table.__mapper__.columns.items():
         if not key.endswith('id'):
             if not getattr(Table, key):
-                print('Value for ' + column_info.name.lower() + ': ')
-                user_value = input()
+                user_value = value_for(column_info.name.lower())
                 setattr(Table, key, user_value)
     Session.add(Table)
     Session.commit()
@@ -28,11 +27,7 @@ def _add_details(Session, Table):
 
 def create_project(Session, customer_id, project_name=None):
     if not project_name:
-        project_name = input('Provide project name: ')
-        if not project_name:
-            print('No project name provided!')
-            print('Canceling...')
-            sys.exit(0)
+        project_name = provide_input('project name')
     project = Project(name=project_name, customer_id=customer_id)
     yes_or_no('Do you wish to add project details?',
               no_message='Skipping project details!',
@@ -48,12 +43,7 @@ def create_project(Session, customer_id, project_name=None):
 
 def create_customer(Session, customer_name=None):
     if not customer_name:
-        print('Provide customer name: ')
-        customer_name = input()
-        if not customer_name:
-            print('No customer name provided!')
-            print('Canceling...')
-            sys.exit(0)
+        customer_name = provide_input('customer name')
     customer = Customer(name=customer_name)
     yes_or_no('Do you wish to add customer details?',
               no_message='Skipping customer details!',
