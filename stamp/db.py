@@ -81,8 +81,8 @@ class Database():
 
     def query_db_all(self, Table):
         table = eval(Table) # NOQA
-        query = self.session.query(table).all()
-        if query:
+        query = self.session.query(table)
+        if query.count():
             return query
         else:
             raise NoMatchingDatabaseEntryError('No database entries in %s table!' % Table)

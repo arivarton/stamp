@@ -1,5 +1,6 @@
 from .helpers import output_for_total_hours_date_and_wage, get_terminal_width
 from .pprint import divider
+from .mappings import Invoice
 
 
 def print_status(workdays):
@@ -85,7 +86,13 @@ def print_status(workdays):
     ))
 
 
-def print_invoices(invoices):
+def print_invoices(invoices, show_superseeded=False):
+    if not show_superseeded:
+        # order_by is set only because of a stackoverflow comment. Haven't
+        # tested if it's necessary.
+        # https://stackoverflow.com/questions/1370997/group-by-year-month-day-in-a-sqlalchemy
+        invoices = invoices.order_by(Invoice.month).group_by(Invoice.month)
+
     # Headlines
     created_headline = 'Created on'
     year_headline = 'Year'
@@ -98,12 +105,12 @@ def print_invoices(invoices):
 
     # Width for columns
     widths = {
-        'id': len(max([str(x.id) for x in invoices], key=len)) + 2,
-        'created': max(len(invoices[0].created.date().isoformat()), len(created_headline)) + 3,
-        'customer': max(len(invoices[0].customer.name), len(customer_headline)) + 3,
-        'year': max(len(max([x.year if x.year else '' for x in invoices], key=len)), len(year_headline)) + 1,
-        'month': max(len(max([x.month if x.month else '' for x in invoices], key=len)), len(month_headline)) + 3,
-        'pdf': max(len(max([x.pdf if x.pdf else '' for x in invoices], key=len)), len(pdf_headline), len(not_exported_message)) + 4,
+        'id': len(max([str(x.id) for x in invoices.all()], key=len)) + 2,
+        'created': max(len(invoices.all()[0].created.date().isoformat()), len(created_headline)) + 3,
+        'customer': max(len(invoices.all()[0].customer.name), len(customer_headline)) + 3,
+        'year': max(len(max([x.year if x.year else '' for x in invoices.all()], key=len)), len(year_headline)) + 1,
+        'month': max(len(max([x.month if x.month else '' for x in invoices.all()], key=len)), len(month_headline)) + 3,
+        'pdf': max(len(max([x.pdf if x.pdf else '' for x in invoices.all()], key=len)), len(pdf_headline), len(not_exported_message)) + 4,
         'sent': max(len('Yes'), len(sent_headline)) + 1,
         'paid': max(len('Yes'), len(paid_headline))
     }
@@ -132,7 +139,7 @@ def print_invoices(invoices):
     divider()
 
     # Output for each invoice
-    for invoice in invoices:
+    for invoice in invoices.all():
 
         if invoice.sent:
             invoice_sent = 'Yes'
