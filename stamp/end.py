@@ -3,7 +3,7 @@ import sys
 from datetime import datetime
 
 from .db import Database
-from .pprint import yes_or_no
+from .formatting import yes_or_no
 from .helpers import auto_correct_tag, manually_correct_tag
 from .exceptions import CurrentStampNotFoundError
 

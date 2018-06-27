@@ -15,7 +15,7 @@ from .settings import (ORG_NR, FILE_DIR, COMPANY_NAME, COMPANY_ADDRESS,
 from .exceptions import (TooManyMatchesError, ArgumentError,
                          NoMatchingDatabaseEntryError, TooManyMatchingDatabaseEntriesError)
 from .helpers import output_for_total_hours_date_and_wage, get_month_names
-from .pprint import yes_or_no
+from .formatting import yes_or_no
 from .status import print_status
 from .add import create_invoice
 

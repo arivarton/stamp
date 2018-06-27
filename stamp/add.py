@@ -4,7 +4,7 @@ from datetime import datetime
 from .exceptions import NoMatchingDatabaseEntryError, CurrentStampNotFoundError
 from .mappings import Workday, Project, Customer, Invoice
 from .db import Database
-from .pprint import yes_or_no, provide_input, value_for
+from .formatting import yes_or_no, provide_input, value_for
 
 
 def _create_stamp(Session, start_date, stamp):

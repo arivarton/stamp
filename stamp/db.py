@@ -10,7 +10,7 @@ from .exceptions import (NoMatchingDatabaseEntryError,
                          TooManyMatchingDatabaseEntriesError,
                          CurrentStampNotFoundError)
 from .settings import DATA_DIR
-from .pprint import yes_or_no
+from .formatting import yes_or_no
 
 
 def create_database(db_file):

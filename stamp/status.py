@@ -1,5 +1,5 @@
 from .helpers import output_for_total_hours_date_and_wage, get_terminal_width
-from .pprint import divider
+from .formatting import divider
 from .mappings import Invoice
 
 
