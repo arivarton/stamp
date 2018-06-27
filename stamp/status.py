@@ -3,6 +3,16 @@ from .formatting import divider
 from .mappings import Invoice
 
 
+def get_invoices(db, show_superseeded=False):
+    invoices = db.query_db_all('Invoice')
+    if not show_superseeded:
+        # order_by is set only because of a stackoverflow comment. Haven't
+        # tested if it's necessary.
+        # https://stackoverflow.com/questions/1370997/group-by-year-month-day-in-a-sqlalchemy
+        invoices = invoices.order_by(Invoice.month).group_by(Invoice.month)
+    return invoices
+
+
 def print_status(workdays):
     if not isinstance(workdays, list):
         workdays = workdays.all()
@@ -86,13 +96,7 @@ def print_status(workdays):
     ))
 
 
-def print_invoices(invoices, show_superseeded=False):
-    if not show_superseeded:
-        # order_by is set only because of a stackoverflow comment. Haven't
-        # tested if it's necessary.
-        # https://stackoverflow.com/questions/1370997/group-by-year-month-day-in-a-sqlalchemy
-        invoices = invoices.order_by(Invoice.month).group_by(Invoice.month)
-
+def print_invoices(invoices):
     # Headlines
     created_headline = 'Created on'
     year_headline = 'Year'

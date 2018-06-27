@@ -21,7 +21,7 @@ from .settings import STANDARD_CUSTOMER, STANDARD_PROJECT, DATA_DIR, DB_FILE
 from .add import stamp_in
 from .end import stamp_out
 from .edit import edit_regex_resolver, edit_workday
-from .status import print_status, print_current_stamp, print_invoices
+from .status import print_status, print_current_stamp, print_invoices, get_invoices
 from .delete import delete_workday_or_tag
 from .tag import tag_stamp
 from .db import Database
@@ -62,7 +62,7 @@ def status(args):
     db = Database(args.db)
     try:
         if args.invoices:
-            print_invoices(db.query_db_all('Invoice'))
+            print_invoices(get_invoices(db, args.show_superseeded))
         else:
             status_query = db.query_for_workdays(args=args)
             print_status(status_query)
@@ -192,8 +192,12 @@ def parse_args(args):
                                                    customer_parameters,
                                                    project_parameters,
                                                    db_parameters])
-    status_parser.add_argument('-i', '--invoices', action='store_true',
-                               help='Show all created invoices.')
+    status_parser.add_argument('--invoices',
+                               action='store_true',
+                               help='Show status of invoices.')
+    status_parser.add_argument('-s', '--show_superseeded',
+                               action='store_true',
+                               help='Show all created invoices. Only valid with the invoices option.')
     status_parser.set_defaults(func=status)
 
     # Export parser
