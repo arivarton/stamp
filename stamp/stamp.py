@@ -26,7 +26,8 @@ from .delete import delete_workday_or_tag
 from .tag import tag_stamp
 from .db import Database
 from .export import export_invoice
-from .exceptions import NoMatchingDatabaseEntryError, CurrentStampNotFoundError
+from .exceptions import (NoMatchingDatabaseEntryError, CurrentStampNotFoundError,
+                         NoMatchesError, TooManyMatchesError)
 from .args_helpers import DateAction
 
 
@@ -81,6 +82,12 @@ def export(args):
         export_invoice(db, args.year, args.month, args.customer,
                        args.project, args.pdf)
     except NoMatchingDatabaseEntryError as _err_msg:
+        print(_err_msg)
+        sys.exit(0)
+    except TooManyMatchesError as _err_msg:
+        print(_err_msg)
+        sys.exit(0)
+    except NoMatchesError as _err_msg:
         print(_err_msg)
         sys.exit(0)
 

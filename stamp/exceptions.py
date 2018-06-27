@@ -18,6 +18,10 @@ class TooManyMatchesError(StampError):
     pass
 
 
+class NoMatchesError(StampError):
+    pass
+
+
 class ArgumentError(StampError):
     pass
 

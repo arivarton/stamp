@@ -12,8 +12,9 @@ from reportlab.lib.units import inch
 from .settings import (ORG_NR, FILE_DIR, COMPANY_NAME, COMPANY_ADDRESS,
                        COMPANY_ZIP_CODE, COMPANY_ACCOUNT_NUMBER, MAIL, PHONE,
                        INVOICE_DIR)
-from .exceptions import (TooManyMatchesError, ArgumentError,
-                         NoMatchingDatabaseEntryError, TooManyMatchingDatabaseEntriesError)
+from .exceptions import (TooManyMatchesError, ArgumentError, NoMatchesError,
+                         NoMatchingDatabaseEntryError,
+                         TooManyMatchingDatabaseEntriesError)
 from .helpers import output_for_total_hours_date_and_wage, get_month_names
 from .formatting import yes_or_no
 from .status import print_status
@@ -31,7 +32,10 @@ def parse_export_filter(selected_month, selected_year, selected_customer,
     if len(_selected_month) > 1:
         raise TooManyMatchesError('Refine month argument! These months are currently matching: %s.' %
                                   ', '.join(_selected_month))
-    selected_month = ''.join(_selected_month)
+    elif not _selected_month:
+        raise NoMatchesError('%s is not an acceptable month format.' % selected_month)
+    else:
+        selected_month = ''.join(_selected_month)
 
     # Validate year
     try:
