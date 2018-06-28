@@ -11,7 +11,6 @@
 ##############################
 
 
-from datetime import datetime
 import argparse
 import sys
 import os
@@ -28,7 +27,7 @@ from .db import Database
 from .export import export_invoice
 from .exceptions import (NoMatchingDatabaseEntryError, CurrentStampNotFoundError,
                          NoMatchesError, TooManyMatchesError)
-from .args_helpers import DateAction
+from .args_helpers import DateAction, TimeAction
 
 
 def add(args):
@@ -135,11 +134,8 @@ def parse_args(args):
 
     # Date parameters
     date_parameters = argparse.ArgumentParser(add_help=False)
-    date_parameters.add_argument('-D', '--date', type=str, action=DateAction,
-                                 default=datetime.now().date(),
-                                 help='Set date manually. Format is %s with your current locale settings. Default is now.' % datetime.today().strftime('%x'))
-    date_parameters.add_argument('-T', '--time', type=lambda time: datetime.strptime(time, '%H:%M').time(), default=datetime.now().time().replace(second=0, microsecond=0),
-                                 help='Set time manually. Format is \'HH:MM\'. Default is now.')
+    date_parameters.add_argument('-D', '--date', action=DateAction)
+    date_parameters.add_argument('-T', '--time', action=TimeAction)
 
     # Filter parameters
     filter_parameters = argparse.ArgumentParser(add_help=False)

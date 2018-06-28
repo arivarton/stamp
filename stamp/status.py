@@ -1,6 +1,7 @@
 from .helpers import output_for_total_hours_date_and_wage, get_terminal_width
 from .formatting import divider
 
+
 def print_status(workdays):
     if not isinstance(workdays, list):
         workdays = workdays.all()
