@@ -21,7 +21,7 @@ from .settings import STANDARD_CUSTOMER, STANDARD_PROJECT, DATA_DIR, DB_FILE
 from .add import stamp_in
 from .end import stamp_out
 from .edit import edit_regex_resolver, edit_workday
-from .status import print_status, print_current_stamp, print_invoices, get_invoices
+from .status import print_status, print_current_stamp, print_invoices
 from .delete import delete_workday_or_tag
 from .tag import tag_stamp
 from .db import Database
@@ -63,7 +63,7 @@ def status(args):
     db = Database(args.db)
     try:
         if args.invoices:
-            print_invoices(get_invoices(db, args.show_superseeded))
+            print_invoices(db.get_invoices(args.show_superseeded))
         else:
             status_query = db.query_for_workdays(args=args)
             print_status(status_query)
