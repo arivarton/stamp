@@ -17,7 +17,8 @@ class DateAction(argparse.Action):
                                          dest=dest,
                                          help=help,
                                          type=type,
-                                         required=required)
+                                         required=required,
+                                         default=default)
 
     def __call__(self, parser, namespace, values, option_string=None):
         try:
@@ -41,11 +42,12 @@ class TimeAction(argparse.Action):
                                          dest=dest,
                                          help=help,
                                          type=type,
-                                         required=required)
+                                         required=required,
+                                         default=default)
 
     def __call__(self, parser, namespace, values, option_string=None):
         try:
-            setattr(namespace, self.dest, datetime.strptime(values, '%H:%M').date())
+            setattr(namespace, self.dest, datetime.strptime(values, '%H:%M').time())
         except ValueError:
             print('Incorrect time format!\nExample of correct format for current time: %s' % datetime.today().strftime('%H:%M'))
             sys.exit(0)

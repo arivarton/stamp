@@ -5,7 +5,7 @@ from sqlalchemy import exc, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import exc as orm_exc
 
-from .mappings import Workday, Customer, Base, Invoice # NOQA
+from .mappings import Workday, Customer, Base, Invoice, Project # NOQA
 from .exceptions import (NoMatchingDatabaseEntryError,
                          TooManyMatchingDatabaseEntriesError,
                          CurrentStampNotFoundError)
