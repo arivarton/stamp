@@ -119,7 +119,7 @@ def stamp_in(args):
 
         _workday = Workday(customer_id=customer_id, project_id=project_id)
 
-        stamp = _create_stamp(db.session,
+        stamp = _create_stamp(db.session, # NOQA
                               datetime.combine(args.date, args.time), _workday)
 
     print('Stamped in at %s %s' % (stamp.start.time().strftime('%H:%M'),

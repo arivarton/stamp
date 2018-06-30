@@ -4,13 +4,16 @@ import termios
 from .helpers import get_terminal_width
 
 
-def yes_or_no(question, no_message=None, no_function=None, no_function_args=(),
-              no_function_kwargs=False, yes_message=None, yes_function=None,
-              yes_function_args=(), yes_function_kwargs=False):
-    if not no_function_kwargs:
-        no_function_kwargs = {}
-    if not yes_function_kwargs:
-        yes_function_kwargs = {}
+def yes_or_no(question,
+              yes_message=None,
+              yes_function=None, yes_function_args=None, yes_function_kwargs=None,
+              no_message=None,
+              no_function=None, no_function_args=None, no_function_kwargs=None):
+
+    yes_function_args = yes_function_args or ()
+    yes_function_kwargs = yes_function_kwargs or {}
+    no_function_args = no_function_args or ()
+    no_function_kwargs = no_function_kwargs or {}
 
     while True:
         fd = sys.stdin.fileno()
@@ -29,18 +32,12 @@ def yes_or_no(question, no_message=None, no_function=None, no_function_args=(),
         if user_choice.lower() in ['y', '\n']:
             if yes_message:
                 print(yes_message)
-            if yes_function:
-                return yes_function(*yes_function_args, **yes_function_kwargs)
-            else:
-                return None
+            return yes_function(*yes_function_args, **yes_function_kwargs) or None
 
         elif user_choice.lower() in ['n']:
             if no_message:
                 print(no_message)
-            if no_function:
-                return no_function(*no_function_args, **no_function_kwargs)
-            else:
-                return None
+            return no_function(*no_function_args, **no_function_kwargs) or None
 
         else:
             print('\'%s\' is not a recognised answer!' % user_choice)
