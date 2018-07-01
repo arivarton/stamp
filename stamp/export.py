@@ -19,6 +19,7 @@ from .helpers import output_for_total_hours_date_and_wage, get_month_names
 from .formatting import yes_or_no
 from .status import print_status
 from .add import create_invoice
+from .mappings import Workday
 
 
 def parse_export_filter(selected_month, selected_year, selected_customer,
@@ -211,10 +212,12 @@ def export_pdf(db, year, month, customer, invoice):
 
 def export_invoice(db, year, month, customer, project, save_pdf=False):
     export_filter, month = parse_export_filter(month, year, customer, db, project)
-    workdays = db.query_db_export_filter('Workday', export_filter)
+    workdays = db.query_db_export_filter('Workday', export_filter).order_by(Workday.start)
     try:
         related_invoice = db.get_related_invoice(year, month)
-        if workdays.all() == related_invoice.workdays:
+        workday_ids = [i.id for i in workdays]
+        related_invoice_ids = [i.id for i in related_invoice.workdays]
+        if workday_ids == related_invoice_ids:
             if save_pdf and related_invoice.pdf:
                 yes_or_no('This invoice already has an exported pdf, do you wish to create a new one?',
                           no_message='Canceling...',
