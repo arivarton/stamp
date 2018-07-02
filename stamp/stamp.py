@@ -78,8 +78,8 @@ def status(args):
 def export(args):
     db = Database(args.db)
     try:
-        export_invoice(db, args.year, args.month, args.customer,
-                       args.project, args.pdf)
+        return export_invoice(db, args.year, args.month, args.customer,
+                              args.project, args.pdf)
     except NoMatchingDatabaseEntryError as _err_msg:
         print(_err_msg)
         sys.exit(0)

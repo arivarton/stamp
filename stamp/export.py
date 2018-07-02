@@ -208,6 +208,7 @@ def export_pdf(db, year, month, customer, invoice):
         db.session.delete(invoice)
         db.session.commit()
         raise
+    return pdf_file
 
 
 def export_invoice(db, year, month, customer, project, save_pdf=False):
@@ -256,4 +257,4 @@ def export_invoice(db, year, month, customer, project, save_pdf=False):
         print('Canceling...')
         sys.exit(0)
     if save_pdf:
-        export_pdf(db, year, month, customer, invoice)
+        return export_pdf(db, year, month, customer, invoice)

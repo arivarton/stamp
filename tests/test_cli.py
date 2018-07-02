@@ -2,7 +2,7 @@ import os
 import sys
 import unittest
 from unittest.mock import patch
-from io import StringIO
+from uuid import uuid4
 from shutil import rmtree
 from datetime import datetime, timedelta
 from random import randrange as rrange
@@ -12,8 +12,10 @@ sys.path.append('../stamp')
 
 from stamp import stamp, settings # NOQA
 
-testing_db = 'test'
+testing_db = 'test_%s' % uuid4().hex
 testing_db_path = os.path.join(settings.DATA_DIR, testing_db) + '.db'
+customer_name = 'Test Company AS'
+project_name = 'Test Project'
 
 
 # [TODO] Need to patch properly for stdin
@@ -22,14 +24,70 @@ class TestStampCLI(unittest.TestCase):
     def test_completing_workday_with_tags(self):
         # Create workday with current time
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            parser = stamp.parse_args(['in', '-c', 'test_company', '-p',
-                                       'test_project', '--db', testing_db])
+            parser = stamp.parse_args(['in', '-c', customer_name, '-p',
+                                       project_name, '--db', testing_db])
             self.assertTrue(parser.func(parser))
         parser = stamp.parse_args(['tag', 'testing tag', '--db', testing_db])
         self.assertTrue(parser.func(parser))
         parser = stamp.parse_args(['tag', 'testing tag 2', '--db', testing_db])
         self.assertTrue(parser.func(parser))
-        parser = stamp.parse_args(['out', '--db', testing_db])
+        out_time = datetime.now() + timedelta(hours=3)
+        parser = stamp.parse_args(['out',
+                                   '-D', '{:%x}'.format(out_time),
+                                   '-T', '{:%H:%M}'.format(out_time),
+                                   '--db', testing_db])
+        self.assertTrue(parser.func(parser))
+
+        # Add another workday with current time one day later
+        current_time = datetime.now() + timedelta(days=1)
+        with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
+            parser = stamp.parse_args(['in', '-c', customer_name, '-p',
+                                       project_name,
+                                       '-D', '{:%x}'.format(current_time),
+                                       '-T', '{:%H:%M}'.format(current_time),
+                                       '--db', testing_db])
+            self.assertTrue(parser.func(parser))
+        parser = stamp.parse_args(['tag', 'testing tag',
+                                   '-D', '{:%x}'.format(current_time + timedelta(hours=1)),
+                                   '-T', '{:%H:%M}'.format(current_time + timedelta(hours=1)),
+                                   '--db', testing_db])
+        self.assertTrue(parser.func(parser))
+        parser = stamp.parse_args(['tag', 'testing tag 2',
+                                   '-D', '{:%x}'.format(current_time + timedelta(hours=2)),
+                                   '-T', '{:%H:%M}'.format(current_time + timedelta(hours=2)),
+                                   '--db', testing_db])
+        self.assertTrue(parser.func(parser))
+        out_time = current_time + timedelta(hours=3)
+        parser = stamp.parse_args(['out',
+                                   '-D', '{:%x}'.format(out_time),
+                                   '-T', '{:%H:%M}'.format(out_time),
+                                   '--db', testing_db])
+        self.assertTrue(parser.func(parser))
+
+        # Add another workday with current time one day before
+        current_time = datetime.now() + timedelta(days=-1)
+        with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
+            parser = stamp.parse_args(['in', '-c', customer_name, '-p',
+                                       project_name,
+                                       '-D', '{:%x}'.format(current_time),
+                                       '-T', '{:%H:%M}'.format(current_time),
+                                       '--db', testing_db])
+            self.assertTrue(parser.func(parser))
+        parser = stamp.parse_args(['tag', 'testing tag',
+                                   '-D', '{:%x}'.format(current_time + timedelta(hours=1)),
+                                   '-T', '{:%H:%M}'.format(current_time + timedelta(hours=1)),
+                                   '--db', testing_db])
+        self.assertTrue(parser.func(parser))
+        parser = stamp.parse_args(['tag', 'testing tag 2',
+                                   '-D', '{:%x}'.format(current_time + timedelta(hours=2)),
+                                   '-T', '{:%H:%M}'.format(current_time + timedelta(hours=2)),
+                                   '--db', testing_db])
+        self.assertTrue(parser.func(parser))
+        out_time = current_time + timedelta(hours=3)
+        parser = stamp.parse_args(['out',
+                                   '-D', '{:%x}'.format(out_time),
+                                   '-T', '{:%H:%M}'.format(out_time),
+                                   '--db', testing_db])
         self.assertTrue(parser.func(parser))
 
         # Create another workday with random date
@@ -41,7 +99,7 @@ class TestStampCLI(unittest.TestCase):
                                    day=random_day,
                                    hour=rrange(0, 24),
                                    minute=rrange(0, 60))
-        parser = stamp.parse_args(['in', '-c', 'test_company', '-p', 'test_project',
+        parser = stamp.parse_args(['in', '-c', customer_name, '-p', project_name,
                                    '-D', '{:%x}'.format(random_datetime),
                                    '-T', '{:%H:%M}'.format(random_datetime),
                                    '--db', testing_db])
@@ -66,10 +124,24 @@ class TestStampCLI(unittest.TestCase):
         parser = stamp.parse_args(['status', '--db', testing_db])
         self.assertTrue(parser.func(parser))
 
+        # Export invoice with current time workdays to pdf and open with default
+        # viewer
+        with patch('sys.stdin.read', return_value='y'):
+            parser = stamp.parse_args(['export', '{:%B}'.format(datetime.now()),
+                                       '{:%Y}'.format(datetime.now()),
+                                       customer_name,
+                                       '--pdf', '--db', testing_db])
+            current_pdf = parser.func(parser)
+            self.assertTrue(current_pdf)
+            os.system('xdg-open ' + '\'%s\'' % current_pdf)
+
 
 def tearDownModule():
     if os.path.isfile(testing_db_path):
         os.remove(testing_db_path)
+    invoice_folder = os.path.join(settings.INVOICE_DIR, testing_db)
+    if os.path.isdir(invoice_folder):
+        rmtree(invoice_folder)
 
 
 if __name__ == '__main__':
