@@ -2,6 +2,7 @@ import os
 import sys
 import unittest
 from unittest.mock import patch
+from io import StringIO
 from shutil import rmtree
 from datetime import datetime, timedelta
 from random import randrange as rrange
@@ -15,14 +16,15 @@ testing_db = 'test'
 testing_db_path = os.path.join(settings.DATA_DIR, testing_db) + '.db'
 
 
+# [TODO] Need to patch properly for stdin
 class TestStampCLI(unittest.TestCase):
 
-    @patch('builtins.input', lambda: 'y')
     def test_completing_workday_with_tags(self):
         # Create workday with current time
-        parser = stamp.parse_args(['in', '-c', 'test_company', '-p',
-                                   'test_project', '--db', testing_db])
-        self.assertTrue(parser.func(parser))
+        with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
+            parser = stamp.parse_args(['in', '-c', 'test_company', '-p',
+                                       'test_project', '--db', testing_db])
+            self.assertTrue(parser.func(parser))
         parser = stamp.parse_args(['tag', 'testing tag', '--db', testing_db])
         self.assertTrue(parser.func(parser))
         parser = stamp.parse_args(['tag', 'testing tag 2', '--db', testing_db])
@@ -66,7 +68,8 @@ class TestStampCLI(unittest.TestCase):
 
 
 def tearDownModule():
-    os.remove(testing_db_path)
+    if os.path.isfile(testing_db_path):
+        os.remove(testing_db_path)
 
 
 if __name__ == '__main__':
