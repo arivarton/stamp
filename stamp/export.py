@@ -203,10 +203,8 @@ def export_pdf(db, year, month, customer, invoice):
         invoice.year = year
         print('Saved pdf here: %s' % pdf_file)
         db.session.add(invoice)
-        db.session.commit()
     except:
         db.session.delete(invoice)
-        db.session.commit()
         raise
     return pdf_file
 

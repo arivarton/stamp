@@ -66,10 +66,10 @@ def create_invoice(db, workdays, customer, year, month):
     invoice = Invoice(workdays=workdays.all(),
                       customer_id=customer.id,
                       year=year,
-                      month=month)
+                      month=month,
+                      created=datetime.now())
 
     db.session.add(invoice)
-    db.session.commit()
 
     return invoice
 

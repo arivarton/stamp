@@ -89,6 +89,7 @@ def export(args):
     except NoMatchesError as _err_msg:
         print(_err_msg)
         sys.exit(0)
+    db.session.commit()
 
 
 def delete(args):
