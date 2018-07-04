@@ -2,14 +2,12 @@ import sys
 
 from datetime import datetime
 
-from .db import Database
 from .formatting import yes_or_no
 from .helpers import auto_correct_tag, manually_correct_tag
 from .exceptions import CurrentStampNotFoundError
 
 
-def stamp_out(args):
-    db = Database(args.db)
+def stamp_out(db, args):
     stamp = db.current_stamp()
     if not stamp:
         raise CurrentStampNotFoundError('No stamp present. Stamp in first!')
@@ -30,7 +28,5 @@ def stamp_out(args):
                       yes_message='Auto correcting tags!',
                       yes_function=auto_correct_tag,
                       yes_function_args=(tag, stamp, db.session,))
-    db.session.add(stamp)
-    db.session.commit()
+    db.add(stamp)
     print('Stamped out at %s %s' % (args.time.strftime('%H:%M'), args.date.strftime('%x')))
-    return

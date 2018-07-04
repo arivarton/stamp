@@ -4,7 +4,7 @@ from .mappings import Tag
 from .exceptions import TagOutsideTimeBoundaryError
 
 
-def tag_stamp(date, time, stamp, tag, Session):
+def tag_stamp(db, date, time, stamp, tag):
     if stamp.end:
         if date > stamp.end.date():
             raise TagOutsideTimeBoundaryError('Tag (%s %s) must be set before the work day has ended (%s %s).' % (date, time, stamp.end.date(), stamp.end.time()))
@@ -17,6 +17,4 @@ def tag_stamp(date, time, stamp, tag, Session):
     else:
         stamp.tags.append(Tag(recorded=datetime.combine(date, time),
                               tag=tag))
-        Session.add(stamp)
-        Session.commit()
-    return stamp
+        db.add(stamp)

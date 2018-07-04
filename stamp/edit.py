@@ -14,7 +14,7 @@ def _edit_tag():
     pass
 
 
-def edit_workday(workday_id, edit, db):
+def edit_workday(db, workday_id, edit):
     workday = db.query_for_workdays(workday_id=workday_id)
     if edit['date']:
         workday.date = edit['date'][0]
@@ -24,4 +24,4 @@ def edit_workday(workday_id, edit, db):
         workday.comment = edit['comment'][0]
     if edit['customer']:
         workday.customer = edit['customer'][0]
-    db.session.commit()
+    db.add(workday)

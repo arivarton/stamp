@@ -41,6 +41,17 @@ class Database():
         session = sessionmaker(bind=engine)
         self.session = session()
 
+    def add(self, instance):
+        self.session.add(instance)
+        # Creates the id which is necessary when connecting instances
+        self.session.flush()
+
+    def delete(self, instance):
+        self.session.delete(instance)
+
+    def commit(self):
+        self.session.commit()
+
     def query_for_workdays(self, workday_id=None, tag_id=None, args=None):
         try:
             # Used with delete or edit argument

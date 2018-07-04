@@ -31,16 +31,22 @@ from .args_helpers import DateAction, TimeAction
 
 
 def add(args):
-    stamp = stamp_in(args)
-    return stamp
+    db = Database(args.db)
+    stamp_in(db, args)
+    db.commit()
+
+    return True
 
 
 def end(args):
+    db = Database(args.db)
     try:
-        stamp_out(args)
+        stamp_out(db, args)
+        db.commit()
     except CurrentStampNotFoundError as _err_msg:
         print(_err_msg)
         sys.exit(0)
+
     return True
 
 
@@ -54,7 +60,9 @@ def tag(args):
     else:
         stamp = db.query_for_workdays(workday_id=int(args.id))
 
-    stamp = tag_stamp(args.date, args.time, stamp, args.tag, db.session)
+    tag_stamp(db, args.date, args.time, stamp, args.tag)
+    db.commit()
+
     return True
 
 
@@ -72,6 +80,7 @@ def status(args):
         print(print_current_stamp(db.current_stamp()))
     except CurrentStampNotFoundError as _err_msg:
         print(_err_msg)
+
     return True
 
 
@@ -91,6 +100,8 @@ def export(args):
         sys.exit(0)
     db.session.commit()
 
+    return True
+
 
 def delete(args):
     db = Database(args.db)
@@ -101,8 +112,10 @@ def delete(args):
             print(_err_msg)
     else:
         args.id = int(args.id)
-    delete_workday_or_tag(args.id, args.tag, db)
-    return
+    delete_workday_or_tag(db, args.id, args.tag)
+    db.commit()
+
+    return True
 
 
 # Edit only supports customer for now
@@ -116,9 +129,10 @@ def edit(args):
             print(_err_msg)
     else:
         args.id = int(args.id)
-    edit_workday(args.id, args.edit, db)
+    edit_workday(db, args.id, args.edit)
+    db.commit()
 
-    return
+    return True
 
 
 def parse_args(args):
