@@ -26,13 +26,17 @@ from .tag import tag_stamp
 from .db import Database
 from .export import export_invoice
 from .exceptions import (NoMatchingDatabaseEntryError, CurrentStampNotFoundError,
-                         NoMatchesError, TooManyMatchesError)
+                         NoMatchesError, TooManyMatchesError, CanceledByUser)
 from .args_helpers import DateAction, TimeAction
+from .helpers import default_error_handler
 
 
 def add(args):
-    db = Database(args.db)
-    stamp_in(db, args)
+    try:
+        db = Database(args.db)
+        stamp_in(db, args)
+    except (CurrentStampNotFoundError, CanceledByUser) as _err_msg:
+        default_error_handler(_err_msg, db=db)
     db.commit()
 
     return True
@@ -43,22 +47,21 @@ def end(args):
     try:
         stamp_out(db, args)
         db.commit()
-    except CurrentStampNotFoundError as _err_msg:
-        print(_err_msg)
-        sys.exit(0)
+    except (CurrentStampNotFoundError, CanceledByUser) as _err_msg:
+        default_error_handler(_err_msg, db=db)
 
     return True
 
 
 def tag(args):
-    db = Database(args.db)
-    if args.id == 'current':
-        try:
+    try:
+        db = Database(args.db)
+        if args.id == 'current':
             stamp = db.current_stamp()
-        except CurrentStampNotFoundError as _err_msg:
-            print(_err_msg)
-    else:
-        stamp = db.query_for_workdays(workday_id=int(args.id))
+        else:
+            stamp = db.query_for_workdays(workday_id=int(args.id))
+    except (CurrentStampNotFoundError, CanceledByUser) as _err_msg:
+        default_error_handler(_err_msg, db=db)
 
     tag_stamp(db, args.date, args.time, stamp, args.tag)
     db.commit()
@@ -67,19 +70,22 @@ def tag(args):
 
 
 def status(args):
-    db = Database(args.db)
     try:
+        db = Database(args.db)
         if args.invoices:
             print_invoices(db.get_invoices(args.show_superseeded))
         else:
             status_query = db.query_for_workdays(args=args)
             print_status(status_query)
     except NoMatchingDatabaseEntryError as _err_msg:
-        print(_err_msg)
+        default_error_handler(_err_msg, exit_on_error=False)
+    except CanceledByUser as _err_msg:
+        default_error_handler(_err_msg)
+
     try:
         print(print_current_stamp(db.current_stamp()))
     except CurrentStampNotFoundError as _err_msg:
-        print(_err_msg)
+        default_error_handler(_err_msg, exit_on_error=False)
 
     return True
 
@@ -89,15 +95,9 @@ def export(args):
     try:
         return export_invoice(db, args.year, args.month, args.customer,
                               args.project, args.pdf)
-    except NoMatchingDatabaseEntryError as _err_msg:
-        print(_err_msg)
-        sys.exit(0)
-    except TooManyMatchesError as _err_msg:
-        print(_err_msg)
-        sys.exit(0)
-    except NoMatchesError as _err_msg:
-        print(_err_msg)
-        sys.exit(0)
+    except (NoMatchingDatabaseEntryError, TooManyMatchesError, NoMatchesError,
+            CanceledByUser) as _err_msg:
+        default_error_handler(_err_msg, db=db)
     db.session.commit()
 
     return True
@@ -109,7 +109,7 @@ def delete(args):
         try:
             args.id = db.current_stamp().id
         except CurrentStampNotFoundError as _err_msg:
-            print(_err_msg)
+            default_error_handler(_err_msg, db=db, exit_on_error=False)
     else:
         args.id = int(args.id)
     delete_workday_or_tag(db, args.id, args.tag)
@@ -126,7 +126,7 @@ def edit(args):
         try:
             args.id = db.current_stamp().id
         except CurrentStampNotFoundError as _err_msg:
-            print(_err_msg)
+            default_error_handler(_err_msg, db=db)
     else:
         args.id = int(args.id)
     edit_workday(db, args.id, args.edit)

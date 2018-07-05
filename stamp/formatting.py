@@ -2,6 +2,7 @@ import sys
 import tty
 import termios
 from .helpers import get_terminal_width
+from .exceptions import CanceledByUser
 
 
 def yes_or_no(question,
@@ -24,8 +25,7 @@ def yes_or_no(question,
             tty.setcbreak(fd)
             user_choice = sys.stdin.read(1)
         except KeyboardInterrupt:
-            print('\nCanceling...')
-            sys.exit(0)
+            raise CanceledByUser
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 

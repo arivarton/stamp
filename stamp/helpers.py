@@ -102,3 +102,11 @@ def get_terminal_width():
 def get_month_names():
     return ['January', 'February', 'March', 'April', 'May', 'June', 'July',
             'August', 'September', 'October', 'November', 'December']
+
+
+def default_error_handler(error_message, db=False, exit_on_error=True):
+    print(error_message)
+    if db:
+        db.reset()
+    if exit_on_error:
+        sys.exit(0)

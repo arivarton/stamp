@@ -28,3 +28,8 @@ class ArgumentError(StampError):
 
 class CurrentStampNotFoundError(StampError):
     pass
+
+
+class CanceledByUser(StampError):
+    def __init__(self, message='Canceling...'):
+        super().__init__(message)
