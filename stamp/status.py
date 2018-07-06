@@ -10,6 +10,7 @@ def print_status(workdays):
     # Headlines
     date_headline = 'Date'
     customer_headline = 'Customer'
+    project_headline = 'Project'
     from_headline = 'From'
     to_headline = 'To'
     invoice_id_headline = 'Invoice ID'
@@ -17,27 +18,30 @@ def print_status(workdays):
     # Width for columns
     widths = {
         'date': max(len(workdays[0].start.date().isoformat()), len(date_headline)) + 3,
-        'customer': max(len(max([x.customer.name for x in workdays], key=len)), len(customer_headline)) + 4,
+        'customer': max(len(max([x.customer.name for x in workdays], key=len)), len(customer_headline)) + 2,
+        'project': max(len(max([x.project.name for x in workdays], key=len)), len(project_headline)) + 4,
         'from': max(len(workdays[0].start.strftime(time_format)), len(from_headline)),
         'to': max(len(workdays[0].end.strftime(time_format)), len(to_headline)),
         'id': len(max([str(x.id) for x in workdays], key=len)) + 2,
         'invoice id': max(len(max([str(x.invoice_id) for x in workdays], key=len)), len(invoice_id_headline))
     }
 
-    widths.update({'total': sum(widths.values()) + 7})
+    widths.update({'total': sum(widths.values()) + 11})
 
     # Header
     divider()
-    print('{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{from_width}}   {4:<{to_width}} {5:^{invoice_id_width}}{6:>{summary_width}}'.format(
+    print('{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{project_width}} {4:<{from_width}}   {5:<{to_width}}   {6:^{invoice_id_width}}{7:>{summary_width}}'.format(
         '',
         date_headline,
         customer_headline,
+        project_headline,
         from_headline,
         to_headline,
         invoice_id_headline,
         'Total',
         date_width=widths['date'],
         customer_width=widths['customer'],
+        project_width=widths['project'],
         from_width=widths['from'],
         to_width=widths['to'],
         invoice_id_width=widths['invoice id'],
@@ -49,10 +53,11 @@ def print_status(workdays):
     # Output for each day
     for workday in workdays:
         output_total_hours, output_date, output_total_wage = output_for_total_hours_date_and_wage(workday)
-        print('{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{from_width}} - {4:<{to_width}} {5:^{invoice_id_width}}{6:>{summary_width}}'.format(
+        print('{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{project_width}} {4:<{from_width}} - {5:<{to_width}}   {6:^{invoice_id_width}}{7:>{summary_width}}'.format(
             workday.id,
             output_date,
             workday.customer.name,
+            workday.project.name,
             workday.start.strftime(time_format),
             workday.end.strftime(time_format),
             workday.invoice_id or '',
@@ -60,6 +65,7 @@ def print_status(workdays):
 
             date_width=widths['date'],
             customer_width=widths['customer'],
+            project_width=widths['project'],
             from_width=widths['from'],
             to_width=widths['to'],
             invoice_id_width=widths['invoice id'],
