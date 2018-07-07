@@ -1,16 +1,5 @@
 #!/usr/bin/env python3
 
-##############################
-#
-#    Stamp in before starting
-#    the workday, tag
-#    points in time with
-#    comments and stamp out
-#    when workday is over.
-#
-##############################
-
-
 import argparse
 import sys
 import os

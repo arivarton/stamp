@@ -13,7 +13,7 @@ with open(path.join(exec_dir, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='stamp',
-    version='0.0.9',
+    version='0.1.0',
     description='Register workhours in terminal.',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -26,7 +26,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
         'Intended Audience :: End Users/Desktop',
