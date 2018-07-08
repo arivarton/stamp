@@ -10,7 +10,7 @@ from calendar import monthrange
 
 sys.path.append('../stamp')
 
-from stamp import stamp, settings # NOQA
+from stamp import args, settings # NOQA
 
 testing_db = 'test_%s' % uuid4().hex
 testing_db_path = os.path.join(settings.DATA_DIR, testing_db) + '.db'
@@ -24,70 +24,70 @@ class TestStampCLI(unittest.TestCase):
     def test_completing_workday_with_tags(self):
         # Create workday with current time
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            parser = stamp.parse_args(['in', '-c', customer_name, '-p',
-                                       project_name, '--db', testing_db])
+            parser = args.parse(['in', '-c', customer_name, '-p',
+                                 project_name, '--db', testing_db])
             self.assertTrue(parser.func(parser))
-        parser = stamp.parse_args(['tag', 'testing tag', '--db', testing_db])
+        parser = args.parse(['tag', 'testing tag', '--db', testing_db])
         self.assertTrue(parser.func(parser))
-        parser = stamp.parse_args(['tag', 'testing tag 2', '--db', testing_db])
+        parser = args.parse(['tag', 'testing tag 2', '--db', testing_db])
         self.assertTrue(parser.func(parser))
         out_time = datetime.now() + timedelta(hours=3)
-        parser = stamp.parse_args(['out',
-                                   '-D', '{:%x}'.format(out_time),
-                                   '-T', '{:%H:%M}'.format(out_time),
-                                   '--db', testing_db])
+        parser = args.parse(['out',
+                             '-D', '{:%x}'.format(out_time),
+                             '-T', '{:%H:%M}'.format(out_time),
+                             '--db', testing_db])
         self.assertTrue(parser.func(parser))
 
         # Add another workday with current time one day later
         current_time = datetime.now() + timedelta(days=1)
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            parser = stamp.parse_args(['in', '-c', customer_name, '-p',
-                                       project_name,
-                                       '-D', '{:%x}'.format(current_time),
-                                       '-T', '{:%H:%M}'.format(current_time),
-                                       '--db', testing_db])
+            parser = args.parse(['in', '-c', customer_name, '-p',
+                                 project_name,
+                                 '-D', '{:%x}'.format(current_time),
+                                 '-T', '{:%H:%M}'.format(current_time),
+                                 '--db', testing_db])
             self.assertTrue(parser.func(parser))
-        parser = stamp.parse_args(['tag', 'testing tag',
-                                   '-D', '{:%x}'.format(current_time + timedelta(hours=1)),
-                                   '-T', '{:%H:%M}'.format(current_time + timedelta(hours=1)),
-                                   '--db', testing_db])
+        parser = args.parse(['tag', 'testing tag',
+                             '-D', '{:%x}'.format(current_time + timedelta(hours=1)),
+                             '-T', '{:%H:%M}'.format(current_time + timedelta(hours=1)),
+                             '--db', testing_db])
         self.assertTrue(parser.func(parser))
-        parser = stamp.parse_args(['tag', 'testing tag 2',
-                                   '-D', '{:%x}'.format(current_time + timedelta(hours=2)),
-                                   '-T', '{:%H:%M}'.format(current_time + timedelta(hours=2)),
-                                   '--db', testing_db])
+        parser = args.parse(['tag', 'testing tag 2',
+                             '-D', '{:%x}'.format(current_time + timedelta(hours=2)),
+                             '-T', '{:%H:%M}'.format(current_time + timedelta(hours=2)),
+                             '--db', testing_db])
         self.assertTrue(parser.func(parser))
         out_time = current_time + timedelta(hours=3)
-        parser = stamp.parse_args(['out',
-                                   '-D', '{:%x}'.format(out_time),
-                                   '-T', '{:%H:%M}'.format(out_time),
-                                   '--db', testing_db])
+        parser = args.parse(['out',
+                             '-D', '{:%x}'.format(out_time),
+                             '-T', '{:%H:%M}'.format(out_time),
+                             '--db', testing_db])
         self.assertTrue(parser.func(parser))
 
         # Add another workday with current time one day before
         current_time = datetime.now() + timedelta(days=-1)
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            parser = stamp.parse_args(['in', '-c', customer_name, '-p',
-                                       project_name,
-                                       '-D', '{:%x}'.format(current_time),
-                                       '-T', '{:%H:%M}'.format(current_time),
-                                       '--db', testing_db])
+            parser = args.parse(['in', '-c', customer_name, '-p',
+                                 project_name,
+                                 '-D', '{:%x}'.format(current_time),
+                                 '-T', '{:%H:%M}'.format(current_time),
+                                 '--db', testing_db])
             self.assertTrue(parser.func(parser))
-        parser = stamp.parse_args(['tag', 'testing tag',
-                                   '-D', '{:%x}'.format(current_time + timedelta(hours=1)),
-                                   '-T', '{:%H:%M}'.format(current_time + timedelta(hours=1)),
-                                   '--db', testing_db])
+        parser = args.parse(['tag', 'testing tag',
+                             '-D', '{:%x}'.format(current_time + timedelta(hours=1)),
+                             '-T', '{:%H:%M}'.format(current_time + timedelta(hours=1)),
+                             '--db', testing_db])
         self.assertTrue(parser.func(parser))
-        parser = stamp.parse_args(['tag', 'testing tag 2',
-                                   '-D', '{:%x}'.format(current_time + timedelta(hours=2)),
-                                   '-T', '{:%H:%M}'.format(current_time + timedelta(hours=2)),
-                                   '--db', testing_db])
+        parser = args.parse(['tag', 'testing tag 2',
+                             '-D', '{:%x}'.format(current_time + timedelta(hours=2)),
+                             '-T', '{:%H:%M}'.format(current_time + timedelta(hours=2)),
+                             '--db', testing_db])
         self.assertTrue(parser.func(parser))
         out_time = current_time + timedelta(hours=3)
-        parser = stamp.parse_args(['out',
-                                   '-D', '{:%x}'.format(out_time),
-                                   '-T', '{:%H:%M}'.format(out_time),
-                                   '--db', testing_db])
+        parser = args.parse(['out',
+                             '-D', '{:%x}'.format(out_time),
+                             '-T', '{:%H:%M}'.format(out_time),
+                             '--db', testing_db])
         self.assertTrue(parser.func(parser))
 
         # Create another workday with random date
@@ -99,38 +99,38 @@ class TestStampCLI(unittest.TestCase):
                                    day=random_day,
                                    hour=rrange(0, 24),
                                    minute=rrange(0, 60))
-        parser = stamp.parse_args(['in', '-c', customer_name, '-p', project_name,
-                                   '-D', '{:%x}'.format(random_datetime),
-                                   '-T', '{:%H:%M}'.format(random_datetime),
-                                   '--db', testing_db])
+        parser = args.parse(['in', '-c', customer_name, '-p', project_name,
+                             '-D', '{:%x}'.format(random_datetime),
+                             '-T', '{:%H:%M}'.format(random_datetime),
+                             '--db', testing_db])
         self.assertTrue(parser.func(parser))
-        parser = stamp.parse_args(['tag', 'testing tag',
-                                   '-D', '{:%x}'.format(random_datetime),
-                                   '-T', '{:%H:%M}'.format(random_datetime),
-                                   '--db', testing_db])
+        parser = args.parse(['tag', 'testing tag',
+                             '-D', '{:%x}'.format(random_datetime),
+                             '-T', '{:%H:%M}'.format(random_datetime),
+                             '--db', testing_db])
         self.assertTrue(parser.func(parser))
-        parser = stamp.parse_args(['tag', 'testing tag 2',
-                                   '-D', '{:%x}'.format(random_datetime + timedelta(hours=3)),
-                                   '-T', '{:%H:%M}'.format(random_datetime + timedelta(hours=3)),
-                                   '--db', testing_db])
+        parser = args.parse(['tag', 'testing tag 2',
+                             '-D', '{:%x}'.format(random_datetime + timedelta(hours=3)),
+                             '-T', '{:%H:%M}'.format(random_datetime + timedelta(hours=3)),
+                             '--db', testing_db])
         self.assertTrue(parser.func(parser))
-        parser = stamp.parse_args(['out',
-                                   '-D', '{:%x}'.format(random_datetime + timedelta(hours=6)),
-                                   '-T', '{:%H:%M}'.format(random_datetime + timedelta(hours=6)),
-                                   '--db', testing_db])
+        parser = args.parse(['out',
+                             '-D', '{:%x}'.format(random_datetime + timedelta(hours=6)),
+                             '-T', '{:%H:%M}'.format(random_datetime + timedelta(hours=6)),
+                             '--db', testing_db])
         self.assertTrue(parser.func(parser))
 
         # Get status of database
-        parser = stamp.parse_args(['status', '--db', testing_db])
+        parser = args.parse(['status', '--db', testing_db])
         self.assertTrue(parser.func(parser))
 
         # Export invoice with current time workdays to pdf and open with default
         # viewer
         with patch('sys.stdin.read', return_value='y'):
-            parser = stamp.parse_args(['export', '{:%B}'.format(datetime.now()),
-                                       '{:%Y}'.format(datetime.now()),
-                                       customer_name,
-                                       '--pdf', '--db', testing_db])
+            parser = args.parse(['export', '{:%B}'.format(datetime.now()),
+                                 '{:%Y}'.format(datetime.now()),
+                                 customer_name,
+                                 '--pdf', '--db', testing_db])
             current_pdf = parser.func(parser)
             self.assertTrue(current_pdf)
             os.system('xdg-open ' + '\'%s\'' % current_pdf)
