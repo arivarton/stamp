@@ -76,3 +76,7 @@ def divider(divider_type='-', alignment='<', text=''):
                                                         divider_type=divider_type,
                                                         alignment=alignment,
                                                         width=get_terminal_width()))
+
+
+def format_column(text, width, alignment='^'):
+    return '{0:{alignment}{width}}'.format(text, alignment=alignment, width=width)

@@ -1,5 +1,7 @@
 import curses
 
+from ..formatting import format_column
+
 
 class UI:
     def __init__(self, stdscr):
@@ -8,6 +10,9 @@ class UI:
         self.bottom = stdscr_y - 1
         self.rightmost = stdscr_x - 1
         self.stdscr = stdscr
+        self.pad = curses.newpad(self.bottom, self.rightmost)
+        self.pad.refresh(0, 0, 0, 0, self.bottom, self.rightmost)
+        self.pad_column_pos = 1
         curses.cbreak()
         curses.noecho()
         curses.curs_set(0)
@@ -18,6 +23,17 @@ class UI:
     def add_right_string(self, y, string, *args, **kwargs):
         self.stdscr.addstr(y, self.rightmost - len(string),
                            string, *args, **kwargs)
+
+    def add_column(self, rows, width, alignment='^'):
+        for line_number, row in enumerate(rows):
+            self.pad.addstr(line_number, self.pad_column_pos,
+                            format_column(row, width, alignment=alignment),
+                            curses.A_REVERSE)
+            line_number += 1
+        self.pad_column_pos += width + 1
+
+    def refresh(self):
+        self.pad.refresh(0, 0, 0, 0, self.bottom, self.rightmost)
 
     def add_menu(self):
         self.add_left_string(self.bottom, 'Some option',
@@ -32,11 +48,6 @@ class UI:
                 break
 
     def terminate(self):
-        curses.nocbreak()
         self.stdscr.keypad(False)
+        curses.nocbreak()
         curses.echo()
-
-
-stamp_ui = curses.wrapper(UI)
-stamp_ui.add_menu()
-stamp_ui.get_char()
