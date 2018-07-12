@@ -27,7 +27,7 @@ class UI:
     def add_column(self, headline, rows, width, alignment='^'):
         self.pad.addstr(0, self.pad_column_pos,
                         format_column(headline, width, alignment=alignment),
-                        curses.A_REVERSE|curses.A_BOLD)
+                        curses.A_REVERSE|curses.A_BOLD) # NOQA
         for line_number, row in enumerate(rows, 1):
             self.pad.addstr(line_number, self.pad_column_pos,
                             format_column(row, width, alignment=alignment),

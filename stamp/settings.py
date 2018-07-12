@@ -7,6 +7,8 @@ CONFIG_DIR = os.path.join(os.environ.get('XDG_CONFIG_HOME',
                                          os.path.join(os.environ.get('HOME'),
                                                       '.config/')),
                           'stamp/')
+CONFIG_FILE = os.environ.get('STAMP_DEV_CONFIG_FILE',
+                             os.environ.get('STAMP_CONFIG_FILE', 'config.yml'))
 DATA_DIR = os.path.join(os.environ.get('XDG_DATA_HOME',
                                        os.path.join(os.environ.get('HOME'),
                                                     '.local/share/')),
