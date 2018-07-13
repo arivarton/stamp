@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import sys
+import curses
 from .args import parse
+from .ui.main import main as curses_interface
 
 
 def run():
@@ -9,7 +11,7 @@ def run():
     if vars(parser):
         parser.func(parser)
     else:
-        parser.print_help()
+        curses.wrapper(curses_interface)
 
 
 if __name__ == '__main__':

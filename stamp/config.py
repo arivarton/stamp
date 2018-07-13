@@ -28,15 +28,27 @@ class Interface(ConfigValue):
         self.choices.append('cli', 'curses')
 
 
-class DefaultDB(ConfigValue):
+class DBPath(ConfigValue):
     def __init__(self):
         super().__init__()
         self.value = DB_FILE
 
 
+class ConfigPath(ConfigValue):
+    def __init__(self):
+        super().__init__()
+        self.config_dir = CONFIG_DIR
+        self.config_file = CONFIG_FILE + '.yml'
+        self.value = os.path.join(self.config_dir, self.config_file)
+
+    def validate(self):
+        if not os.path.isfile(self.value):
+            return False
+
+
 class HandleConfig(object):
     def __init__(self):
-        self.values = (Interface(), DefaultDB())
+        self.values = (Interface(), DBPath(), ConfigPath)
         self.config_path = os.path.join(CONFIG_DIR, CONFIG_FILE)
         self.config = self.load_config()
 

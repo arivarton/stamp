@@ -34,11 +34,18 @@ class UI:
                             curses.A_REVERSE)
         self.pad_column_pos += width + 1
 
+    def add_options(self, options, alignment='^'):
+        for line_number, option in enumerate(options):
+            self.pad.addstr(line_number, 0,
+                            format_column(option, self.rightmost, alignment=alignment),
+                            curses.A_REVERSE)
+
     def refresh(self):
+        self.stdscr.refresh()
         self.pad.refresh(0, 0, 0, 0, self.bottom, self.rightmost)
 
-    def add_menu(self):
-        self.add_left_string(self.bottom, 'Some option',
+    def add_help(self):
+        self.add_left_string(self.bottom, 'hjkl to navigate',
                              curses.A_REVERSE)
         self.add_right_string(self.bottom, 'q to quit',
                               curses.A_REVERSE)
