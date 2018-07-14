@@ -4,7 +4,7 @@ from ..formatting import format_column
 
 
 class UI:
-    def __init__(self, stdscr):
+    def __init__(self, stdscr, options=None):
         stdscr.keypad(True)
         stdscr_y, stdscr_x = stdscr.getmaxyx()
         self.bottom = stdscr_y - 1
@@ -15,6 +15,7 @@ class UI:
         self.cursor_y, self.cursor_x = curses.getsyx()
         self.pad.refresh(0, 0, 0, 0, self.bottom, self.rightmost)
         self.pad_column_pos = 1
+        self.options = options
         curses.cbreak()
         curses.noecho()
         curses.curs_set(0)
@@ -36,14 +37,20 @@ class UI:
                             curses.A_REVERSE)
         self.pad_column_pos += width + 1
 
-    def add_options(self, options, alignment='^'):
-        for line_number, option in enumerate(options):
-            self.pad.addstr(line_number, 0,
-                            format_column(option, self.rightmost, alignment=alignment),
-                            curses.A_REVERSE)
-        curses.curs_set(1)
+    def add_options(self, alignment='^'):
+        for line_number, option in enumerate(self.options):
+            if self.cursor_y == line_number:
+                self.pad.addstr(line_number, 0,
+                                format_column(option, self.rightmost, alignment=alignment),
+                                curses.A_REVERSE|curses.A_BOLD)
+            else:
+                self.pad.addstr(line_number, 0,
+                                format_column(option, self.rightmost, alignment=alignment),
+                                curses.A_REVERSE)
 
     def refresh(self):
+        if self.options:
+            self.add_options()
         self.stdscr.refresh()
         self.pad.refresh(0, 0, 0, 0, self.bottom, self.rightmost)
 
@@ -55,14 +62,13 @@ class UI:
         self.bottom -= 1
         self.stdscr.refresh()
 
-    def move_cursor(self, step):
+    def move_cursor_y(self, step):
         cursor_result = self.cursor_y + step
         if cursor_result > self.bottom or cursor_result < 0:
             pass
         else:
             self.cursor_y = cursor_result
             self.pad.move(self.cursor_y, self.cursor_x)
-            self.pad.refresh(0, 0, 0, 0, self.bottom, self.rightmost)
 
     def interact(self):
         while True:
@@ -70,9 +76,10 @@ class UI:
             if input_char == ord('q'):
                 break
             if input_char == ord('j'):
-                self.move_cursor(1)
+                self.move_cursor_y(1)
             if input_char == ord('k'):
-                self.move_cursor(-1)
+                self.move_cursor_y(-1)
+            self.refresh()
 
     def terminate(self):
         self.stdscr.keypad(False)
