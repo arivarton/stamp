@@ -3,7 +3,7 @@ import curses
 from ..formatting import format_column
 
 
-class UI:
+class UI(object):
     def __init__(self, stdscr, options=None):
         stdscr.keypad(True)
         stdscr_y, stdscr_x = stdscr.getmaxyx()
@@ -51,8 +51,9 @@ class UI:
     def refresh(self):
         if self.options:
             self.add_options()
-        self.stdscr.refresh()
-        self.pad.refresh(0, 0, 0, 0, self.bottom, self.rightmost)
+        self.stdscr.noutrefresh()
+        self.pad.noutrefresh(0, 0, 0, 0, self.bottom, self.rightmost)
+        curses.doupdate()
 
     def add_help(self):
         self.add_left_string(self.bottom, 'hjkl to navigate',
@@ -64,7 +65,7 @@ class UI:
 
     def move_cursor_y(self, step):
         cursor_result = self.cursor_y + step
-        if cursor_result > self.bottom or cursor_result < 0:
+        if cursor_result > (len(self.options) - 1) or cursor_result < 0:
             pass
         else:
             self.cursor_y = cursor_result
@@ -79,6 +80,8 @@ class UI:
                 self.move_cursor_y(1)
             if input_char == ord('k'):
                 self.move_cursor_y(-1)
+            if input_char == ord('o'):
+                return self.options[self.cursor_y]
             self.refresh()
 
     def terminate(self):

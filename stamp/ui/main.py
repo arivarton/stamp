@@ -1,4 +1,5 @@
 from .ui import UI
+from .status import main as status_ui
 
 
 def main(stdscr):
@@ -6,4 +7,6 @@ def main(stdscr):
     stamp_ui.add_help()
     stamp_ui.add_options()
     stamp_ui.refresh()
-    stamp_ui.interact()
+    next_step = stamp_ui.interact()
+    if next_step == 'status':
+        status_ui(stdscr)
