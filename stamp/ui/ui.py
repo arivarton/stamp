@@ -11,6 +11,8 @@ class UI:
         self.rightmost = stdscr_x - 1
         self.stdscr = stdscr
         self.pad = curses.newpad(self.bottom, self.rightmost)
+        self.pad.move(1, 1)
+        self.cursor_y, self.cursor_x = curses.getsyx()
         self.pad.refresh(0, 0, 0, 0, self.bottom, self.rightmost)
         self.pad_column_pos = 1
         curses.cbreak()
@@ -39,6 +41,7 @@ class UI:
             self.pad.addstr(line_number, 0,
                             format_column(option, self.rightmost, alignment=alignment),
                             curses.A_REVERSE)
+        curses.curs_set(1)
 
     def refresh(self):
         self.stdscr.refresh()
@@ -49,12 +52,27 @@ class UI:
                              curses.A_REVERSE)
         self.add_right_string(self.bottom, 'q to quit',
                               curses.A_REVERSE)
+        self.bottom -= 1
         self.stdscr.refresh()
 
-    def get_char(self):
+    def move_cursor(self, step):
+        cursor_result = self.cursor_y + step
+        if cursor_result > self.bottom or cursor_result < 0:
+            pass
+        else:
+            self.cursor_y = cursor_result
+            self.pad.move(self.cursor_y, self.cursor_x)
+            self.pad.refresh(0, 0, 0, 0, self.bottom, self.rightmost)
+
+    def interact(self):
         while True:
-            if self.stdscr.getch(0, 0) == ord('q'):
+            input_char = self.stdscr.getch()
+            if input_char == ord('q'):
                 break
+            if input_char == ord('j'):
+                self.move_cursor(1)
+            if input_char == ord('k'):
+                self.move_cursor(-1)
 
     def terminate(self):
         self.stdscr.keypad(False)
