@@ -42,11 +42,11 @@ class UI(object):
             if self.cursor_y == line_number:
                 self.pad.addstr(line_number, 0,
                                 format_column(option, self.rightmost, alignment=alignment),
-                                curses.A_REVERSE|curses.A_BOLD)
+                                curses.A_BOLD)
             else:
                 self.pad.addstr(line_number, 0,
                                 format_column(option, self.rightmost, alignment=alignment),
-                                curses.A_REVERSE)
+                                )
 
     def refresh(self):
         if self.options:

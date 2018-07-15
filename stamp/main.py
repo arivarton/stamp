@@ -1,7 +1,7 @@
 from .add import stamp_in
 from .end import stamp_out
 from .edit import edit_regex_resolver, edit_workday
-from .status import print_status, print_current_stamp, print_invoices
+from .status import print_current_stamp, print_invoices, Status
 from .delete import delete_workday_or_tag
 from .tag import tag_stamp
 from .db import Database
@@ -50,13 +50,18 @@ def tag(args):
 
 
 def status(args):
+    args.interface = 'cli'
     try:
         db = Database(args.db)
         if args.invoices:
             print_invoices(db.get_invoices(args.show_superseeded))
         else:
-            status_query = db.query_for_workdays(args=args)
-            print_status(status_query)
+            workdays = db.query_for_workdays(args=args)
+            status_object = Status(workdays)
+            if args.interface == 'cli':
+                status_object.echo()
+            elif args.interface == 'ui':
+                status_object.ui()
     except NoMatchingDatabaseEntryError as err_msg:
         default_error_handler(err_msg, exit_on_error=False)
     except CanceledByUser as err_msg:

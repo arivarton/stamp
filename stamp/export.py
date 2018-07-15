@@ -17,7 +17,7 @@ from .exceptions import (TooManyMatchesError, ArgumentError, NoMatchesError,
                          TooManyMatchingDatabaseEntriesError)
 from .helpers import output_for_total_hours_date_and_wage, get_month_names
 from .formatting import yes_or_no
-from .status import print_status
+from .status import Status
 from .add import create_invoice
 from .mappings import Workday
 
@@ -230,9 +230,11 @@ def export_invoice(db, year, month, customer, project, save_pdf=False):
                 print('Invoice already exists. Append --pdf if you want to export pdf!')
         else:
             print('Old workdays:')
-            print_status(related_invoice.workdays)
+            status_object = Status(related_invoice.workdays)
+            status_object.echo()
             print('Current workdays:')
-            print_status(workdays)
+            status_object = Status(workdays)
+            status_object.echo()
             invoice = yes_or_no('Invoice already exists for this month but does not contain the same work days/hours. Do you wish to create a new invoice for this month? This cannot be undone!',
                                 no_message='Canceling...',
                                 no_function=sys.exit,
@@ -242,7 +244,8 @@ def export_invoice(db, year, month, customer, project, save_pdf=False):
                                 yes_function_args=(db, workdays, customer, year,
                                                    month))
     except NoMatchingDatabaseEntryError:
-        print_status(workdays)
+        status_object = Status(workdays)
+        status_object.echo()
         invoice = yes_or_no('Do you wish to create a invoice containing these workdays?',
                             no_message='Canceling...',
                             no_function=sys.exit,
