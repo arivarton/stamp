@@ -9,6 +9,28 @@ class StatusColumn(object):
         self.alignment = '<'
         self.values = list()
         self.time_format = '%H:%M'
+        self.left_margin = 0
+        self.right_margin = 1
+        self.visible_workday = 0
+
+    def __str__(self):
+        if self.visible_workday >= len(self.values):
+            self.visible_workday = 0
+        else:
+            str_value = str(self.values[self.visible_workday])
+            self.visible_workday += 1
+            return self.left_margin*' ' + str_value + self.right_margin*' '
+
+    def __iter__(self):
+        self.visible_workday = 0
+        return self
+
+    def __next__(self):
+        if self.visible_workday >= len(self.values):
+            self.visible_workday = 0
+            raise StopIteration
+        else:
+            return self.__str__()
 
     def add_value(self, value):
         self.values.append(value)
@@ -31,6 +53,10 @@ class Date(StatusColumn):
         super().__init__()
         self.headline = 'Date'
         self.width = max(len(workdays[0].start.date().isoformat()), len(self.headline)) + 3
+
+    def add_value(self, workday):
+        __, date, __ = output_for_total_hours_date_and_wage(workday)
+        self.values.append(date)
 
 
 class Customer(StatusColumn):
@@ -85,13 +111,14 @@ class InvoiceID(StatusColumn):
 
 
 class TotalWorkday(StatusColumn):
-    def __init__(self, width):
+    def __init__(self, items):
         super().__init__()
         self.headline = 'Total'
-        self.width = get_terminal_width() - (width - 11)
+        self.width = get_terminal_width() - (sum([value.width for value in items]) + 11)
         self.alignment = '>'
 
-    def add_value(self, total_hours, total_wage):
+    def add_value(self, workday):
+        total_hours, __, total_wage = output_for_total_hours_date_and_wage(workday)
         self.values.append(total_hours + ' for ' + total_wage)
 
 
@@ -101,8 +128,8 @@ class Tag(ID):
         super().__init__(workdays)
         self.alignment = '<'
 
-    def add_value(self, tags):
-        self.values.append([[tag.id, tag.recorded.strftime(self.time_format), tag.tag] for tag in tags])
+    def add_value(self, workday):
+        self.values.append([[tag.id, tag.recorded.strftime(self.time_format), tag.tag] for tag in workday.tags])
 
 
 class Status(object):
@@ -118,61 +145,46 @@ class Status(object):
         self.invoice_id = InvoiceID(workdays)
         # Anything after this attribute will not be added to total width in
         # workday
-        self.total_workday = TotalWorkday(sum([value.width for key, value in self.__dict__.items()]))
+        self.total_workday = TotalWorkday(self.__dict__.values())
         self.total_iter = len(workdays)
         self.tags = Tag(workdays)
         self.total_hours, __, self.total_wage = output_for_total_hours_date_and_wage(workdays)
 
         for workday in workdays:
-            total_hours, date, total_wage = output_for_total_hours_date_and_wage(workday)
             self.id.add_value(workday)
-            self.date.add_value(date)
+            self.date.add_value(workday)
             self.customer.add_value(workday)
             self.project.add_value(workday)
             self.from_time.add_value(workday)
             self.to_time.add_value(workday)
             self.invoice_id.add_value(workday)
-            self.total_workday.add_value(total_hours, total_wage)
-            self.tags.add_value(workday.tags)
+            self.total_workday.add_value(workday)
+            self.tags.add_value(workday)
 
-    def echo(self):
+    def __str__(self):
         divider()
-        for index in range(self.total_iter):
-            print('{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{project_width}} {4:<{from_width}}   {5:<{to_width}}   {6:^{invoice_id_width}}{7:>{total_workday_width}}'.format(
-                self.id.get_all_rows()[index],
-                self.date.get_all_rows()[index],
-                self.customer.get_all_rows()[index],
-                self.project.get_all_rows()[index],
-                self.from_time.get_all_rows()[index],
-                self.to_time.get_all_rows()[index],
-                self.invoice_id.get_all_rows()[index],
-                self.total_workday.get_all_rows()[index],
-                id_width=self.id.width,
-                date_width=self.date.width,
-                customer_width=self.customer.width,
-                project_width=self.project.width,
-                from_width=self.from_time.width,
-                to_width=self.to_time.width,
-                invoice_id_width=self.invoice_id.width,
-                total_workday_width=self.total_workday.width
-                ))
-            divider()
+        try:
+            return_value = ''
+            while True:
+                return_value += '\n' + next(self.id) + next(self.date) + next(self.customer) + next(self.project) + next(self.from_time) + next(self.to_time) + next(self.invoice_id) + next(self.total_workday)
+        except StopIteration:
+            return return_value
 
-            if self.tags.values[index]:
-                for tag_id, recorded, message in self.tags.values:
-                    print('{0:<{id_width}} {1}: {2}'.format(
-                        tag_id,
-                        recorded,
-                        message,
-                        id_width=self.tags.width,
-                    ))
+            #  if self.tags.values[index]:
+            #      for tag_id, recorded, message in self.tags.values:
+            #          print('{0:<{id_width}} {1}: {2}'.format(
+            #              tag_id,
+            #              recorded,
+            #              message,
+            #              id_width=self.tags.width,
+            #          ))
 
         # Total
-        print('{0:>{summary_width}}'.format(
-            self.total_hours + ' for ' + self.total_wage,
+        #  print('{0:>{summary_width}}'.format(
+        #      self.total_hours + ' for ' + self.total_wage,
 
-            summary_width=get_terminal_width()
-        ))
+        #      summary_width=get_terminal_width()
+        #  ))
 
 
 def print_invoices(invoices):
