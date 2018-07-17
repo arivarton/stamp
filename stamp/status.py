@@ -1,3 +1,4 @@
+from itertools import zip_longest
 from .helpers import output_for_total_hours_date_and_wage, get_terminal_width
 from .formatting import divider
 
@@ -11,26 +12,10 @@ class StatusColumn(object):
         self.time_format = '%H:%M'
         self.left_margin = 0
         self.right_margin = 1
-        self.visible_workday = 0
-
-    def __str__(self):
-        if self.visible_workday >= len(self.values):
-            self.visible_workday = 0
-        else:
-            str_value = str(self.values[self.visible_workday])
-            self.visible_workday += 1
-            return self.left_margin*' ' + str_value + self.right_margin*' '
 
     def __iter__(self):
-        self.visible_workday = 0
-        return self
-
-    def __next__(self):
-        if self.visible_workday >= len(self.values):
-            self.visible_workday = 0
-            raise StopIteration
-        else:
-            return self.__str__()
+        for value in self.values:
+            yield self.left_margin*' ' + str(value) + self.right_margin*' '
 
     def add_value(self, value):
         self.values.append(value)
@@ -146,7 +131,7 @@ class Status(object):
         # Anything after this attribute will not be added to total width in
         # workday
         self.total_workday = TotalWorkday(self.__dict__.values())
-        self.total_iter = len(workdays)
+        self.total_columns = len(self.__dict__.values())
         self.tags = Tag(workdays)
         self.total_hours, __, self.total_wage = output_for_total_hours_date_and_wage(workdays)
 
@@ -162,12 +147,14 @@ class Status(object):
             self.tags.add_value(workday)
 
     def __str__(self):
-        divider()
         try:
             return_value = ''
-            while True:
-                return_value += '\n' + next(self.id) + next(self.date) + next(self.customer) + next(self.project) + next(self.from_time) + next(self.to_time) + next(self.invoice_id) + next(self.total_workday)
+            for workday_id, date, customer, project, from_time, to_time, invoice_id, total_workday in zip_longest(self.id, self.date, self.customer, self.project, self.from_time, self.to_time, self.invoice_id, self.total_workday):
+                return_value += '\n' + workday_id + date + customer + project + from_time + to_time + invoice_id + total_workday + '\n'
+                return_value += divider()
+            return return_value
         except StopIteration:
+            print('Iteration stopped')
             return return_value
 
             #  if self.tags.values[index]:

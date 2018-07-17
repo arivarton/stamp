@@ -72,10 +72,10 @@ def value_for(value_name):
 
 
 def divider(divider_type='-', alignment='<', text=''):
-    print('{0:{divider_type}{alignment}{width}}'.format(text,
-                                                        divider_type=divider_type,
-                                                        alignment=alignment,
-                                                        width=get_terminal_width()))
+    return '{0:{divider_type}{alignment}{width}}'.format(text,
+                                                         divider_type=divider_type,
+                                                         alignment=alignment,
+                                                         width=get_terminal_width())
 
 
 def format_column(text, width, alignment='^'):
