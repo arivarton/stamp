@@ -1,4 +1,3 @@
-from itertools import zip_longest
 from .helpers import output_for_total_hours_date_and_wage, get_terminal_width
 from .formatting import divider
 
@@ -12,10 +11,26 @@ class StatusColumn(object):
         self.time_format = '%H:%M'
         self.left_margin = 0
         self.right_margin = 1
+        self.selected_workday = 0
+
+    def __str__(self):
+        return '{0}{1:{alignment}{width}}{2}'.format(self.left_margin*' ',
+                                                    str(self.values[self.selected_workday]),
+                                                    self.right_margin*' ',
+                                                     alignment=self.alignment,
+                                                     width=self.width)
 
     def __iter__(self):
-        for value in self.values:
-            yield self.left_margin*' ' + str(value) + self.right_margin*' '
+        self.selected_workday = 0
+        return self
+
+    def __next__(self):
+        if self.selected_workday < len(self.values):
+            return_value = self.__str__()
+            self.selected_workday += 1
+            return return_value
+        else:
+            raise StopIteration
 
     def add_value(self, value):
         self.values.append(value)
@@ -28,9 +43,8 @@ class ID(StatusColumn):
     def __init__(self, workdays):
         super().__init__()
         self.width = len(max([str(x.id) for x in workdays], key=len)) + 2
-
-    def add_value(self, workday):
-        self.values.append(workday.id)
+        for workday in workdays:
+            self.values.append(workday.id)
 
 
 class Date(StatusColumn):
@@ -38,10 +52,9 @@ class Date(StatusColumn):
         super().__init__()
         self.headline = 'Date'
         self.width = max(len(workdays[0].start.date().isoformat()), len(self.headline)) + 3
-
-    def add_value(self, workday):
-        __, date, __ = output_for_total_hours_date_and_wage(workday)
-        self.values.append(date)
+        for workday in workdays:
+            __, date, __ = output_for_total_hours_date_and_wage(workday)
+            self.values.append(date)
 
 
 class Customer(StatusColumn):
@@ -49,9 +62,8 @@ class Customer(StatusColumn):
         super().__init__()
         self.headline = 'Customer'
         self.width = max(len(max([x.customer.name for x in workdays], key=len)), len(self.headline)) + 2
-
-    def add_value(self, workday):
-        self.values.append(workday.customer.name)
+        for workday in workdays:
+            self.values.append(workday.customer.name)
 
 
 class Project(StatusColumn):
@@ -59,9 +71,8 @@ class Project(StatusColumn):
         super().__init__()
         self.headline = 'Project'
         self.width = max(len(max([x.project.name for x in workdays], key=len)), len(self.headline)) + 4
-
-    def add_value(self, workday):
-        self.values.append(workday.project.name)
+        for workday in workdays:
+            self.values.append(workday.project.name)
 
 
 class From(StatusColumn):
@@ -69,9 +80,8 @@ class From(StatusColumn):
         super().__init__()
         self.headline = 'From'
         self.width = max(len(workdays[0].start.strftime(self.time_format)), len(self.headline))
-
-    def add_value(self, workday):
-        self.values.append(workday.start.strftime(self.time_format))
+        for workday in workdays:
+            self.values.append(workday.start.strftime(self.time_format))
 
 
 class To(StatusColumn):
@@ -79,9 +89,8 @@ class To(StatusColumn):
         super().__init__()
         self.headline = 'To'
         self.width = max(len(workdays[0].end.strftime(self.time_format)), len(self.headline))
-
-    def add_value(self, workday):
-        self.values.append(workday.end.strftime(self.time_format))
+        for workday in workdays:
+            self.values.append(workday.end.strftime(self.time_format))
 
 
 class InvoiceID(StatusColumn):
@@ -90,21 +99,19 @@ class InvoiceID(StatusColumn):
         self.headline = 'Invoice ID'
         self.width = max(len(max([str(x.invoice_id) for x in workdays], key=len)), len(self.headline))
         self.alignment = '^'
-
-    def add_value(self, workday):
-        self.values.append(workday.invoice_id or '')
+        for workday in workdays:
+            self.values.append(workday.invoice_id or '')
 
 
 class TotalWorkday(StatusColumn):
-    def __init__(self, items):
+    def __init__(self, items, workdays):
         super().__init__()
         self.headline = 'Total'
         self.width = get_terminal_width() - (sum([value.width for value in items]) + 11)
         self.alignment = '>'
-
-    def add_value(self, workday):
-        total_hours, __, total_wage = output_for_total_hours_date_and_wage(workday)
-        self.values.append(total_hours + ' for ' + total_wage)
+        for workday in workdays:
+            total_hours, __, total_wage = output_for_total_hours_date_and_wage(workday)
+            self.values.append(total_hours + ' for ' + total_wage)
 
 
 class Tag(ID):
@@ -112,9 +119,8 @@ class Tag(ID):
         # Get width from id
         super().__init__(workdays)
         self.alignment = '<'
-
-    def add_value(self, workday):
-        self.values.append([[tag.id, tag.recorded.strftime(self.time_format), tag.tag] for tag in workday.tags])
+        for workday in workdays:
+            self.values.append([[tag.id, tag.recorded.strftime(self.time_format), tag.tag] for tag in workday.tags])
 
 
 class Status(object):
@@ -130,32 +136,17 @@ class Status(object):
         self.invoice_id = InvoiceID(workdays)
         # Anything after this attribute will not be added to total width in
         # workday
-        self.total_workday = TotalWorkday(self.__dict__.values())
+        self.total_workday = TotalWorkday(self.__dict__.values(), workdays)
         self.total_columns = len(self.__dict__.values())
         self.tags = Tag(workdays)
         self.total_hours, __, self.total_wage = output_for_total_hours_date_and_wage(workdays)
 
-        for workday in workdays:
-            self.id.add_value(workday)
-            self.date.add_value(workday)
-            self.customer.add_value(workday)
-            self.project.add_value(workday)
-            self.from_time.add_value(workday)
-            self.to_time.add_value(workday)
-            self.invoice_id.add_value(workday)
-            self.total_workday.add_value(workday)
-            self.tags.add_value(workday)
-
     def __str__(self):
-        try:
-            return_value = ''
-            for workday_id, date, customer, project, from_time, to_time, invoice_id, total_workday in zip_longest(self.id, self.date, self.customer, self.project, self.from_time, self.to_time, self.invoice_id, self.total_workday):
-                return_value += '\n' + workday_id + date + customer + project + from_time + to_time + invoice_id + total_workday + '\n'
-                return_value += divider()
-            return return_value
-        except StopIteration:
-            print('Iteration stopped')
-            return return_value
+        return_value = ''
+        for workday_id, date, customer, project, from_time, to_time, invoice_id, total_workday in zip(self.id, self.date, self.customer, self.project, self.from_time, self.to_time, self.invoice_id, self.total_workday):
+            return_value += '\n' + workday_id + date + customer + project + from_time + to_time + invoice_id + total_workday + '\n'
+            return_value += divider()
+        return return_value
 
             #  if self.tags.values[index]:
             #      for tag_id, recorded, message in self.tags.values:

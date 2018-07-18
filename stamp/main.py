@@ -59,7 +59,7 @@ def status(args):
             workdays = db.query_for_workdays(args=args)
             status_object = Status(workdays)
             if args.interface == 'cli':
-                status_object.echo()
+                print(status_object)
             elif args.interface == 'ui':
                 status_object.ui()
     except NoMatchingDatabaseEntryError as err_msg:
