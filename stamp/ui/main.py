@@ -3,7 +3,7 @@ from .status import main as status_ui
 
 
 def main(stdscr):
-    stamp_ui = UI(stdscr, ('in', 'status', 'delete'))
+    stamp_ui = UI(stdscr, ('status'))
     stamp_ui.add_help()
     stamp_ui.add_options()
     stamp_ui.refresh()
