@@ -15,8 +15,8 @@ class StatusColumn(object):
 
     def __str__(self):
         return '{0}{1:{alignment}{width}}{2}'.format(self.left_margin*' ',
-                                                    str(self.values[self.selected_workday]),
-                                                    self.right_margin*' ',
+                                                     str(self.values[self.selected_workday]),
+                                                     self.right_margin*' ',
                                                      alignment=self.alignment,
                                                      width=self.width)
 
@@ -35,8 +35,12 @@ class StatusColumn(object):
     def add_value(self, value):
         self.values.append(value)
 
-    def get_all_rows(self):
-        return [self.headline] + self.values
+    def get_headline(self):
+        return '{0}{1:{alignment}{width}}{2}'.format(self.left_margin*' ',
+                                                     str(self.headline),
+                                                     self.right_margin*' ',
+                                                     alignment=self.alignment,
+                                                     width=self.width)
 
 
 class ID(StatusColumn):
@@ -143,6 +147,8 @@ class Status(object):
 
     def __str__(self):
         return_value = ''
+        return_value += '\n' + self.id.get_headline() + self.date.get_headline() + self.customer.get_headline() + self.project.get_headline() + self.from_time.get_headline() + self.to_time.get_headline() + self.invoice_id.get_headline() + self.total_workday.get_headline() + '\n'
+        return_value += divider()
         for workday_id, date, customer, project, from_time, to_time, invoice_id, total_workday in zip(self.id, self.date, self.customer, self.project, self.from_time, self.to_time, self.invoice_id, self.total_workday):
             return_value += '\n' + workday_id + date + customer + project + from_time + to_time + invoice_id + total_workday + '\n'
             return_value += divider()
