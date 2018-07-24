@@ -154,6 +154,15 @@ class Status(object):
             return_value += divider()
         return return_value
 
+    def curses_friendly(self):
+        return_value = []
+        headline = self.id.get_headline() + self.date.get_headline() + self.customer.get_headline() + self.project.get_headline() + self.from_time.get_headline() + self.to_time.get_headline() + self.invoice_id.get_headline() + self.total_workday.get_headline()
+        for workday_id in self.id:
+            return_value += '\n' + workday_id + date + customer + project + from_time + to_time + invoice_id + total_workday + '\n'
+            return_value += divider()
+        return return_value
+
+
             #  if self.tags.values[index]:
             #      for tag_id, recorded, message in self.tags.values:
             #          print('{0:<{id_width}} {1}: {2}'.format(
