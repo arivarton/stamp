@@ -261,16 +261,12 @@ def print_invoices(invoices):
 
 
 def print_current_stamp(current_stamp):
-    result = str()
-    if current_stamp is not None:
-        result = result + '\nCurrent stamp:\n'
-        result = result + '%s %s\n' % (current_stamp.start.date().isoformat(), current_stamp.start.time().isoformat().split('.')[0])
-        result = result + 'Customer: %s\n' % current_stamp.customer.name
-        result = result + '%d tag(s)' % len(current_stamp.tags.all())
-        for tag in current_stamp.tags:
-            result = result + '\n\t[id: %d] [Tagged: %s | %s]\n\t%s' % (tag.id, tag.recorded.date().isoformat(), tag.recorded.time().isoformat(), tag.tag)
-        result = result + '\n'
-    else:
-        result = None
+    result = '\nCurrent stamp:\n'
+    result = result + '%s %s\n' % (current_stamp.start.date().isoformat(), current_stamp.start.time().isoformat().split('.')[0])
+    result = result + 'Customer: %s\n' % current_stamp.customer.name
+    result = result + '%d tag(s)' % len(current_stamp.tags.all())
+    for tag in current_stamp.tags:
+        result = result + '\n\t[id: %d] [Tagged: %s | %s]\n\t%s' % (tag.id, tag.recorded.date().isoformat(), tag.recorded.time().isoformat(), tag.tag)
+    result = result + '\n'
 
-    return result
+    print(result)

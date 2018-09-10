@@ -68,7 +68,7 @@ def status(args):
         default_error_handler(err_msg)
 
     try:
-        print(print_current_stamp(db.current_stamp()))
+        print_current_stamp(db.current_stamp())
     except CurrentStampNotFoundError as err_msg:
         default_error_handler(err_msg, exit_on_error=False)
 
