@@ -4,7 +4,7 @@ import sys
 import yaml
 
 from .settings import CONFIG_DIR, CONFIG_FILE, DB_FILE
-from .helpers import default_error_handler
+from .helpers import error_handler
 
 
 class ConfigValue(object):
@@ -56,7 +56,7 @@ class HandleConfig(object):
         """Validate config values."""
         for value in self.values:
             if not value.validate():
-                default_error_handler('Error when validating the %s option in config file!' % value.__class__.__name__, exit_on_error=True)
+                error_handler('Error when validating the %s option in config file!' % value.__class__.__name__, exit_on_error=True)
 
     def load_config(self) -> dict:
         """Load config.

@@ -8,7 +8,7 @@ from .db import Database
 from .export import export_invoice
 from .exceptions import (NoMatchingDatabaseEntryError, CurrentStampNotFoundError,
                          NoMatchesError, TooManyMatchesError, CanceledByUser)
-from .helpers import default_error_handler
+from .helpers import error_handler
 
 
 def add(args):
@@ -16,7 +16,7 @@ def add(args):
         db = Database(args.db)
         stamp_in(db, args)
     except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
-        default_error_handler(err_msg, db=db)
+        error_handler(err_msg, db=db)
     db.commit()
 
     return True
@@ -28,7 +28,7 @@ def end(args):
         stamp_out(db, args)
         db.commit()
     except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
-        default_error_handler(err_msg, db=db)
+        error_handler(err_msg, db=db)
 
     return True
 
@@ -41,7 +41,7 @@ def tag(args):
         else:
             stamp = db.query_for_workdays(workday_id=int(args.id))
     except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
-        default_error_handler(err_msg, db=db)
+        error_handler(err_msg, db=db)
 
     tag_stamp(db, args.date, args.time, stamp, args.tag)
     db.commit()
@@ -63,14 +63,14 @@ def status(args):
             elif args.interface == 'ui':
                 status_object.ui()
     except NoMatchingDatabaseEntryError as err_msg:
-        default_error_handler(err_msg, exit_on_error=False)
+        error_handler(err_msg, exit_on_error=False)
     except CanceledByUser as err_msg:
-        default_error_handler(err_msg)
+        error_handler(err_msg)
 
     try:
         print_current_stamp(db.current_stamp())
     except CurrentStampNotFoundError as err_msg:
-        default_error_handler(err_msg, exit_on_error=False)
+        error_handler(err_msg, exit_on_error=False)
 
     return True
 
@@ -82,7 +82,7 @@ def export(args):
                               args.project, args.pdf)
     except (NoMatchingDatabaseEntryError, TooManyMatchesError, NoMatchesError,
             CanceledByUser) as err_msg:
-        default_error_handler(err_msg, db=db)
+        error_handler(err_msg, db=db)
     db.session.commit()
 
     return True
@@ -94,7 +94,7 @@ def delete(args):
         try:
             args.id = db.current_stamp().id
         except CurrentStampNotFoundError as err_msg:
-            default_error_handler(err_msg, db=db, exit_on_error=False)
+            error_handler(err_msg, db=db, exit_on_error=False)
     else:
         args.id = int(args.id)
     delete_workday_or_tag(db, args.id, args.tag)
@@ -111,9 +111,12 @@ def edit(args):
         try:
             args.id = db.current_stamp().id
         except CurrentStampNotFoundError as err_msg:
-            default_error_handler(err_msg, db=db)
+            error_handler(err_msg, db=db)
     else:
-        args.id = int(args.id)
+        try:
+            args.id = int(args.id)
+        except ValueError:
+            error_handler('ID must be an integer!', db=db)
     edit_workday(db, args.id, args.edit)
     db.commit()
 
