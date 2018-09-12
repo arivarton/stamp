@@ -4,6 +4,7 @@ import argparse
 from . import __version__
 from .args_helpers import DateAction, TimeAction
 from .main import add, end, tag, status, export, delete, edit
+from .edit import edit_workday
 
 from .settings import STANDARD_CUSTOMER, STANDARD_PROJECT, DATA_DIR, DB_FILE
 
@@ -50,12 +51,13 @@ def parse(args):
                                help='Choose database name.')
 
     # [Subparsers]
-    subparsers = main_parser.add_subparsers()
+    main_subparsers = main_parser.add_subparsers()
 
     # Add parser
-    in_parser = subparsers.add_parser('in', help='''Add stamp. If added with
-                                       two separate times and/or dates the stamp
-                                       will automatically finish.''',
+    in_parser = main_subparsers.add_parser('in', aliases=['i'],
+                                           help='''Add stamp. If added with
+                                           two separate times and/or dates the stamp
+                                           will automatically finish.''',
                                       parents=[date_parameters,
                                                customer_parameters,
                                                project_parameters,
@@ -63,13 +65,15 @@ def parse(args):
     in_parser.set_defaults(func=add)
 
     # End parser
-    out_parser = subparsers.add_parser('out', help='End current stamp.',
-                                       parents=[date_parameters,
-                                                db_parameters])
+    out_parser = main_subparsers.add_parser('out', aliases=['o'],
+                                            help='End current stamp.',
+                                            parents=[date_parameters,
+                                            db_parameters])
     out_parser.set_defaults(func=end)
 
     # Tag parser
-    tag_parser = subparsers.add_parser('tag', help='Tag a stamp.',
+    tag_parser = main_subparsers.add_parser('tag', aliases=['t'],
+                                            help='Tag a stamp.',
                                        parents=[date_parameters,
                                                 db_parameters])
     tag_parser.add_argument('tag', type=str)
@@ -78,7 +82,8 @@ def parse(args):
     tag_parser.set_defaults(func=tag)
 
     # Status parser
-    status_parser = subparsers.add_parser('status', help='Show registered hours.',
+    status_parser = main_subparsers.add_parser('status', aliases=['s'],
+                                               help='Show registered hours.',
                                           parents=[filter_parameters,
                                                    customer_parameters,
                                                    project_parameters,
@@ -92,7 +97,8 @@ def parse(args):
     status_parser.set_defaults(func=status)
 
     # Export parser
-    export_parser = subparsers.add_parser('export', help='Export hours to file.',
+    export_parser = main_subparsers.add_parser('export', aliases=['x'],
+                                               help='Export hours to file.',
                                           parents=[filter_parameters,
                                                    db_parameters])
     export_parser.add_argument('month', type=str)
@@ -104,29 +110,33 @@ def parse(args):
     export_parser.set_defaults(func=export)
 
     # Delete parser
-    delete_parser = subparsers.add_parser('delete',
+    delete_parser = main_subparsers.add_parser('delete', aliases=['d'],
                                           help='Delete a registered worktime.',
                                           parents=[db_parameters])
     delete_parser.add_argument('--id', type=str, default='current', help='''Choose
                                id to delete (or to delete tag under).
                                Default is to delete current stamp.''')
     delete_parser.add_argument('-t', '--tag', type=int, help='''Choose tag id to
-                               delete''')
+                               delete.''')
     delete_parser.set_defaults(func=delete)
 
     # Edit parser
-    edit_parser = subparsers.add_parser('edit', help='''Edit everything related to
+    edit_parser = main_subparsers.add_parser('edit', aliases=['e'],
+                                             help='''Edit everything related to
                                         workdays or tags.''',
                                         parents=[db_parameters])
-    edit_parser.add_argument('--id', type=str, default='current', help='''Workday
-                             id to edit (or to edit the tags for). Default is
-                             to edit current stamp.''')
-    edit_parser.add_argument('-t', '--tag', type=int, help='Choose tag to edit.')
-    edit_parser.add_argument('edit', type=str, help='''
-                             Add edit message in this format:
-                             "date=2018-02-18,comment='Changing this'".
-                             Valid arguments: date, time, comment, customer.
-                             ''')
-    edit_parser.set_defaults(func=edit)
+    edit_subparsers = edit_parser.add_subparsers()
+    edit_workday_parser = edit_subparsers.add_parser('workday', aliases=['w', 'wd'],
+                                                     help='Edit anything related to a workday.')
+    edit_workday_parser.add_argument('id', type=int, default='current', help='''
+                                     Choose id of workday to edit.''')
+    edit_workday_subparsers = edit_workday_parser.add_subparsers()
+    edit_workday_time_parser = edit_workday_subparsers.add_parser('time', aliases=['t'],
+                                                                  help='Edit the time registered on a workday.')
+    edit_workday_time_parser.add_argument('new_time', type=str, help='''Specify
+                                          the time to store.''')
+    edit_workday_tag_parser = edit_workday_subparsers.add_parser('tag', aliases=['tg'],
+                                                                  help='Edit tags that are related to the workday.')
+    edit_workday_parser.set_defaults(func=edit_workday)
 
     return main_parser.parse_args(args)
