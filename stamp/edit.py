@@ -25,3 +25,6 @@ def edit_workday(db, workday_id, edit):
     if edit['customer']:
         workday.customer = edit['customer'][0]
     db.add(workday)
+
+def edit_customer(db, workday_id, edit):
+    pass

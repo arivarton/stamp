@@ -4,7 +4,7 @@ import argparse
 from . import __version__
 from .args_helpers import DateAction, TimeAction
 from .main import add, end, tag, status, export, delete, edit
-from .edit import edit_workday
+from .edit import edit_workday, edit_customer
 
 from .settings import STANDARD_CUSTOMER, STANDARD_PROJECT, DATA_DIR, DB_FILE
 
@@ -123,20 +123,45 @@ def parse(args):
     # Edit parser
     edit_parser = main_subparsers.add_parser('edit', aliases=['e'],
                                              help='''Edit everything related to
-                                        workdays or tags.''',
-                                        parents=[db_parameters])
+                                             workdays or tags.''',
+                                             parents=[db_parameters])
     edit_subparsers = edit_parser.add_subparsers()
+    # Edit workday
     edit_workday_parser = edit_subparsers.add_parser('workday', aliases=['w', 'wd'],
                                                      help='Edit anything related to a workday.')
     edit_workday_parser.add_argument('id', type=int, default='current', help='''
                                      Choose id of workday to edit.''')
+    edit_workday_parser.set_defaults(func=edit_workday)
     edit_workday_subparsers = edit_workday_parser.add_subparsers()
+    # Edit workday time
     edit_workday_time_parser = edit_workday_subparsers.add_parser('time', aliases=['t'],
                                                                   help='Edit the time registered on a workday.')
-    edit_workday_time_parser.add_argument('new_time', type=str, help='''Specify
-                                          the time to store.''')
+    edit_workday_time_parser.add_argument('-s', '--start', type=str,
+                                          help='''Specify start time to store.''')
+    edit_workday_time_parser.add_argument('-e', '--end', type=str,
+                                          help='''Specify start time to store.''')
+    # Edit workday tag
     edit_workday_tag_parser = edit_workday_subparsers.add_parser('tag', aliases=['tg'],
-                                                                  help='Edit tags that are related to the workday.')
-    edit_workday_parser.set_defaults(func=edit_workday)
+                                                                 help='Edit tags that are related to the workday.')
+    # Edit customer
+    edit_customer_parser = edit_subparsers.add_parser('customer', aliases=['c'],
+                                                      help='Edit anything related to selected customer.')
+    edit_customer_parser.add_argument('id', type=int, default='current', help='''
+                                      Choose id of customer to edit.''')
+    edit_customer_parser.add_argument('-n', '--name', type=str,
+                                      help='Change name.')
+    edit_customer_parser.add_argument('-c', '--contact', type=str,
+                                      help='Change contact person.')
+    edit_customer_parser.add_argument('-o', '--org_nr', type=str,
+                                      help='Change organization number.')
+    edit_customer_parser.add_argument('-a', '--address', type=str,
+                                      help='Change address.')
+    edit_customer_parser.add_argument('-z', '--zip', type=str,
+                                      help='Change zip code.')
+    edit_customer_parser.add_argument('-m', '--mail', type=str,
+                                      help='Change mail.')
+    edit_customer_parser.add_argument('-p', '--phone', type=str,
+                                      help='Change phone number.')
+    edit_customer_parser.set_defaults(func=edit_customer)
 
     return main_parser.parse_args(args)
