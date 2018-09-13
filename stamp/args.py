@@ -4,7 +4,7 @@ import argparse
 from . import __version__
 from .args_helpers import DateAction, TimeAction
 from .main import add, end, tag, status, export, delete, edit
-from .edit import edit_workday, edit_customer
+from .edit import edit_workday, edit_customer, edit_project
 
 from .settings import STANDARD_CUSTOMER, STANDARD_PROJECT, DATA_DIR, DB_FILE
 
@@ -163,5 +163,16 @@ def parse(args):
     edit_customer_parser.add_argument('-p', '--phone', type=str,
                                       help='Change phone number.')
     edit_customer_parser.set_defaults(func=edit_customer)
+
+    # Edit project
+    edit_project_parser = edit_subparsers.add_parser('project', aliases=['p'],
+                                                      help='Edit anything related to selected project.')
+    edit_project_parser.add_argument('id', type=int, default='current',
+                                     help='Choose id of project to edit.')
+    edit_project_parser.add_argument('-n', '--name', type=str,
+                                      help='Change name.')
+    edit_project_parser.add_argument('-u', '--url', type=str,
+                                      help='Change url.')
+    edit_project_parser.set_defaults(func=edit_project)
 
     return main_parser.parse_args(args)

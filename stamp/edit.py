@@ -28,3 +28,6 @@ def edit_workday(db, workday_id, edit):
 
 def edit_customer(db, workday_id, edit):
     pass
+
+def edit_project(db, workday_id, edit):
+    pass
