@@ -26,8 +26,8 @@ def edit_workday(db, workday_id, edit):
         workday.customer = edit['customer'][0]
     db.add(workday)
 
-def edit_customer(db, workday_id, edit):
-    pass
+def edit_customer(db, args):
+    print('Running edit customer.')
 
-def edit_project(db, workday_id, edit):
-    pass
+def edit_project(db, args):
+    print('Running edit project.')

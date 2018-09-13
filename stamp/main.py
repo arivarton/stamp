@@ -1,6 +1,6 @@
 from .add import stamp_in
 from .end import stamp_out
-from .edit import edit_regex_resolver, edit_workday
+from .edit import edit_regex_resolver, edit_workday, edit_customer, edit_project
 from .status import print_current_stamp, print_invoices, Status
 from .delete import delete_workday_or_tag
 from .tag import tag_stamp
@@ -106,18 +106,24 @@ def delete(args):
 # Edit only supports customer for now
 def edit(args):
     db = Database(args.db)
-    args.edit = edit_regex_resolver(args.edit)
-    if args.id == 'current':
-        try:
-            args.id = db.current_stamp().id
-        except CurrentStampNotFoundError as err_msg:
-            error_handler(err_msg, db=db)
-    else:
-        try:
-            args.id = int(args.id)
-        except ValueError:
-            error_handler('ID must be an integer!', db=db)
-    edit_workday(db, args.id, args.edit)
+    edit_selection = args.parser_object.split(' ')[-1]
+    if edit_selection == 'workday':
+        args.edit = edit_regex_resolver(args.edit)
+        if args.id == 'current':
+            try:
+                args.id = db.current_stamp().id
+            except CurrentStampNotFoundError as err_msg:
+                error_handler(err_msg, db=db)
+        else:
+            try:
+                args.id = int(args.id)
+            except ValueError:
+                error_handler('ID must be an integer!', db=db)
+        edit_workday(db, args.id, args.edit)
+    elif edit_selection == 'customer':
+        edit_customer(db, args)
+    elif edit_selection == 'project':
+        edit_project(db, args)
     db.commit()
 
     return True
