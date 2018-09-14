@@ -3,7 +3,7 @@ import argparse
 
 from . import __version__
 from .args_helpers import DateAction, TimeAction
-from .main import add, end, tag, status, export, delete, edit, edit_test
+from .main import add, end, tag, status, export, delete, edit
 
 from .settings import STANDARD_CUSTOMER, STANDARD_PROJECT, DATA_DIR, DB_FILE
 
@@ -127,24 +127,28 @@ def parse(args):
     edit_subparsers = edit_parser.add_subparsers(dest='subparser_name')
     # Edit workday
     edit_workday_parser = edit_subparsers.add_parser('workday', aliases=['w', 'wd'],
-                                                     help='Edit anything related to a workday.')
+                                                     help='Edit anything related to a workday.',
+                                                     parents=[db_parameters])
     edit_workday_parser.add_argument('id', type=int, default='current', help='''
                                      Choose id of workday to edit.''')
     edit_workday_parser.set_defaults(func=edit, parser_object=edit_workday_parser.prog)
     edit_workday_subparsers = edit_workday_parser.add_subparsers()
     # Edit workday time
     edit_workday_time_parser = edit_workday_subparsers.add_parser('time', aliases=['t'],
-                                                                  help='Edit the time registered on a workday.')
+                                                                  help='Edit the time registered on a workday.',
+                                                                  parents=[db_parameters])
     edit_workday_time_parser.add_argument('-s', '--start', type=str,
                                           help='''Specify start time to store.''')
     edit_workday_time_parser.add_argument('-e', '--end', type=str,
                                           help='''Specify start time to store.''')
     # Edit workday tag
     edit_workday_tag_parser = edit_workday_subparsers.add_parser('tag', aliases=['tg'],
-                                                                 help='Edit tags that are related to the workday.')
+                                                                 help='Edit tags that are related to the workday.',
+                                                                 parents=[db_parameters])
     # Edit customer
     edit_customer_parser = edit_subparsers.add_parser('customer', aliases=['c'],
-                                                      help='Edit anything related to selected customer.')
+                                                      help='Edit anything related to selected customer.',
+                                                      parents=[db_parameters])
     edit_customer_parser.add_argument('id', type=int, default='current', help='''
                                       Choose id of customer to edit.''')
     edit_customer_parser.add_argument('-n', '--name', type=str,
@@ -155,7 +159,7 @@ def parse(args):
                                       help='Change organization number.')
     edit_customer_parser.add_argument('-a', '--address', type=str,
                                       help='Change address.')
-    edit_customer_parser.add_argument('-z', '--zip', type=str,
+    edit_customer_parser.add_argument('-z', '--zip_code', type=str,
                                       help='Change zip code.')
     edit_customer_parser.add_argument('-m', '--mail', type=str,
                                       help='Change mail.')
@@ -165,13 +169,14 @@ def parse(args):
 
     # Edit project
     edit_project_parser = edit_subparsers.add_parser('project', aliases=['p'],
-                                                      help='Edit anything related to selected project.')
+                                                      help='Edit anything related to selected project.',
+                                                      parents=[db_parameters])
     edit_project_parser.add_argument('id', type=int, default='current',
                                      help='Choose id of project to edit.')
     edit_project_parser.add_argument('-n', '--name', type=str,
                                       help='Change name.')
-    edit_project_parser.add_argument('-u', '--url', type=str,
-                                      help='Change url.')
+    edit_project_parser.add_argument('-u', '--link', type=str,
+                                      help='Change link to website.')
     edit_project_parser.set_defaults(func=edit, parser_object=edit_project_parser.prog)
 
     return main_parser.parse_args(args)

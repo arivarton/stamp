@@ -27,7 +27,27 @@ def edit_workday(db, workday_id, edit):
     db.add(workday)
 
 def edit_customer(db, args):
-    print('Running edit customer.')
+    customer = db.query_for_customer(args.id)
+    if args.name:
+        customer.name = args.name
+    if args.contact:
+        customer.contact = args.contact
+    if args.org_nr:
+        customer.org_nr = args.org_nr
+    if args.address:
+        customer.address = args.address
+    if args.zip_code:
+        customer.zip_code = args.zip_code
+    if args.mail:
+        customer.mail = args.mail
+    if args.phone:
+        customer.phone = args.mail
+    db.add(customer)
 
 def edit_project(db, args):
-    print('Running edit project.')
+    project = db.query_for_project(args.id)
+    if args.name:
+        project.name = args.name
+    if args.link:
+        project.link = args.link
+    db.add(project)

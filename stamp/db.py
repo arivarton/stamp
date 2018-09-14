@@ -86,6 +86,20 @@ class Database():
             raise NoMatchingDatabaseEntryError('No workday has been completed yet!')
         return workdays
 
+    def query_for_customer(self, id):
+        customer = self.session.query(Customer).get(id)
+        if customer:
+            return customer
+        else:
+            raise NoMatchingDatabaseEntryError('No db entries matching id %s' % id)
+
+    def query_for_project(self, id):
+        project = self.session.query(Project).get(id)
+        if project:
+            return project
+        else:
+            raise NoMatchingDatabaseEntryError('No db entries matching id %s' % id)
+
     def current_stamp(self):
         try:
             stamp = self.session.query(Workday).filter(Workday.end.is_(None))[0]
