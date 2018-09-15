@@ -53,7 +53,8 @@ def status(args):
     args.interface = 'cli'
     try:
         db = Database(args.db)
-        if args.invoices:
+        status_selection = args.parser_object.split(' ')[-1]
+        if status_selection == 'invoices':
             print_invoices(db.get_invoices(args.show_superseeded))
         else:
             workdays = db.query_for_workdays(args=args)
