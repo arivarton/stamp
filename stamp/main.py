@@ -120,17 +120,18 @@ def edit(args):
                 args.id = int(args.id)
             except ValueError:
                 error_handler('ID must be an integer!', db=db)
-        edit_workday(db, args.id, edit_keywords)
+        result = edit_workday(db, args.id, edit_keywords)
     elif edit_selection == 'customer':
         try:
-            edit_customer(db, args)
+            result = edit_customer(db, args)
         except NoMatchingDatabaseEntryError as err_msg:
             error_handler(err_msg)
     elif edit_selection == 'project':
         try:
-            edit_project(db, args)
+            result = edit_project(db, args)
         except NoMatchingDatabaseEntryError as err_msg:
             error_handler(err_msg)
+    db.add(result)
     db.commit()
 
     return True
