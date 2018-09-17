@@ -53,8 +53,9 @@ def status(args):
     args.interface = 'cli'
     try:
         db = Database(args.db)
-        if args.invoices:
-            print_invoices(db.get_invoices(args.show_superseeded))
+        status_selection = args.parser_object.split(' ')[-1]
+        if status_selection == 'invoices':
+            print_invoices(db.get_invoices(args))
         else:
             workdays = db.query_for_workdays(args=args)
             status_object = Status(workdays)
@@ -119,17 +120,18 @@ def edit(args):
                 args.id = int(args.id)
             except ValueError:
                 error_handler('ID must be an integer!', db=db)
-        edit_workday(db, args.id, edit_keywords)
+        result = edit_workday(db, args.id, edit_keywords)
     elif edit_selection == 'customer':
         try:
-            edit_customer(db, args)
+            result = edit_customer(db, args)
         except NoMatchingDatabaseEntryError as err_msg:
             error_handler(err_msg)
     elif edit_selection == 'project':
         try:
-            edit_project(db, args)
+            result = edit_project(db, args)
         except NoMatchingDatabaseEntryError as err_msg:
             error_handler(err_msg)
+    db.add(result)
     db.commit()
 
     return True

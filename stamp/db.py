@@ -67,19 +67,21 @@ class Database():
 
             # Used with status or export argument
             else:
+                # Excluding current stamp
+                workdays = self.session.query(Workday).filter(Workday.end.isnot(None)).order_by(Workday.start)
                 # Query with filter
-                if hasattr(args, 'filter') and args.filter:
-                    if args.customer:
-                        workdays = self.session.query(Customer).filter(Customer.name is args.customer).order_by(workdays.start)
-                    elif args.time and args.date:
-                        raise NotImplementedError('Filtering on time and date not implemented yet!')
-                    elif args.date:
-                        raise NotImplementedError('Filtering on date not implemented yet!')
-                    elif args.time:
-                        raise NotImplementedError('Filtering on time not implemented yet!')
-                # Query for everything (excludes current stamp)
-                else:
-                    workdays = self.session.query(Workday).filter(Workday.end.isnot(None)).order_by(Workday.start)
+                if args.customer:
+                    workdays = workdays.filter(Customer.name==args.customer)
+                if args.invoice_id:
+                    workdays = workdays.filter(Workday.invoice_id==args.invoice_id)
+                if args.date_from:
+                    raise NotImplementedError('Filtering on date not implemented yet!')
+                if args.date_to:
+                    raise NotImplementedError('Filtering on date not implemented yet!')
+                if args.time_from:
+                    raise NotImplementedError('Filtering on time not implemented yet!')
+                if args.time_to:
+                    raise NotImplementedError('Filtering on time not implemented yet!')
         except orm_exc.UnmappedInstanceError:
             raise NoMatchingDatabaseEntryError('Specified id not found!')
         if not workdays.count():
@@ -155,12 +157,14 @@ class Database():
                 query = getattr(query, attr)
             return query
 
-    def get_invoices(self, include_superseeded=False):
+    def get_invoices(self, args):
         try:
             invoices = self.query_db_all('Invoice')
+            if args.invoice_id:
+                invoices = invoices.filter(Invoice.id==args.invoice_id)
         except NoMatchingDatabaseEntryError:
             raise NoMatchingDatabaseEntryError('No invoices created yet! See help for export command to create one.')
-        if not include_superseeded:
+        if not args.show_superseeded:
             # order_by is set only because of a stackoverflow comment. Haven't
             # tested if it's necessary.
             # https://stackoverflow.com/questions/1370997/group-by-year-month-day-in-a-sqlalchemy

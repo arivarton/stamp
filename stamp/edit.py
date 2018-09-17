@@ -24,7 +24,7 @@ def edit_workday(db, workday_id, edit):
         workday.comment = edit['comment'][0]
     if edit['customer']:
         workday.customer = edit['customer'][0]
-    db.add(workday)
+    return workday
 
 def edit_customer(db, args):
     customer = db.query_for_customer(args.id)
@@ -42,7 +42,7 @@ def edit_customer(db, args):
         customer.mail = args.mail
     if args.phone:
         customer.phone = args.mail
-    db.add(customer)
+    return customer
 
 def edit_project(db, args):
     project = db.query_for_project(args.id)
@@ -50,4 +50,4 @@ def edit_project(db, args):
         project.name = args.name
     if args.link:
         project.link = args.link
-    db.add(project)
+    return project
