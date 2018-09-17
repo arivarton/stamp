@@ -55,7 +55,7 @@ def status(args):
         db = Database(args.db)
         status_selection = args.parser_object.split(' ')[-1]
         if status_selection == 'invoices':
-            print_invoices(db.get_invoices(args.show_superseeded))
+            print_invoices(db.get_invoices(args))
         else:
             workdays = db.query_for_workdays(args=args)
             status_object = Status(workdays)

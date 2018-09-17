@@ -27,11 +27,10 @@ def parse(args):
 
     # Filter parameters
     filter_parameters = argparse.ArgumentParser(add_help=False)
-    filter_parameters.add_argument('-f', '--filter', action='store_true',
-                                   help='''Filter the output of status or pdf export.
-                                   Use this format:
-                                   "date_from=2018-02-18,date_to=2018-04-20,
-                                   company='somecompany'".''')
+    filter_parameters.add_argument('--date_from')
+    filter_parameters.add_argument('--date_to')
+    filter_parameters.add_argument('--time_from')
+    filter_parameters.add_argument('--time_to')
 
     # Company parameters
     customer_parameters = argparse.ArgumentParser(add_help=False)
@@ -92,7 +91,8 @@ def parse(args):
     status_subparsers = status_parser.add_subparsers()
     status_invoices_parser = status_subparsers.add_parser('invoices', aliases=['i'],
                                                           help='Show status of invoices.',
-                                                          parents=[db_parameters])
+                                                          parents=[db_parameters,
+                                                                   date_parameters])
     status_invoices_parser.add_argument('-i', '--invoice_id', type=int,
                                         help='Only show invoice with specified id.')
     status_invoices_parser.add_argument('-s', '--show_superseeded',
@@ -100,6 +100,14 @@ def parse(args):
                                         help='''Show all created invoices including
                                         superseeded.''')
     status_invoices_parser.set_defaults(func=status, parser_object=status_invoices_parser.prog)
+    status_workdays_parser = status_subparsers.add_parser('workdays', aliases=['w'],
+                                                          help='Show status of workdays.',
+                                                          parents=[db_parameters,
+                                                                   date_parameters])
+    status_workdays_parser.add_argument('-i', '--invoice_id', type=int,
+                                        help='''Only show workdays associated with
+                                        specified invoice id.''')
+    status_workdays_parser.set_defaults(func=status, parser_object=status_workdays_parser.prog)
 
     # Export parser
     export_parser = main_subparsers.add_parser('export', aliases=['x'],
