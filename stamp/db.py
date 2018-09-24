@@ -70,9 +70,9 @@ class Database():
                 # Excluding current stamp
                 workdays = self.session.query(Workday).filter(Workday.end.isnot(None)).order_by(Workday.start)
                 # Query with filter
-                if args.customer:
+                if hasattr(args, 'customer') and args.customer:
                     workdays = workdays.filter(Customer.name==args.customer)
-                if args.invoice_id:
+                if hasattr(args, 'invoice_id') and args.invoice_id:
                     workdays = workdays.filter(Workday.invoice_id==args.invoice_id)
                 if args.date_from:
                     raise NotImplementedError('Filtering on date not implemented yet!')

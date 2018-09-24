@@ -163,23 +163,6 @@ class Status(object):
         return return_value
 
 
-            #  if self.tags.values[index]:
-            #      for tag_id, recorded, message in self.tags.values:
-            #          print('{0:<{id_width}} {1}: {2}'.format(
-            #              tag_id,
-            #              recorded,
-            #              message,
-            #              id_width=self.tags.width,
-            #          ))
-
-        # Total
-        #  print('{0:>{summary_width}}'.format(
-        #      self.total_hours + ' for ' + self.total_wage,
-
-        #      summary_width=get_terminal_width()
-        #  ))
-
-
 def print_invoices(invoices):
     # Headlines
     created_headline = 'Created on'

@@ -231,10 +231,10 @@ def export_invoice(db, year, month, customer, project, save_pdf=False):
         else:
             print('Old workdays:')
             status_object = Status(related_invoice.workdays)
-            status_object.echo()
+            print(status_object)
             print('Current workdays:')
             status_object = Status(workdays)
-            status_object.echo()
+            print(status_object)
             invoice = yes_or_no('Invoice already exists for this month but does not contain the same work days/hours. Do you wish to create a new invoice for this month? This cannot be undone!',
                                 no_message='Canceling...',
                                 no_function=sys.exit,
@@ -245,7 +245,7 @@ def export_invoice(db, year, month, customer, project, save_pdf=False):
                                                    month))
     except NoMatchingDatabaseEntryError:
         status_object = Status(workdays)
-        status_object.echo()
+        print(status_object)
         invoice = yes_or_no('Do you wish to create a invoice containing these workdays?',
                             no_message='Canceling...',
                             no_function=sys.exit,
