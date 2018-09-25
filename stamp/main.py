@@ -56,22 +56,23 @@ def status(args):
         status_selection = args.parser_object.split(' ')[-1]
         if status_selection == 'invoices':
             print_invoices(db.get_invoices(args))
-        else:
+        elif status_selection == 'workdays':
             workdays = db.query_for_workdays(args=args)
             status_object = Status(workdays)
             if args.interface == 'cli':
                 print(status_object)
             elif args.interface == 'ui':
                 status_object.ui()
+        else:
+            try:
+                print_current_stamp(db.current_stamp())
+            except CurrentStampNotFoundError as err_msg:
+                error_handler(err_msg, exit_on_error=False)
     except NoMatchingDatabaseEntryError as err_msg:
         error_handler(err_msg, exit_on_error=False)
     except CanceledByUser as err_msg:
         error_handler(err_msg)
 
-    try:
-        print_current_stamp(db.current_stamp())
-    except CurrentStampNotFoundError as err_msg:
-        error_handler(err_msg, exit_on_error=False)
 
     return True
 
