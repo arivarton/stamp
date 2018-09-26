@@ -18,25 +18,24 @@ from .formatting import yes_or_no
 class Database():
     def __init__(self, db_file):
         self.new_db = True
+        self.engine = create_engine('sqlite:///' + db_file)
         if os.path.isfile(db_file):
-            engine = init_database(db_file)
+            Base.metadata.create_all(self.engine)
         else:
             yes_or_no('Do you wish to create a new database called %s?' % db_file.split('/')[-1].split('.')[0],
                       no_message='Canceled...',
                       no_function=sys.exit,
                       no_function_args=(0,),
                       yes_message='Creating database!')
-            engine = create_engine('sqlite:///' + db_file)
             try:
-                Base.metadata.create_all(engine)
+                Base.metadata.create_all(self.engine)
             except exc.OperationalError as err:
                 if not os.path.exists(DATA_DIR):
                     os.makedirs(DATA_DIR)
-                    Base.metadata.create_all(engine)
+                    Base.metadata.create_all(self.engine)
                 else:
                     raise err
-        return engine
-        session = sessionmaker(bind=engine)
+        session = sessionmaker(bind=self.engine)
         self.session = session()
 
     def add(self, instance):
