@@ -17,11 +17,12 @@ from .formatting import yes_or_no
 
 class Database():
     def __init__(self, db_file):
-        self.new_db = True
         self.engine = create_engine('sqlite:///' + db_file)
         if os.path.isfile(db_file):
+            self.new_db = False
             Base.metadata.create_all(self.engine)
         else:
+            self.new_db = True
             yes_or_no('Do you wish to create a new database called %s?' % db_file.split('/')[-1].split('.')[0],
                       no_message='Canceled...',
                       no_function=sys.exit,
@@ -45,6 +46,11 @@ class Database():
 
     def delete(self, instance):
         self.session.delete(instance)
+
+    def cleanup(self):
+        self.reset()
+        if self.new_db:
+            os.remove(self.engine.url.database)
 
     def commit(self):
         self.session.commit()

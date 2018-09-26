@@ -32,6 +32,7 @@ def yes_or_no(question,
         if user_choice.lower() in ['y', '\n']:
             if yes_message:
                 print(yes_message)
+
             if yes_function:
                 return yes_function(*yes_function_args, **yes_function_kwargs)
             else:
@@ -40,7 +41,11 @@ def yes_or_no(question,
         elif user_choice.lower() in ['n']:
             if no_message:
                 print(no_message)
-            return no_function(*no_function_args, **no_function_kwargs) or None
+
+            if no_function:
+                return no_function(*no_function_args, **no_function_kwargs)
+            else:
+                return None
 
         else:
             print('\'%s\' is not a recognised answer!' % user_choice)

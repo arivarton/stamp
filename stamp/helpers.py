@@ -107,6 +107,6 @@ def get_month_names():
 def error_handler(error_message, db=False, exit_on_error=True):
     print(error_message)
     if db:
-        db.reset()
+        db.cleanup()
     if exit_on_error:
         sys.exit(0)
