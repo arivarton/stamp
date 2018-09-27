@@ -71,7 +71,7 @@ def status(args):
     except NoMatchingDatabaseEntryError as err_msg:
         error_handler(err_msg, exit_on_error=False)
     except CanceledByUser as err_msg:
-        error_handler(err_msg)
+        error_handler(err_msg, db=db)
 
 
     return True

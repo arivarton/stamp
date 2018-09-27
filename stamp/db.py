@@ -47,16 +47,13 @@ class Database():
     def delete(self, instance):
         self.session.delete(instance)
 
-    def cleanup(self):
-        self.reset()
+    def reset(self):
+        self.session.expunge()
         if self.new_db:
             os.remove(self.engine.url.database)
 
     def commit(self):
         self.session.commit()
-
-    def reset(self):
-        self.session.expunge()
 
     def query_for_workdays(self, workday_id=None, tag_id=None, args=None):
         try:
