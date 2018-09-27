@@ -44,7 +44,7 @@ def parse(args):
 
     # Database parameters
     db_parameters = argparse.ArgumentParser(add_help=False)
-    db_parameters.add_argument('-d', '--db', type=lambda db_name: os.path.join(DATA_DIR, db_name) + '.db',
+    db_parameters.add_argument('--db', type=lambda db_name: os.path.join(DATA_DIR, db_name) + '.db',
                                default=os.path.join(DATA_DIR, DB_FILE),
                                help='Choose database name.')
 
@@ -145,6 +145,14 @@ def parse(args):
                                                      parents=[db_parameters])
     edit_workday_parser.add_argument('id', type=int, default='current', help='''
                                      Choose id of workday to edit.''')
+    edit_workday_parser.add_argument('-d', '--date', type=str,
+                                      help='Change from and to date.')
+    edit_workday_parser.add_argument('-t', '--time', type=str,
+                                      help='Change from and to time.')
+    edit_workday_parser.add_argument('-c', '--comment', type=str,
+                                      help='Change comment.')
+    edit_workday_parser.add_argument('-u', '--customer', type=str,
+                                      help='Change customer.')
     edit_workday_parser.set_defaults(func=edit, parser_object=edit_workday_parser.prog)
     edit_workday_subparsers = edit_workday_parser.add_subparsers()
     # Edit workday time

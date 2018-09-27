@@ -1,6 +1,6 @@
 from .add import stamp_in
 from .end import stamp_out
-from .edit import edit_regex_resolver, edit_workday, edit_customer, edit_project
+from .edit import edit_workday, edit_customer, edit_project
 from .status import print_current_stamp, print_invoices, Status
 from .delete import delete_workday_or_tag
 from .tag import tag_stamp
@@ -110,28 +110,27 @@ def edit(args):
     db = Database(args.db)
     edit_selection = args.parser_object.split(' ')[-1]
     if edit_selection == 'workday':
-        edit_keywords = edit_regex_resolver(args.edit)
         if args.id == 'current':
             try:
                 args.id = db.current_stamp().id
             except CurrentStampNotFoundError as err_msg:
                 error_handler(err_msg, db=db)
-        else:
-            try:
-                args.id = int(args.id)
-            except ValueError:
-                error_handler('ID must be an integer!', db=db)
-        result = edit_workday(db, args.id, edit_keywords)
+        try:
+            result = edit_workday(db, args)
+        except NoMatchingDatabaseEntryError as err_msg:
+            error_handler(err_msg, db=db)
+
     elif edit_selection == 'customer':
         try:
             result = edit_customer(db, args)
         except NoMatchingDatabaseEntryError as err_msg:
-            error_handler(err_msg)
+            error_handler(err_msg, db=db)
+
     elif edit_selection == 'project':
         try:
             result = edit_project(db, args)
         except NoMatchingDatabaseEntryError as err_msg:
-            error_handler(err_msg)
+            error_handler(err_msg, db=db)
     db.add(result)
     db.commit()
 

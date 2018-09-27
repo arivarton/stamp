@@ -55,15 +55,11 @@ class Database():
     def commit(self):
         self.session.commit()
 
-    def query_for_workdays(self, workday_id=None, tag_id=None, args=None):
+    def query_for_workdays(self, id, args=None):
         try:
             # Used with delete or edit argument
-            if workday_id or tag_id:
-                if tag_id:
-                    #  workdays = self.session.query(Workday).get(workday_id).tags.filter(Tag.id_under_workday == tag_id)
-                    raise NotImplementedError('Must figure out a way to match selected id with the actual tag id.')
-                else:
-                    workdays = self.session.query(Workday).get(workday_id)
+            if id:
+                workdays = self.session.query(Workday).get(workday_id)
 
             # Used with status or export argument
             else:
