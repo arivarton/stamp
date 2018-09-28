@@ -2,6 +2,9 @@ import sys
 import argparse
 from datetime import datetime
 
+__all__ = ['DateAction',
+           'TimeAction',
+           'IdAction']
 
 class DateAction(argparse.Action):
     date_format = '%x'
@@ -38,8 +41,8 @@ class TimeAction(argparse.Action):
                  type=str, # NOQA
                  required=False,
                  default=datetime.now().time().replace(second=0, microsecond=0)):
-        super(TimeAction, self).__init__(option_strings=option_strings,
-                                         dest=dest,
+        super(TimeAction, self).__init__(option_strings,
+                                         dest,
                                          help=help,
                                          type=type,
                                          required=required,
@@ -51,3 +54,27 @@ class TimeAction(argparse.Action):
         except ValueError:
             print('Incorrect time format!\nExample of correct format for current time: %s' % datetime.today().strftime('%H:%M'))
             sys.exit(0)
+
+
+class IdAction(argparse.Action):
+    def __init__(self,
+                 option_strings,
+                 dest,
+                 help='Choose id. Default is current.',
+                 required=False,
+                 default='current'):
+        super(IdAction, self).__init__(option_strings,
+                                         dest,
+                                         help=help,
+                                         required=required,
+                                         default=default)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if self.values == 'current':
+            setattr(namespace, self.dest, self.values)
+        else:
+            try:
+                setattr(namespace, self.dest, int(self.values))
+            except ValueError:
+                print('Invalid id!\nId must consist of a valid integer or contain the keyword\'current\'')
+                sys.exit(0)
