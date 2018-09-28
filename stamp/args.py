@@ -2,7 +2,7 @@ import os
 import argparse
 
 from . import __version__
-from .args_helpers import DateAction, TimeAction
+from .args_helpers import *
 from .main import add, end, tag, status, export, delete, edit
 
 from .settings import STANDARD_CUSTOMER, STANDARD_PROJECT, DATA_DIR, DB_FILE
@@ -143,8 +143,7 @@ def parse(args):
     edit_workday_parser = edit_subparsers.add_parser('workday', aliases=['w', 'wd'],
                                                      help='Edit anything related to a workday.',
                                                      parents=[db_parameters])
-    edit_workday_parser.add_argument('id', type=int, default='current', help='''
-                                     Choose id of workday to edit.''')
+    edit_workday_parser.add_argument('id', action=IdAction)
     edit_workday_parser.add_argument('-d', '--date', type=str,
                                       help='Change from and to date.')
     edit_workday_parser.add_argument('-t', '--time', type=str,
