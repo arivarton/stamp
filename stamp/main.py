@@ -131,6 +131,7 @@ def edit(args):
             result = edit_project(db, args)
         except NoMatchingDatabaseEntryError as err_msg:
             error_handler(err_msg, db=db)
+
     db.add(result)
     db.commit()
 
