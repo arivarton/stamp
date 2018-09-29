@@ -1,6 +1,7 @@
 import os
 import sys
 import unittest
+import lorem
 from unittest.mock import patch
 from uuid import uuid4
 from shutil import rmtree
@@ -29,7 +30,7 @@ class TestStampCLI(unittest.TestCase):
             self.assertTrue(parser.func(parser))
         parser = args.parse(['tag', 'testing tag', '--db', testing_db])
         self.assertTrue(parser.func(parser))
-        parser = args.parse(['tag', 'testing tag 2', '--db', testing_db])
+        parser = args.parse(['tag', '%s' % lorem.paragraph(), '--db', testing_db])
         self.assertTrue(parser.func(parser))
         out_time = datetime.now() + timedelta(hours=3)
         parser = args.parse(['out',
@@ -52,7 +53,7 @@ class TestStampCLI(unittest.TestCase):
                              '-T', '{:%H:%M}'.format(current_time + timedelta(hours=1)),
                              '--db', testing_db])
         self.assertTrue(parser.func(parser))
-        parser = args.parse(['tag', 'testing tag 2',
+        parser = args.parse(['tag', '%s' % lorem.paragraph(),
                              '-D', '{:%x}'.format(current_time + timedelta(hours=2)),
                              '-T', '{:%H:%M}'.format(current_time + timedelta(hours=2)),
                              '--db', testing_db])
@@ -78,7 +79,7 @@ class TestStampCLI(unittest.TestCase):
                              '-T', '{:%H:%M}'.format(current_time + timedelta(hours=1)),
                              '--db', testing_db])
         self.assertTrue(parser.func(parser))
-        parser = args.parse(['tag', 'testing tag 2',
+        parser = args.parse(['tag', '%s' % lorem.paragraph(),
                              '-D', '{:%x}'.format(current_time + timedelta(hours=2)),
                              '-T', '{:%H:%M}'.format(current_time + timedelta(hours=2)),
                              '--db', testing_db])
@@ -109,7 +110,7 @@ class TestStampCLI(unittest.TestCase):
                              '-T', '{:%H:%M}'.format(random_datetime),
                              '--db', testing_db])
         self.assertTrue(parser.func(parser))
-        parser = args.parse(['tag', 'testing tag 2',
+        parser = args.parse(['tag', '%s' % lorem.paragraph(),
                              '-D', '{:%x}'.format(random_datetime + timedelta(hours=3)),
                              '-T', '{:%H:%M}'.format(random_datetime + timedelta(hours=3)),
                              '--db', testing_db])
