@@ -44,9 +44,7 @@ def parse(args):
 
     # Database parameters
     db_parameters = argparse.ArgumentParser(add_help=False)
-    db_parameters.add_argument('--db', type=lambda db_name: os.path.join(DATA_DIR, db_name) + '.db',
-                               default=os.path.join(DATA_DIR, DB_FILE),
-                               help='Choose database name.')
+    db_parameters.add_argument('--db', action=DbAction)
 
     # [Subparsers]
     main_subparsers = main_parser.add_subparsers()

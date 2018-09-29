@@ -1,10 +1,15 @@
+import os
 import sys
 import argparse
 from datetime import datetime
 
+from .db import Database
+from .settings import DATA_DIR, DB_FILE
+
 __all__ = ['DateAction',
            'TimeAction',
-           'IdAction']
+           'IdAction',
+           'DbAction']
 
 class DateAction(argparse.Action):
     date_format = '%x'
@@ -64,17 +69,37 @@ class IdAction(argparse.Action):
                  required=False,
                  default='current'):
         super(IdAction, self).__init__(option_strings,
-                                         dest,
-                                         help=help,
-                                         required=required,
-                                         default=default)
+                                       dest,
+                                       help=help,
+                                       required=required,
+                                       default=default)
 
     def __call__(self, parser, namespace, values, option_string=None):
-        if self.values == 'current':
-            setattr(namespace, self.dest, self.values)
+        if values == 'current':
+            setattr(namespace, self.dest, values)
         else:
             try:
-                setattr(namespace, self.dest, int(self.values))
+                setattr(namespace, self.dest, int(values))
             except ValueError:
                 print('Invalid id!\nId must consist of a valid integer or contain the keyword\'current\'')
                 sys.exit(0)
+
+
+class DbAction(argparse.Action):
+    def __init__(self,
+                 option_strings,
+                 dest,
+                 help='Name of database.',
+                 type=str, # NOQA
+                 required=False,
+                 default=os.path.join(DATA_DIR, DB_FILE)):
+        super(DbAction, self).__init__(option_strings,
+                                       dest,
+                                       help=help,
+                                       type=type,
+                                       required=required,
+                                       default=default)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        db_dir = os.path.join(DATA_DIR, values) + '.db'
+        setattr(namespace, self.dest, Database(db_dir))

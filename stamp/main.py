@@ -13,38 +13,35 @@ from .helpers import error_handler
 
 def add(args):
     try:
-        db = Database(args.db)
-        stamp_in(db, args)
+        stamp_in(args)
     except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
-        error_handler(err_msg, db=db)
-    db.commit()
+        error_handler(err_msg, db=args.db)
+    args.db.commit()
 
     return True
 
 
 def end(args):
-    db = Database(args.db)
     try:
-        stamp_out(db, args)
-        db.commit()
+        stamp_out(args)
+        args.db.commit()
     except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
-        error_handler(err_msg, db=db)
+        error_handler(err_msg, db=args.db)
 
     return True
 
 
 def tag(args):
     try:
-        db = Database(args.db)
         if args.id == 'current':
-            stamp = db.current_stamp()
+            stamp = args.db.current_stamp()
         else:
-            stamp = db.query_for_workdays(workday_id=int(args.id))
+            stamp = args.db.query_for_workdays(workday_id=int(args.id))
     except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
-        error_handler(err_msg, db=db)
+        error_handler(err_msg, db=args.db)
 
-    tag_stamp(db, args.date, args.time, stamp, args.tag)
-    db.commit()
+    tag_stamp(args.db, args.date, args.time, stamp, args.tag)
+    args.db.commit()
 
     return True
 
@@ -52,12 +49,11 @@ def tag(args):
 def status(args):
     args.interface = 'cli'
     try:
-        db = Database(args.db)
         status_selection = args.parser_object.split(' ')[-1]
         if status_selection == 'invoices':
-            print_invoices(db.get_invoices(args))
+            print_invoices(args.db.get_invoices(args))
         elif status_selection == 'workdays':
-            workdays = db.query_for_workdays(args=args)
+            workdays = args.db.query_for_workdays(args=args)
             status_object = Status(workdays)
             if args.interface == 'cli':
                 print(status_object)
@@ -65,74 +61,71 @@ def status(args):
                 status_object.ui()
         else:
             try:
-                print_current_stamp(db.current_stamp())
+                print_current_stamp(args.db.current_stamp())
             except CurrentStampNotFoundError as err_msg:
                 error_handler(err_msg, exit_on_error=False)
     except NoMatchingDatabaseEntryError as err_msg:
         error_handler(err_msg, exit_on_error=False)
     except CanceledByUser as err_msg:
-        error_handler(err_msg, db=db)
+        error_handler(err_msg, db=args.db)
 
 
     return True
 
 
 def export(args):
-    db = Database(args.db)
     try:
-        return export_invoice(db, args.year, args.month, args.customer,
+        return export_invoice(args.db, args.year, args.month, args.customer,
                               args.project, args.pdf)
     except (NoMatchingDatabaseEntryError, TooManyMatchesError, NoMatchesError,
             CanceledByUser) as err_msg:
-        error_handler(err_msg, db=db)
-    db.session.commit()
+        error_handler(err_msg, db=args.db)
+    args.db.session.commit()
 
     return True
 
 
 def delete(args):
-    db = Database(args.db)
     if args.id == 'current':
         try:
-            args.id = db.current_stamp().id
+            args.id = args.db.current_stamp().id
         except CurrentStampNotFoundError as err_msg:
-            error_handler(err_msg, db=db, exit_on_error=False)
+            error_handler(err_msg, db=args.db, exit_on_error=False)
     else:
         args.id = int(args.id)
-    delete_workday_or_tag(db, args.id, args.tag)
-    db.commit()
+    delete_workday_or_tag(args.db, args.id, args.tag)
+    args.db.commit()
 
     return True
 
 
 # Edit only supports customer for now
 def edit(args):
-    db = Database(args.db)
     edit_selection = args.parser_object.split(' ')[-1]
     if edit_selection == 'workday':
         if args.id == 'current':
             try:
-                args.id = db.current_stamp().id
+                args.id = args.db.current_stamp().id
             except CurrentStampNotFoundError as err_msg:
-                error_handler(err_msg, db=db)
+                error_handler(err_msg, db=args.db)
         try:
-            result = edit_workday(db, args)
+            result = edit_workday(args.db)
         except NoMatchingDatabaseEntryError as err_msg:
-            error_handler(err_msg, db=db)
+            error_handler(err_msg, db=args.db)
 
     elif edit_selection == 'customer':
         try:
-            result = edit_customer(db, args)
+            result = edit_customer(args)
         except NoMatchingDatabaseEntryError as err_msg:
-            error_handler(err_msg, db=db)
+            error_handler(err_msg, db=args.db)
 
     elif edit_selection == 'project':
         try:
-            result = edit_project(db, args)
+            result = edit_project(args)
         except NoMatchingDatabaseEntryError as err_msg:
-            error_handler(err_msg, db=db)
+            error_handler(err_msg, db=args.db)
 
-    db.add(result)
-    db.commit()
+    args.db.add(result)
+    args.db.commit()
 
     return True
