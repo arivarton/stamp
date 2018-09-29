@@ -1,7 +1,7 @@
 import re
 
-def edit_workday(db, args):
-    workday = db.query_for_workdays(args.id)
+def edit_workday(args):
+    workday = args.db.query_for_workdays(args.id)
     if edit.date:
         workday.date = args.date
     if edit.time:
@@ -12,8 +12,8 @@ def edit_workday(db, args):
         workday.customer = args.customer
     return workday
 
-def edit_customer(db, args):
-    customer = db.query_for_customer(args.id)
+def edit_customer(args):
+    customer = args.db.query_for_customer(args.id)
     if args.name:
         customer.name = args.name
     if args.contact:
@@ -30,8 +30,8 @@ def edit_customer(db, args):
         customer.phone = args.mail
     return customer
 
-def edit_project(db, args):
-    project = db.query_for_project(args.id)
+def edit_project(args):
+    project = args.db.query_for_project(args.id)
     if args.name:
         project.name = args.name
     if args.link:
