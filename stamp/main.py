@@ -14,15 +14,17 @@ from .decorators import db_commit_decorator
 @db_commit_decorator
 def add(args):
     try:
-        return stamp_in(args)
+        stamp_in(args)
     except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
         error_handler(err_msg, db=args.db)
 
+    return True
 
+
+@db_commit_decorator
 def end(args):
     try:
         stamp_out(args)
-        args.db.commit()
     except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
         error_handler(err_msg, db=args.db)
 
@@ -40,6 +42,8 @@ def tag(args):
         error_handler(err_msg, db=args.db)
 
     tag_stamp(args.db, args.date, args.time, stamp, args.tag)
+
+    return True
 
 
 def status(args):
