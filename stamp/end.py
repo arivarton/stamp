@@ -30,3 +30,5 @@ def stamp_out(args):
                       yes_function_args=(tag, stamp, args.db.session,))
     args.db.add(stamp)
     print('Stamped out at %s %s' % (args.time.strftime('%H:%M'), args.date.strftime('%x')))
+
+    return stamp

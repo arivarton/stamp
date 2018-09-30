@@ -14,36 +14,34 @@ from .decorators import db_commit_decorator
 @db_commit_decorator
 def add(args):
     try:
-        stamp_in(args)
+        return stamp_in(args)
     except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
         error_handler(err_msg, db=args.db)
-
-    return True
 
 
 @db_commit_decorator
 def end(args):
     try:
-        stamp_out(args)
+        return stamp_out(args)
     except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
         error_handler(err_msg, db=args.db)
-
-    return True
 
 
 @db_commit_decorator
 def tag(args):
     try:
-        if args.id == 'current':
-            stamp = args.db.current_stamp()
-        else:
-            stamp = args.db.query_for_workdays(workday_id=int(args.id))
-    except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
+        try:
+            if args.id == 'current':
+                stamp = args.db.current_stamp()
+            else:
+                stamp = args.db.query_for_workdays(workday_id=int(args.id))
+        except CurrentStampNotFoundError as err_msg:
+            error_handler(err_msg, db=args.db)
+        tag = tag_stamp(args.db, args.date, args.time, stamp, args.tag)
+        args.db.add(stamp)
+        return tag
+    except CanceledByUser as err_msg:
         error_handler(err_msg, db=args.db)
-
-    tag_stamp(args.db, args.date, args.time, stamp, args.tag)
-
-    return True
 
 
 def status(args):
@@ -72,7 +70,7 @@ def status(args):
 
     return True
 
-
+@db_commit_decorator
 def export(args):
     try:
         return export_invoice(args.db, args.year, args.month, args.customer,
@@ -80,7 +78,6 @@ def export(args):
     except (NoMatchingDatabaseEntryError, TooManyMatchesError, NoMatchesError,
             CanceledByUser) as err_msg:
         error_handler(err_msg, db=args.db)
-    args.db.commit()
 
 
 @db_commit_decorator

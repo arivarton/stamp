@@ -15,6 +15,8 @@ def tag_stamp(db, date, time, stamp, tag):
     elif date == stamp.start.date() and time < stamp.start.time():
         raise TagOutsideTimeBoundaryError('Tag (%s) must be set after the work day has started (%s).' % (date, stamp.start.date()))
     else:
-        stamp.tags.append(Tag(recorded=datetime.combine(date, time),
-                              tag=tag))
-        db.add(stamp)
+        tag = Tag(recorded=datetime.combine(date, time),
+                              tag=tag)
+        stamp.tags.append(tag)
+
+        return tag
