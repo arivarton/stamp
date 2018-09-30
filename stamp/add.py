@@ -123,3 +123,4 @@ def stamp_in(args):
 
     print('Stamped in at %s %s' % (stamp.start.time().strftime('%H:%M'),
                                    stamp.start.date().strftime('%x')))
+    return stamp

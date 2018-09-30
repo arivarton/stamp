@@ -9,16 +9,14 @@ from .export import export_invoice
 from .exceptions import (NoMatchingDatabaseEntryError, CurrentStampNotFoundError,
                          NoMatchesError, TooManyMatchesError, CanceledByUser)
 from .helpers import error_handler
+from .decorators import db_commit_decorator
 
-
+@db_commit_decorator
 def add(args):
     try:
-        stamp_in(args)
+        return stamp_in(args)
     except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
         error_handler(err_msg, db=args.db)
-    args.db.commit()
-
-    return True
 
 
 def end(args):
@@ -31,6 +29,7 @@ def end(args):
     return True
 
 
+@db_commit_decorator
 def tag(args):
     try:
         if args.id == 'current':
@@ -41,9 +40,6 @@ def tag(args):
         error_handler(err_msg, db=args.db)
 
     tag_stamp(args.db, args.date, args.time, stamp, args.tag)
-    args.db.commit()
-
-    return True
 
 
 def status(args):
@@ -80,11 +76,10 @@ def export(args):
     except (NoMatchingDatabaseEntryError, TooManyMatchesError, NoMatchesError,
             CanceledByUser) as err_msg:
         error_handler(err_msg, db=args.db)
-    args.db.session.commit()
-
-    return True
+    args.db.commit()
 
 
+@db_commit_decorator
 def delete(args):
     if args.id == 'current':
         try:
@@ -94,12 +89,10 @@ def delete(args):
     else:
         args.id = int(args.id)
     delete_workday_or_tag(args.db, args.id, args.tag)
-    args.db.commit()
-
-    return True
 
 
 # Edit only supports customer for now
+@db_commit_decorator
 def edit(args):
     edit_selection = args.parser_object.split(' ')[-1]
     if edit_selection == 'workday':
@@ -126,6 +119,3 @@ def edit(args):
             error_handler(err_msg, db=args.db)
 
     args.db.add(result)
-    args.db.commit()
-
-    return True
