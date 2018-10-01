@@ -72,9 +72,8 @@ def parse(args):
                                             help='Tag a stamp.',
                                        parents=[date_parameters,
                                                 db_parameters])
+    tag_parser.add_argument('id', action=IdAction)
     tag_parser.add_argument('tag', type=str)
-    tag_parser.add_argument('--id', type=str, default='current', help='''Choose
-                               id to tag. Default is to tag current stamp.''')
     tag_parser.set_defaults(func=tag)
 
     # Status parser
@@ -91,8 +90,7 @@ def parse(args):
                                                           help='Show status of invoices.',
                                                           parents=[db_parameters,
                                                                    date_parameters])
-    status_invoices_parser.add_argument('-i', '--invoice_id', type=int,
-                                        help='Only show invoice with specified id.')
+    status_invoices_parser.add_argument('id', action=IdAction)
     status_invoices_parser.add_argument('-s', '--show_superseeded',
                                         action='store_true',
                                         help='''Show all created invoices including
@@ -102,9 +100,7 @@ def parse(args):
                                                           help='Show status of workdays.',
                                                           parents=[db_parameters,
                                                                    date_parameters])
-    status_workdays_parser.add_argument('-i', '--invoice_id', type=int,
-                                        help='''Only show workdays associated with
-                                        specified invoice id.''')
+    status_workdays_parser.add_argument('id', action=IdAction)
     status_workdays_parser.set_defaults(func=status, parser_object=status_workdays_parser.prog)
 
     # Export parser
@@ -124,9 +120,7 @@ def parse(args):
     delete_parser = main_subparsers.add_parser('delete', aliases=['d'],
                                           help='Delete a registered worktime.',
                                           parents=[db_parameters])
-    delete_parser.add_argument('--id', type=str, default='current', help='''Choose
-                               id to delete (or to delete tag under).
-                               Default is to delete current stamp.''')
+    delete_parser.add_argument('id', action=IdAction)
     delete_parser.add_argument('-t', '--tag', type=int, help='''Choose tag id to
                                delete.''')
     delete_parser.set_defaults(func=delete)
@@ -168,8 +162,7 @@ def parse(args):
     edit_customer_parser = edit_subparsers.add_parser('customer', aliases=['c'],
                                                       help='Edit anything related to selected customer.',
                                                       parents=[db_parameters])
-    edit_customer_parser.add_argument('id', type=int, default='current', help='''
-                                      Choose id of customer to edit.''')
+    edit_customer_parser.add_argument('id', action=IdAction)
     edit_customer_parser.add_argument('-n', '--name', type=str,
                                       help='Change name.')
     edit_customer_parser.add_argument('-c', '--contact', type=str,
@@ -190,8 +183,7 @@ def parse(args):
     edit_project_parser = edit_subparsers.add_parser('project', aliases=['p'],
                                                       help='Edit anything related to selected project.',
                                                       parents=[db_parameters])
-    edit_project_parser.add_argument('id', type=int, default='current',
-                                     help='Choose id of project to edit.')
+    edit_project_parser.add_argument('id', action=IdAction)
     edit_project_parser.add_argument('-n', '--name', type=str,
                                       help='Change name.')
     edit_project_parser.add_argument('-u', '--link', type=str,

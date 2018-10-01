@@ -18,5 +18,6 @@ def tag_stamp(db, date, time, stamp, tag):
         tag = Tag(recorded=datetime.combine(date, time),
                               tag=tag)
         stamp.tags.append(tag)
+        db.add(stamp)
 
         return tag

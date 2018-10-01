@@ -37,9 +37,7 @@ def tag(args):
                 stamp = args.db.query_for_workdays(workday_id=int(args.id))
         except CurrentStampNotFoundError as err_msg:
             error_handler(err_msg, db=args.db)
-        tag = tag_stamp(args.db, args.date, args.time, stamp, args.tag)
-        args.db.add(stamp)
-        return tag
+        return tag_stamp(args.db, args.date, args.time, stamp, args.tag)
     except CanceledByUser as err_msg:
         error_handler(err_msg, db=args.db)
 
@@ -103,20 +101,20 @@ def edit(args):
             except CurrentStampNotFoundError as err_msg:
                 error_handler(err_msg, db=args.db)
         try:
-            result = edit_workday(args.db)
+            changed_object = edit_workday(args)
         except NoMatchingDatabaseEntryError as err_msg:
             error_handler(err_msg, db=args.db)
 
     elif edit_selection == 'customer':
         try:
-            result = edit_customer(args)
+            changed_object = edit_customer(args)
         except NoMatchingDatabaseEntryError as err_msg:
             error_handler(err_msg, db=args.db)
 
     elif edit_selection == 'project':
         try:
-            result = edit_project(args)
+            changed_object = edit_project(args)
         except NoMatchingDatabaseEntryError as err_msg:
             error_handler(err_msg, db=args.db)
 
-    args.db.add(result)
+    args.db.add(changed_object)
