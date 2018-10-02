@@ -1,3 +1,5 @@
+import sys
+
 from .add import stamp_in
 from .end import stamp_out
 from .edit import edit_workday, edit_customer, edit_project
@@ -9,7 +11,7 @@ from .export import export_invoice
 from .exceptions import (NoMatchingDatabaseEntryError, CurrentStampNotFoundError,
                          NoMatchesError, TooManyMatchesError, CanceledByUser)
 from .helpers import error_handler
-from .decorators import db_commit_decorator
+from .decorators import db_commit_decorator, no_db_no_action_decorator
 
 @db_commit_decorator
 def add(args):
@@ -19,6 +21,7 @@ def add(args):
         error_handler(err_msg, db=args.db)
 
 
+@no_db_no_action_decorator
 @db_commit_decorator
 def end(args):
     try:
@@ -27,14 +30,15 @@ def end(args):
         error_handler(err_msg, db=args.db)
 
 
+@no_db_no_action_decorator
 @db_commit_decorator
 def tag(args):
     try:
         try:
-            if args.id == 'current':
-                stamp = args.db.current_stamp()
-            else:
+            if args.id:
                 stamp = args.db.query_for_workdays(workday_id=int(args.id))
+            else:
+                stamp = args.db.current_stamp()
         except CurrentStampNotFoundError as err_msg:
             error_handler(err_msg, db=args.db)
         return tag_stamp(args.db, args.date, args.time, stamp, args.tag)
@@ -42,8 +46,11 @@ def tag(args):
         error_handler(err_msg, db=args.db)
 
 
+@no_db_no_action_decorator
 def status(args):
+    print('Running function')
     args.interface = 'cli'
+    sys.exit(0)
     try:
         status_selection = args.parser_object.split(' ')[-1]
         if status_selection == 'invoices':
@@ -68,6 +75,7 @@ def status(args):
 
     return True
 
+@no_db_no_action_decorator
 @db_commit_decorator
 def export(args):
     try:
@@ -78,24 +86,26 @@ def export(args):
         error_handler(err_msg, db=args.db)
 
 
+@no_db_no_action_decorator
 @db_commit_decorator
 def delete(args):
-    if args.id == 'current':
+    if args.id:
+        args.id = int(args.id)
+    else:
         try:
             args.id = args.db.current_stamp().id
         except CurrentStampNotFoundError as err_msg:
             error_handler(err_msg, db=args.db, exit_on_error=False)
-    else:
-        args.id = int(args.id)
     delete_workday_or_tag(args.db, args.id, args.tag)
 
 
 # Edit only supports customer for now
+@no_db_no_action_decorator
 @db_commit_decorator
 def edit(args):
     edit_selection = args.parser_object.split(' ')[-1]
     if edit_selection == 'workday':
-        if args.id == 'current':
+        if not args.id:
             try:
                 args.id = args.db.current_stamp().id
             except CurrentStampNotFoundError as err_msg:

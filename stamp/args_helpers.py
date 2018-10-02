@@ -65,24 +65,29 @@ class IdAction(argparse.Action):
     def __init__(self,
                  option_strings,
                  dest,
-                 help='Choose id. Default is current.',
+                 help='Choose id.',
                  required=False,
-                 default='current'):
+                 nargs='?',
+                 default=None):
         super(IdAction, self).__init__(option_strings,
                                        dest,
                                        help=help,
                                        required=required,
+                                       nargs=nargs,
                                        default=default)
 
     def __call__(self, parser, namespace, values, option_string=None):
-        if values == 'current':
-            setattr(namespace, self.dest, values)
-        else:
-            try:
+        print(namespace)
+        called_from = namespace.parser_object.split(' ')[-1]
+        if called_from == 'workdays':
+            workdays = namespace.db.query_for_workdays(args=namespace)
+            print(workdays)
+        try:
+            if values:
                 setattr(namespace, self.dest, int(values))
-            except ValueError:
-                print('Invalid id!\nId must consist of a valid integer or contain the keyword\'current\'')
-                sys.exit(0)
+        except ValueError:
+            print('Invalid id!\nId must only consist of integers.')
+            sys.exit(0)
 
 
 class DbAction(argparse.Action):

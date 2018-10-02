@@ -55,7 +55,7 @@ class Database():
     def commit(self):
         self.session.commit()
 
-    def query_for_workdays(self, id, args=None):
+    def query_for_workdays(self, id=None, args=None):
         try:
             # Used with delete or edit argument
             if id:
