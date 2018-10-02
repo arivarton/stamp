@@ -5,6 +5,7 @@ from datetime import datetime
 
 from .db import Database
 from .settings import DATA_DIR, DB_FILE
+from .decorators import no_db_no_action_decorator
 
 __all__ = ['DateAction',
            'TimeAction',
@@ -76,12 +77,16 @@ class IdAction(argparse.Action):
                                        nargs=nargs,
                                        default=default)
 
+
+
     def __call__(self, parser, namespace, values, option_string=None):
-        print(namespace)
-        called_from = namespace.parser_object.split(' ')[-1]
-        if called_from == 'workdays':
-            workdays = namespace.db.query_for_workdays(args=namespace)
-            print(workdays)
+        @no_db_no_action_decorator
+        def get_db_object(namespace):
+            called_from = namespace.parser_object.split(' ')[-1]
+            if called_from == 'workdays':
+                workdays = namespace.db.query_for_workdays(args=namespace)
+                print(workdays)
+        get_db_object(namespace)
         try:
             if values:
                 setattr(namespace, self.dest, int(values))
