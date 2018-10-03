@@ -6,6 +6,7 @@ from datetime import datetime
 from .db import Database
 from .settings import DATA_DIR, DB_FILE
 from .decorators import no_db_no_action_decorator
+from .exceptions import CurrentStampNotFoundError
 
 __all__ = ['DateAction',
            'TimeAction',
@@ -84,8 +85,14 @@ class IdAction(argparse.Action):
         def get_db_object(namespace):
             called_from = namespace.parser_object.split(' ')[-1]
             if called_from == 'workdays':
-                workdays = namespace.db.query_for_workdays(args=namespace)
-                print(workdays)
+                namespace.db_query = namespace.db.query_for_workdays(namespace)
+            elif called_from == 'invoices':
+                namespace.db_query = namespace.db.get_invoices(namespace)
+            else:
+                try:
+                    db_query = args.db.current_stamp()
+                except CurrentStampNotFoundError as err_msg:
+                    error_handler(err_msg, exit_on_error=False)
         get_db_object(namespace)
         try:
             if values:

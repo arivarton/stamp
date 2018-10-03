@@ -48,25 +48,13 @@ def tag(args):
 
 @no_db_no_action_decorator
 def status(args):
-    print('Running function')
     args.interface = 'cli'
-    sys.exit(0)
     try:
-        status_selection = args.parser_object.split(' ')[-1]
-        if status_selection == 'invoices':
-            print_invoices(args.db.get_invoices(args))
-        elif status_selection == 'workdays':
-            workdays = args.db.query_for_workdays(args=args)
-            status_object = Status(workdays)
-            if args.interface == 'cli':
-                print(status_object)
-            elif args.interface == 'ui':
-                status_object.ui()
-        else:
-            try:
-                print_current_stamp(args.db.current_stamp())
-            except CurrentStampNotFoundError as err_msg:
-                error_handler(err_msg, exit_on_error=False)
+        status_object = Status(args.db_query)
+        if args.interface == 'cli':
+            print(status_object)
+        elif args.interface == 'ui':
+            status_object.ui()
     except NoMatchingDatabaseEntryError as err_msg:
         error_handler(err_msg, exit_on_error=False)
     except CanceledByUser as err_msg:

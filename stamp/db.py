@@ -55,10 +55,10 @@ class Database():
     def commit(self):
         self.session.commit()
 
-    def query_for_workdays(self, id=None, args=None):
+    def query_for_workdays(self, args):
         try:
             # Used with delete or edit argument
-            if id:
+            if args.id:
                 workdays = self.session.query(Workday).get(workday_id)
 
             # Used with status or export argument
@@ -70,14 +70,6 @@ class Database():
                     workdays = workdays.filter(Customer.name==args.customer)
                 if hasattr(args, 'invoice_id') and args.invoice_id:
                     workdays = workdays.filter(Workday.invoice_id==args.invoice_id)
-                if args.date_from:
-                    raise NotImplementedError('Filtering on date not implemented yet!')
-                if args.date_to:
-                    raise NotImplementedError('Filtering on date not implemented yet!')
-                if args.time_from:
-                    raise NotImplementedError('Filtering on time not implemented yet!')
-                if args.time_to:
-                    raise NotImplementedError('Filtering on time not implemented yet!')
         except orm_exc.UnmappedInstanceError:
             raise NoMatchingDatabaseEntryError('Specified id not found!')
         if not workdays.count():
