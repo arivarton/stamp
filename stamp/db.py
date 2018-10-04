@@ -148,8 +148,8 @@ class Database():
     def get_invoices(self, args):
         try:
             invoices = self.query_db_all('Invoice')
-            if args.invoice_id:
-                invoices = invoices.filter(Invoice.id==args.invoice_id)
+            if args.id:
+                invoices = invoices.filter(Invoice.id==args.id)
         except NoMatchingDatabaseEntryError:
             raise NoMatchingDatabaseEntryError('No invoices created yet! See help for export command to create one.')
         if not args.show_superseeded:

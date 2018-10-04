@@ -3,7 +3,7 @@ import sys
 from .add import stamp_in
 from .end import stamp_out
 from .edit import edit_workday, edit_customer, edit_project
-from .status import print_current_stamp, print_invoices, Status
+from .status import print_current_stamp, Status
 from .delete import delete_workday_or_tag
 from .tag import tag_stamp
 from .db import Database
@@ -50,11 +50,17 @@ def tag(args):
 def status(args):
     args.interface = 'cli'
     try:
-        status_object = Status(args.db_query)
-        if args.interface == 'cli':
-            print(status_object)
-        elif args.interface == 'ui':
-            status_object.ui()
+        if hasattr(args, 'db_query'):
+            status_object = Status(args.db_query)
+            if args.interface == 'cli':
+                print(status_object)
+            elif args.interface == 'ui':
+                status_object.ui()
+        else:
+            try:
+                print_current_stamp(args.db.current_stamp())
+            except CurrentStampNotFoundError as err_msg:
+                error_handler(err_msg)
     except NoMatchingDatabaseEntryError as err_msg:
         error_handler(err_msg, exit_on_error=False)
     except CanceledByUser as err_msg:

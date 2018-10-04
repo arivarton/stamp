@@ -88,11 +88,6 @@ class IdAction(argparse.Action):
                 namespace.db_query = namespace.db.query_for_workdays(namespace)
             elif called_from == 'invoices':
                 namespace.db_query = namespace.db.get_invoices(namespace)
-            else:
-                try:
-                    db_query = args.db.current_stamp()
-                except CurrentStampNotFoundError as err_msg:
-                    error_handler(err_msg, exit_on_error=False)
         get_db_object(namespace)
         try:
             if values:

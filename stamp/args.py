@@ -79,10 +79,10 @@ def parse(args):
     # Status parser
     status_parser = main_subparsers.add_parser('status', aliases=['s'],
                                                help='Show registered hours.',
-                                          parents=[filter_parameters,
-                                                   customer_parameters,
-                                                   project_parameters,
-                                                   db_parameters])
+                                               parents=[filter_parameters,
+                                                       customer_parameters,
+                                                       project_parameters,
+                                                       db_parameters])
     status_parser.set_defaults(func=status, parser_object=status_parser.prog)
 
     status_subparsers = status_parser.add_subparsers()
