@@ -1,5 +1,3 @@
-import sys
-
 from .helpers import output_for_total_hours_date_and_wage, get_terminal_width
 from .formatting import divider
 
@@ -132,36 +130,39 @@ class Tag(ID):
 class Status(object):
     def __init__(self, db_query):
         table = str(db_query._primary_entity.selectable)
-        self.db_query = db_query.all()
         if table == 'workday':
-            self.id = ID(self.db_query)
-            self.date = Date(self.db_query)
-            self.customer = Customer(self.db_query)
-            self.project = Project(self.db_query)
-            self.from_time = From(self.db_query)
-            self.to_time = To(self.db_query)
-            self.invoice_id = InvoiceID(self.db_query)
+            self.id = ID(db_query)
+            self.date = Date(db_query)
+            self.customer = Customer(db_query)
+            self.project = Project(db_query)
+            self.from_time = From(db_query)
+            self.to_time = To(db_query)
+            self.invoice_id = InvoiceID(db_query)
             # Anything after this attribute will not be added to total width in
             # workday
-            self.total_workday = TotalWorkday(self.__dict__.values(), self.db_query)
+            self.total_workday = TotalWorkday(self.__dict__.values(), db_query)
             self.total_columns = len(self.__dict__.values())
-            self.tags = Tag(self.db_query)
-            self.total_hours, __, self.total_wage = output_for_total_hours_date_and_wage(self.db_query)
+            self.tags = Tag(db_query)
+            self.total_hours, __, self.total_wage = output_for_total_hours_date_and_wage(db_query)
             self.table = 'workday'
         elif table == 'invoice':
             self.table = 'invoice'
+        self.db_query = db_query.all()
 
     def __str__(self):
         if self.table == 'workday':
-            return_value = ''
-            return_value += '\n' + self.id.get_headline() + self.date.get_headline() + self.customer.get_headline() + self.project.get_headline() + self.from_time.get_headline() + self.to_time.get_headline() + self.invoice_id.get_headline() + self.total_workday.get_headline() + '\n'
-            return_value += divider()
-            for workday_id, date, customer, project, from_time, to_time, invoice_id, total_workday in zip(self.id, self.date, self.customer, self.project, self.from_time, self.to_time, self.invoice_id, self.total_workday):
-                return_value += '\n' + workday_id + date + customer + project + from_time + to_time + invoice_id + total_workday + '\n'
-                return_value += divider()
-            return return_value
+            return self.printable_workday()
         elif self.table == 'invoice':
             return invoices(self.db_query)
+
+    def printable_workday(self):
+        return_value = ''
+        return_value += '\n' + self.id.get_headline() + self.date.get_headline() + self.customer.get_headline() + self.project.get_headline() + self.from_time.get_headline() + self.to_time.get_headline() + self.invoice_id.get_headline() + self.total_workday.get_headline() + '\n'
+        return_value += divider()
+        for workday_id, date, customer, project, from_time, to_time, invoice_id, total_workday in zip(self.id, self.date, self.customer, self.project, self.from_time, self.to_time, self.invoice_id, self.total_workday):
+            return_value += '\n' + workday_id + date + customer + project + from_time + to_time + invoice_id + total_workday + '\n'
+            return_value += divider()
+        return return_value
 
     def curses_friendly(self):
         return_value = []
