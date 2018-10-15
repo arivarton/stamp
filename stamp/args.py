@@ -4,6 +4,8 @@ import argparse
 from . import __version__
 from .args_helpers import *
 from .main import add, end, tag, status, export, delete, edit
+from .exceptions import RequiredValueError
+from .helpers import error_handler
 
 from .settings import STANDARD_CUSTOMER, STANDARD_PROJECT, DATA_DIR, DB_FILE
 
@@ -34,8 +36,9 @@ def parse(args):
 
     # Company parameters
     customer_parameters = argparse.ArgumentParser(add_help=False)
-    customer_parameters.add_argument('-c', '--customer', type=str, default=STANDARD_CUSTOMER,
-                                     help='Set customer to bill hours to.')
+    customer_parameters.add_argument('-c', '--customer', action=FromEnvAction,
+                                    type=str, env_var='STAMP_STANDARD_CUSTOMER',
+                                    help='Set customer to bill hours to.')
 
     # Project parameters
     project_parameters = argparse.ArgumentParser(add_help=False)

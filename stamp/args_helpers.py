@@ -6,12 +6,13 @@ from datetime import datetime
 from .db import Database
 from .settings import DATA_DIR, DB_FILE
 from .decorators import no_db_no_action_decorator
-from .exceptions import CurrentStampNotFoundError
+from .exceptions import CurrentStampNotFoundError, RequiredValueError
 
 __all__ = ['DateAction',
            'TimeAction',
            'IdAction',
-           'DbAction']
+           'DbAction',
+           'FromEnvAction']
 
 class DateAction(argparse.Action):
     date_format = '%x'
@@ -115,3 +116,33 @@ class DbAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         db_dir = os.path.join(DATA_DIR, values) + '.db'
         setattr(namespace, self.dest, Database(db_dir))
+
+
+class FromEnvAction(argparse.Action):
+    def __init__(self,
+                 option_strings,
+                 dest,
+                 nargs=None,
+                 env_var=None,
+                 help=None,
+                 type=None,
+                 choices=None,
+                 required=False,
+                 default=None,
+                 metavar=None):
+        self.option_strings = option_strings
+        self.dest = dest
+        self.nargs = nargs
+        self.env_var = env_var
+        self.help = help
+        self.type = type
+        self.choices = choices
+        self.required = required
+        self.default = default or os.getenv(env_var)
+        self.metavar = metavar
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if not self.default:
+            raise RequiredValueError('The %s value is required! It can either be set via the %s parameter. Alternatively use the environment variable \'%s\'.' % (self.dest, ' or '.join(self.option_strings), self.env_var))
+
+        setattr(namespace, self.dest, values)
