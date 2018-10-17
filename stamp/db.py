@@ -48,7 +48,10 @@ class Database():
         self.session.delete(instance)
 
     def reset(self):
-        self.session.expunge()
+        try:
+            self.session.expunge()
+        except TypeError:
+            pass
         if self.new_db:
             os.remove(self.engine.url.database)
 
@@ -131,8 +134,7 @@ class Database():
         if query.count() == 1:
             return query.first()
         elif query.count() > 1:
-            raise TooManyMatchingDatabaseEntriesError('Several database entries found matching', search_string + '!\n' +
-                                                      'Canceling...')
+            raise TooManyMatchingDatabaseEntriesError('Several database entries found matching', search_string + '!\n' + 'Canceling...')
         else:
             raise NoMatchingDatabaseEntryError('No matching database entry found with search string: %s' % search_string)
 

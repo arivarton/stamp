@@ -87,7 +87,7 @@ def stamp_in(args):
     except CurrentStampNotFoundError:
         try:
             if args.customer:
-                customer_id = args.db.get_one_db_entry('Customer', 'name', args.customer).id
+                customer_id = args.db.get_one_db_entry('Customer', 'name', str(args.customer)).id
             else:
                 customer_id = args.db.get_last_workday_entry('customer', 'id')
         except NoMatchingDatabaseEntryError:
@@ -96,7 +96,7 @@ def stamp_in(args):
                            no_function=sys.exit,
                            no_function_args=(0,),
                            yes_function=create_customer,
-                           yes_function_args=(args.db, args.customer,))
+                           yes_function_args=(args.db, str(args.customer),))
 
             customer_id = __.id
 

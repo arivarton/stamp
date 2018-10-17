@@ -9,11 +9,17 @@ from .helpers import error_handler
 
 
 def run():
+    parser = parse(sys.argv[1:])
 
-    try:
-        parser = parse(sys.argv[1:])
-    except RequiredValueError as msg:
-        error_handler(msg)
+    # Validate values in args
+    for attr_name in parser.__dict__:
+        attr = parser.__dict__[attr_name]
+        if hasattr(attr, 'validate'):
+            try:
+                attr.validate()
+            except RequiredValueError as err_msg:
+                error_handler(err_msg)
+
     if vars(parser):
         parser.func(parser)
     else:
