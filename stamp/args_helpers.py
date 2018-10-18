@@ -105,7 +105,7 @@ class DbAction(argparse.Action):
                  help='Name of database.',
                  type=str, # NOQA
                  required=False,
-                 default=os.path.join(DATA_DIR, DB_FILE)):
+                 default=Database(os.path.join(DATA_DIR, DB_FILE) + '.db')):
         super(DbAction, self).__init__(option_strings,
                                        dest,
                                        help=help,
@@ -151,7 +151,7 @@ class FromEnvAction(argparse.Action):
                  nargs=None,
                  env_var=None,
                  help=None,
-                 type=None,
+                 type=str,
                  choices=None,
                  required=False,
                  default=None,

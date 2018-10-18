@@ -7,7 +7,7 @@ from .main import add, end, tag, status, export, delete, edit
 from .exceptions import RequiredValueError
 from .helpers import error_handler
 
-from .settings import STANDARD_CUSTOMER, STANDARD_PROJECT, DATA_DIR, DB_FILE
+from .settings import DATA_DIR, DB_FILE
 
 
 def parse(args):
@@ -37,12 +37,13 @@ def parse(args):
     # Company parameters
     customer_parameters = argparse.ArgumentParser(add_help=False)
     customer_parameters.add_argument('-c', '--customer', action=FromEnvAction,
-                                    type=str, env_var='STAMP_STANDARD_CUSTOMER',
+                                    env_var='STAMP_STANDARD_CUSTOMER',
                                     help='Set customer to bill hours to.')
 
     # Project parameters
     project_parameters = argparse.ArgumentParser(add_help=False)
-    project_parameters.add_argument('-p', '--project', type=str, default=STANDARD_PROJECT,
+    project_parameters.add_argument('-p', '--project', action=FromEnvAction,
+                                    env_var='STAMP_STANDARD_PROJECT',
                                     help='Set the project to add hours to.')
 
     # Database parameters
@@ -73,11 +74,11 @@ def parse(args):
     # Tag parser
     tag_parser = main_subparsers.add_parser('tag', aliases=['t'],
                                             help='Tag a stamp.',
-                                       parents=[date_parameters,
-                                                db_parameters])
+                                            parents=[date_parameters,
+                                                     db_parameters])
     tag_parser.add_argument('id', action=IdAction)
     tag_parser.add_argument('tag', type=str)
-    tag_parser.set_defaults(func=tag)
+    tag_parser.set_defaults(func=tag, parser_object=tag_parser.prog)
 
     # Status parser
     status_parser = main_subparsers.add_parser('status', aliases=['s'],

@@ -102,7 +102,7 @@ def stamp_in(args):
 
         try:
             if args.project:
-                project_id = args.db.get_one_db_entry('Project', 'name', args.project).id
+                project_id = args.db.get_one_db_entry('Project', 'name', str(args.project)).id
             else:
                 project_id = args.db.get_last_workday_entry('project', 'id')
         except NoMatchingDatabaseEntryError:
@@ -112,7 +112,7 @@ def stamp_in(args):
                            no_function_args=(0,),
                            yes_function=create_project,
                            yes_function_args=(args.db, customer_id),
-                           yes_function_kwargs={'project_name': args.project})
+                           yes_function_kwargs={'project_name': str(args.project)})
 
             project_id = __.id
 

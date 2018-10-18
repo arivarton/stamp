@@ -25,11 +25,14 @@ class TestStampCLI(unittest.TestCase):
     def test_completing_workday_with_tags(self):
         # Create workday with current time
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
+            print('Stamping in.')
             parser = args.parse(['in', '-c', customer_name, '-p',
                                  project_name, '--db', testing_db])
             self.assertTrue(parser.func(parser))
+        print('Tagging.')
         parser = args.parse(['tag', 'testing tag', '--db', testing_db])
         self.assertTrue(parser.func(parser))
+        print('Tagging.')
         parser = args.parse(['tag', '%s' % lorem.paragraph(), '--db', testing_db])
         self.assertTrue(parser.func(parser))
         out_time = datetime.now() + timedelta(hours=3)
@@ -122,7 +125,7 @@ class TestStampCLI(unittest.TestCase):
         self.assertTrue(parser.func(parser))
 
         # Get status of database
-        parser = args.parse(['status', '--db', testing_db])
+        parser = args.parse(['status', 'workdays', '--db', testing_db])
         self.assertTrue(parser.func(parser))
 
         # Export invoice with current time workdays to pdf and open with default
