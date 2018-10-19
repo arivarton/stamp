@@ -6,8 +6,10 @@ import operator
 from datetime import datetime, timedelta
 
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Spacer, Table
+from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph
 from reportlab.lib.units import inch
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT, TA_CENTER
 
 from .settings import (ORG_NR, FILE_DIR, COMPANY_NAME, COMPANY_ADDRESS,
                        COMPANY_ZIP_CODE, COMPANY_ACCOUNT_NUMBER, MAIL, PHONE,
@@ -89,8 +91,17 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
     file_dir = os.path.join(save_dir, file_name)
 
     # Document settings
-    PAGE_HEIGHT = A4[1]
-    PAGE_WIDTH = A4[0]
+    PAGE_WIDTH, PAGE_HEIGHT = A4
+
+    styles = getSampleStyleSheet()
+    body_style = styles['BodyText']
+    body_style.alignment = TA_LEFT
+    header_style = styles['Normal']
+    header_style.alignment = TA_CENTER
+    header_style.fontName = 'Times-Bold'
+    header_style.textColor = 'white'
+    header_style.backColor = 'black'
+
     logo_file = os.path.join(FILE_DIR, 'logo.png')
     invoice_date = workdays[0].invoice.created
     maturity_date = datetime.now() + timedelta(days=60)
@@ -170,7 +181,11 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
 
     doc = SimpleDocTemplate(file_dir)
     Story = [Spacer(1, 2*inch)]
-    workday_info = [['Dato', 'Fra', 'Til', 'Timer', 'Lønn']]
+    workday_info = [[Paragraph('Dato', header_style),
+                     Paragraph('Fra', header_style),
+                     Paragraph('Til', header_style),
+                     Paragraph('Timer', header_style),
+                     Paragraph('Lønn', header_style)]]
     for workday in workdays:
         output_hours, output_date, output_wage = output_for_total_hours_date_and_wage(workday)
         workday_info.append([output_date,
@@ -179,7 +194,7 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
                              output_hours.strip('h'),
                              output_wage])
         for tag in workday.tags:
-            workday_info.append(['', tag.recorded.strftime('%H:%M'), tag.tag])
+            workday_info.append(['', tag.recorded.strftime('%H:%M'), Paragraph(tag.tag, body_style)])
     t = Table(workday_info, colWidths=100, style=[
         ('FONTNAME', (0, 0), (-1, -1), 'Times-Roman'),
         ('FONTNAME', (0, 0), (-1, 0), 'Times-Bold')])
