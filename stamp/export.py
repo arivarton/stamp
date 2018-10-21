@@ -6,7 +6,7 @@ import operator
 from datetime import datetime, timedelta
 
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph
+from reportlab.platypus import SimpleDocTemplate, Spacer, Table, Paragraph
 from reportlab.lib.units import inch
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT, TA_CENTER
@@ -97,7 +97,9 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
     header_style = ParagraphStyle('header', alignment=TA_CENTER, fontName='Times-Bold',
                                   textColor='white', backColor='black')
     workday_style = ParagraphStyle('workday', alignment=TA_CENTER, fontName='Times-Roman')
-    tag_header_style = ParagraphStyle('tag-header', alignment=TA_CENTER, fontName='Times-Roman')
+    workday_conclusion_style = ParagraphStyle('workday-conclusion', alignment=TA_CENTER, fontName='Times-Bold')
+    tag_header_style = ParagraphStyle('tag-header', alignment=TA_CENTER, fontName='Times-Bold',
+                                      fontSize=12)
     tag_style = ParagraphStyle('tag', alignment=TA_CENTER, fontName='Times-Roman')
 
     logo_file = os.path.join(FILE_DIR, 'logo.png')
@@ -109,13 +111,13 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
     customer_height2 = PAGE_HEIGHT - 130
     customer_width2 = 50
     invoice_height = PAGE_HEIGHT - 130
-    invoice_width = PAGE_WIDTH - 150
+    invoice_width = PAGE_WIDTH - 170
     bottom_width = 18
     bottom_end_width = PAGE_WIDTH - 108
     bottom_height = 18
 
+    output_hours, __, output_wage = output_for_total_hours_date_and_wage(workdays)
     def myFirstPage(canvas, doc):
-        __, __, output_wage = output_for_total_hours_date_and_wage(workdays)
         canvas.saveState()
         if os.path.isfile(logo_file):
             canvas.drawImage(logo_file, PAGE_WIDTH - 110, customer_height - 75, width=81, height=81, mask=[0, 0, 0, 0, 0, 0],
@@ -136,12 +138,12 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
         canvas.drawString(customer_width + 50, customer_height - 59, PHONE)
 
         # Buyers customer info
-        canvas.setFont('Times-Bold', 12)
+        canvas.setFont('Times-Bold', 14)
         canvas.drawString(customer_width2, customer_height2,
                           workdays[0].customer.name)
         canvas.setFont('Times-Roman', 9)
-        canvas.drawString(customer_width2, customer_height2 - 10, workdays[0].customer.address)
-        canvas.drawString(customer_width2, customer_height2 - 21, workdays[0].customer.zip_code)
+        canvas.drawString(customer_width2, customer_height2 - 15, workdays[0].customer.address)
+        canvas.drawString(customer_width2, customer_height2 - 26, workdays[0].customer.zip_code)
 
         # Invoice
         canvas.setFont('Times-Bold', 14)
@@ -168,7 +170,6 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
         canvas.restoreState()
 
     def myLaterPages(canvas, doc):
-        __, __, output_wage = output_for_total_hours_date_and_wage(workdays)
         canvas.saveState()
         # Bottom info
         canvas.setFont('Times-Roman', 9)
@@ -187,20 +188,33 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
     Story.append(Table(workday_header, colWidths=100,
                        style=[('LEFTPADDING', (0,0), (-1,-1), 0),
                               ('RIGHTPADDING', (0,0), (-1,-1), 0)]))
+    workday_rows = []
+    tag_rows = []
     for workday in workdays:
-        tags = []
-        output_hours, output_date, output_wage = output_for_total_hours_date_and_wage(workday)
-        workday_body = [[Paragraph(output_date, workday_style),
-                         Paragraph(workday.start.time().strftime('%H:%M'), workday_style),
-                         Paragraph(workday.end.time().strftime('%H:%M'), workday_style),
-                         Paragraph(output_hours.strip('h'), workday_style),
-                         Paragraph(output_wage, workday_style)]]
-        Story.append(Table(workday_body, colWidths=100))
+        workday_tags = []
+        hours, date, wage = output_for_total_hours_date_and_wage(workday)
+        workday_rows.append([Paragraph(date, workday_style),
+                             Paragraph(workday.start.time().strftime('%H:%M'), workday_style),
+                             Paragraph(workday.end.time().strftime('%H:%M'), workday_style),
+                             Paragraph(hours.strip('h'), workday_style),
+                             Paragraph(wage, workday_style)])
         for tag in workday.tags:
-            tags.append([Paragraph(output_date + ' ' + tag.recorded.strftime('%H:%M'), tag_header_style)])
-            tags.append([Paragraph(tag.tag, tag_style)])
-        Story.append(Table(tags, colWidths=500,
-                     style=[('BOTTOMPADDING', (0,-1), (-1,-1), 50)]))
+            workday_tags.append([Paragraph(date + ' ' + tag.recorded.strftime('%H:%M'), tag_header_style)])
+            workday_tags.append([Paragraph(tag.tag, tag_style)])
+        tag_rows.append([Table(workday_tags, style=[('BOTTOMPADDING', (0,1), (0,1), 12)])])
+#            tag_rows.append([Table([[Paragraph(output_date + ' ' + tag.recorded.strftime('%H:%M'), tag_header_style)],
+#                                  [Paragraph(tag.tag, tag_style)]])])
+    workday_rows.append(['', '', '', Paragraph(output_hours, workday_conclusion_style),
+                         Paragraph(output_wage, workday_conclusion_style)])
+
+
+    # Add workdays to story
+    Story.append(Table(workday_rows, colWidths=100,
+                       style=[('ROWBACKGROUNDS', (0,0), (-1,-1), [None, 'lightgrey'])]))
+    # Add tags to story
+    Story.append(Table(tag_rows, colWidths=500,
+                       style=[('ROWBACKGROUNDS', (1,1), (-1,-1), [None, 'lightgrey']),
+                              ('TOPPADDING', (0,0), (-1,-1), 45)]))
 
     doc.build(Story, onFirstPage=myFirstPage, onLaterPages=myLaterPages)
 
