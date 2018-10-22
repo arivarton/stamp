@@ -6,7 +6,7 @@ import operator
 from datetime import datetime, timedelta
 
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Spacer, Table, Paragraph
+from reportlab.platypus import SimpleDocTemplate, Spacer, Table, Paragraph, PageBreak
 from reportlab.lib.units import inch
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT, TA_CENTER
@@ -178,6 +178,10 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
         canvas.drawString(bottom_end_width, bottom_height, COMPANY_ACCOUNT_NUMBER)
         canvas.restoreState()
 
+    def new_page(canvas, doc):
+        canvas.showPage()
+        canvas.restoreState()
+
     doc = SimpleDocTemplate(file_dir)
     Story = [Spacer(1, 2*inch)]
     workday_header = [[Paragraph('Dato', header_style),
@@ -211,6 +215,9 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
     # Add workdays to story
     Story.append(Table(workday_rows, colWidths=100,
                        style=[('ROWBACKGROUNDS', (0,0), (-1,-1), [None, 'lightgrey'])]))
+
+    Story.append(PageBreak())
+
     # Add tags to story
     Story.append(Table(tag_rows, colWidths=500,
                        style=[('ROWBACKGROUNDS', (1,1), (-1,-1), [None, 'lightgrey']),

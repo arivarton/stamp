@@ -30,7 +30,7 @@ class TestStampCLI(unittest.TestCase):
                                  project_name, '--db', testing_db])
             self.assertTrue(parser.func(parser))
         print('Tagging.')
-        parser = args.parse(['tag', 'testing tag', '--db', testing_db])
+        parser = args.parse(['tag', lorem.paragraph(), '--db', testing_db])
         self.assertTrue(parser.func(parser))
         print('Tagging.')
         parser = args.parse(['tag', '%s' % lorem.paragraph(), '--db', testing_db])
@@ -51,7 +51,7 @@ class TestStampCLI(unittest.TestCase):
                                  '-T', '{:%H:%M}'.format(current_time),
                                  '--db', testing_db])
             self.assertTrue(parser.func(parser))
-        parser = args.parse(['tag', 'testing tag',
+        parser = args.parse(['tag', lorem.paragraph(),
                              '-D', '{:%x}'.format(current_time + timedelta(hours=1)),
                              '-T', '{:%H:%M}'.format(current_time + timedelta(hours=1)),
                              '--db', testing_db])
@@ -77,7 +77,7 @@ class TestStampCLI(unittest.TestCase):
                                  '-T', '{:%H:%M}'.format(current_time),
                                  '--db', testing_db])
             self.assertTrue(parser.func(parser))
-        parser = args.parse(['tag', 'testing tag',
+        parser = args.parse(['tag', lorem.paragraph(),
                              '-D', '{:%x}'.format(current_time + timedelta(hours=1)),
                              '-T', '{:%H:%M}'.format(current_time + timedelta(hours=1)),
                              '--db', testing_db])
@@ -85,6 +85,11 @@ class TestStampCLI(unittest.TestCase):
         parser = args.parse(['tag', '%s' % lorem.paragraph(),
                              '-D', '{:%x}'.format(current_time + timedelta(hours=2)),
                              '-T', '{:%H:%M}'.format(current_time + timedelta(hours=2)),
+                             '--db', testing_db])
+        self.assertTrue(parser.func(parser))
+        parser = args.parse(['tag', '%s' % lorem.paragraph(),
+                             '-D', '{:%x}'.format(current_time + timedelta(hours=3)),
+                             '-T', '{:%H:%M}'.format(current_time + timedelta(hours=3)),
                              '--db', testing_db])
         self.assertTrue(parser.func(parser))
         out_time = current_time + timedelta(hours=3)
@@ -108,9 +113,14 @@ class TestStampCLI(unittest.TestCase):
                              '-T', '{:%H:%M}'.format(random_datetime),
                              '--db', testing_db])
         self.assertTrue(parser.func(parser))
-        parser = args.parse(['tag', 'testing tag',
+        parser = args.parse(['tag', lorem.paragraph(),
                              '-D', '{:%x}'.format(random_datetime),
                              '-T', '{:%H:%M}'.format(random_datetime),
+                             '--db', testing_db])
+        self.assertTrue(parser.func(parser))
+        parser = args.parse(['tag', '%s' % lorem.paragraph(),
+                             '-D', '{:%x}'.format(random_datetime + timedelta(hours=3)),
+                             '-T', '{:%H:%M}'.format(random_datetime + timedelta(hours=3)),
                              '--db', testing_db])
         self.assertTrue(parser.func(parser))
         parser = args.parse(['tag', '%s' % lorem.paragraph(),
