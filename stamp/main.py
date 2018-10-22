@@ -14,7 +14,7 @@ from .helpers import error_handler
 from .decorators import db_commit_decorator, no_db_no_action_decorator
 
 @db_commit_decorator
-def add(args):
+
     try:
         return stamp_in(args)
     except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
@@ -31,19 +31,6 @@ def end(args):
 
 
 @no_db_no_action_decorator
-@db_commit_decorator
-def tag(args):
-    try:
-        try:
-            if args.id:
-                stamp = args.db.query_for_workdays(workday_id=int(args.id))
-            else:
-                stamp = args.db.current_stamp()
-        except CurrentStampNotFoundError as err_msg:
-            error_handler(err_msg, db=args.db)
-        return tag_stamp(args.db, args.date, args.time, stamp, args.tag)
-    except CanceledByUser as err_msg:
-        error_handler(err_msg, db=args.db)
 
 
 @no_db_no_action_decorator

@@ -203,11 +203,11 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
                              Paragraph(hours.strip('h'), workday_style),
                              Paragraph(wage, workday_style)])
         for tag in workday.tags:
-            workday_tags.append([Paragraph(date + ' ' + tag.recorded.strftime('%H:%M'), tag_header_style)])
-            workday_tags.append([Paragraph(tag.tag, tag_style)])
-        tag_rows.append([Table(workday_tags, style=[('BOTTOMPADDING', (0,1), (0,1), 12)])])
-#            tag_rows.append([Table([[Paragraph(output_date + ' ' + tag.recorded.strftime('%H:%M'), tag_header_style)],
-#                                  [Paragraph(tag.tag, tag_style)]])])
+            workday_tags.append([Table([[Paragraph(date + ' ' + tag.recorded.strftime('%H:%M'), tag_header_style)],
+                                [Paragraph(tag.tag, tag_style)]], style=[('LINEBELOW', (0,0), (0,0), 0.1, 'black'),
+                                                                         ('BOTTOMPADDING', (0,1), (-1,-1), 12)])])
+        if workday_tags:
+            tag_rows.append([Table(workday_tags, style=[('BOTTOMPADDING', (-1,-1), (-1,-1), 45)])])
     workday_rows.append(['', '', '', Paragraph(output_hours, workday_conclusion_style),
                          Paragraph(output_wage, workday_conclusion_style)])
 
@@ -219,9 +219,8 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
     Story.append(PageBreak())
 
     # Add tags to story
-    Story.append(Table(tag_rows, colWidths=500,
-                       style=[('ROWBACKGROUNDS', (1,1), (-1,-1), [None, 'lightgrey']),
-                              ('TOPPADDING', (0,0), (-1,-1), 45)]))
+    if tag_rows:
+        Story.append(Table(tag_rows, colWidths=500))
 
     doc.build(Story, onFirstPage=myFirstPage, onLaterPages=myLaterPages)
 
