@@ -6,7 +6,8 @@ from datetime import datetime
 from .db import Database
 from .settings import DATA_DIR, DB_FILE
 from .decorators import no_db_no_action_decorator
-from .exceptions import CurrentStampNotFoundError, RequiredValueError
+from .exceptions import CurrentStampNotFoundError, RequiredValueError, NoMatchingDatabaseEntryError
+from .helpers import error_handler
 
 __all__ = ['DateAction',
            'TimeAction',
@@ -85,10 +86,13 @@ class IdAction(argparse.Action):
         @no_db_no_action_decorator
         def get_db_object(namespace):
             called_from = namespace.parser_object.split(' ')[-1]
-            if called_from == 'workdays':
-                namespace.db_query = namespace.db.query_for_workdays(namespace)
-            elif called_from == 'invoices':
-                namespace.db_query = namespace.db.get_invoices(namespace)
+            try:
+                if called_from == 'workdays':
+                    namespace.db_query = namespace.db.query_for_workdays(namespace)
+                elif called_from == 'invoices':
+                    namespace.db_query = namespace.db.get_invoices(namespace)
+            except NoMatchingDatabaseEntryError as err_msg:
+                error_handler(err_msg)
         get_db_object(namespace)
         try:
             if values:
@@ -118,32 +122,6 @@ class DbAction(argparse.Action):
         setattr(namespace, self.dest, Database(db_dir))
 
 
-class FromEnvObject(object):
-    def __init__(self, string, dest, option_strings, env_var):
-        self.string = string
-        self.dest = dest
-        self.option_strings = option_strings
-        self.env_var = env_var
-
-    def __str__(self):
-        return self.string
-
-    def __repr__(self):
-        return self.string
-
-    def __add__(self, add):
-        return self.string + add
-
-    def __radd__(self, add):
-        return add + self.string
-
-    def validate(self):
-        if not self.string:
-            raise RequiredValueError('The %s value is required! It can be set via the %s parameter. Alternatively use the environment variable \'%s\'.' % (self.dest, ' or '.join(self.option_strings), self.env_var))
-
-
-
-
 class FromEnvAction(argparse.Action):
     def __init__(self,
                  option_strings,
@@ -164,8 +142,8 @@ class FromEnvAction(argparse.Action):
         self.type = type
         self.choices = choices
         self.required = required
-        self.default = FromEnvObject(os.getenv(env_var), dest, option_strings, env_var)
+        self.default = os.getenv(env_var)
         self.metavar = metavar
 
     def __call__(self, parser, namespace, values, option_string=None):
-        setattr(namespace, self.dest, FromEnvObject(values, self.dest, self.option_strings, self.env_var))
+        setattr(namespace, self.dest, values)
