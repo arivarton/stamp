@@ -1,10 +1,12 @@
 # Stamp introduction
 
-Register work hours in cli (Curses interface is developing).
+Register work hours in cli (Curses interface is under development).
 
 Stamp in before starting the workday, tag points in time with comments and stamp out when workday is over.
 
-Hours are saved to a sqlite database and exportable to pdf.  
+Hours are saved to a sqlite database and exportable to pdf.
+
+PDF is currently in Norwegian, needs to be translated.
 
 
 # Environment variables

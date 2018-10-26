@@ -188,7 +188,7 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
                       Paragraph('Fra', header_style),
                       Paragraph('Til', header_style),
                       Paragraph('Timer', header_style),
-                      Paragraph('Lønn', header_style)]]
+                      Paragraph('Å betale', header_style)]]
     Story.append(Table(workday_header, colWidths=100,
                        style=[('LEFTPADDING', (0,0), (-1,-1), 0),
                               ('RIGHTPADDING', (0,0), (-1,-1), 0)]))
