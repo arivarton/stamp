@@ -8,13 +8,19 @@ from .exceptions import CanceledByUser
 def yes_or_no(question,
               yes_message=None,
               yes_function=None, yes_function_args=None, yes_function_kwargs=None,
+              yes_return=None,
               no_message=None,
-              no_function=None, no_function_args=None, no_function_kwargs=None):
+              no_function=None, no_function_args=None, no_function_kwargs=None,
+              no_return=None):
 
     yes_function_args = yes_function_args or ()
     yes_function_kwargs = yes_function_kwargs or {}
     no_function_args = no_function_args or ()
     no_function_kwargs = no_function_kwargs or {}
+
+    if no_function and no_return or yes_function and yes_return:
+        print('Only function or return is allowed not both!')
+        sys.exit(0)
 
     while True:
         fd = sys.stdin.fileno()
@@ -35,6 +41,8 @@ def yes_or_no(question,
 
             if yes_function:
                 return yes_function(*yes_function_args, **yes_function_kwargs)
+            elif yes_return:
+                return yes_return
             else:
                 return None
 
@@ -44,6 +52,8 @@ def yes_or_no(question,
 
             if no_function:
                 return no_function(*no_function_args, **no_function_kwargs)
+            elif no_return:
+                return no_return
             else:
                 return None
 
