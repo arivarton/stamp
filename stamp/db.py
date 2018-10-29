@@ -59,13 +59,15 @@ class Database():
         self.session.commit()
 
     def query_for_workdays(self, args):
-        try:
-            # Used with delete or edit argument
-            if args.id:
-                workdays = self.session.query(Workday).get(workday_id)
+        # Used with delete or edit argument
+        if args.id:
+            workdays = self.session.query(Workday).get(args.id)
+            if not workdays:
+                raise NoMatchingDatabaseEntryError('Specified id not found!')
 
-            # Used with status or export argument
-            else:
+        # Used with status or export argument
+        else:
+            try:
                 # Excluding current stamp
                 workdays = self.session.query(Workday).filter(Workday.end.isnot(None)).order_by(Workday.start)
                 # Query with filter
@@ -73,10 +75,10 @@ class Database():
                     workdays = workdays.filter(Customer.name==args.customer)
                 if hasattr(args, 'invoice_id') and args.invoice_id:
                     workdays = workdays.filter(Workday.invoice_id==args.invoice_id)
-        except orm_exc.UnmappedInstanceError:
-            raise NoMatchingDatabaseEntryError('Specified id not found!')
-        if not workdays.count():
-            raise NoMatchingDatabaseEntryError('No workday has been completed yet!')
+                if not workdays.count():
+                    raise NoMatchingDatabaseEntryError('No workday has been completed yet!')
+            except orm_exc.UnmappedInstanceError:
+                raise NoMatchingDatabaseEntryError('Specified id not found!')
         return workdays
 
     def query_for_customer(self, id):

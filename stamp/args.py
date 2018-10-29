@@ -124,7 +124,7 @@ def parse(args):
     delete_parser = main_subparsers.add_parser('delete', aliases=['d'],
                                           help='Delete a registered worktime.',
                                           parents=[db_parameters])
-    delete_parser.add_argument('id', action=IdAction)
+    delete_parser.add_argument('id', type=int)
     delete_parser.add_argument('-t', '--tag', type=int, help='''Choose tag id to
                                delete.''')
     delete_parser.set_defaults(func=delete)

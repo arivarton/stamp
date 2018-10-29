@@ -83,14 +83,14 @@ def export(args):
 @no_db_no_action_decorator
 @db_commit_decorator
 def delete(args):
-    if args.id:
-        args.id = int(args.id)
-    else:
-        try:
-            args.id = args.db.current_stamp().id
-        except CurrentStampNotFoundError as err_msg:
-            error_handler(err_msg, db=args.db, exit_on_error=False)
-    delete_workday_or_tag(args.db, args.id, args.tag)
+    try:
+        if args.id:
+            args.id = int(args.id)
+        else:
+                args.id = args.db.current_stamp().id
+        delete_workday_or_tag(args.db, args)
+    except (CurrentStampNotFoundError, NoMatchingDatabaseEntryError) as err_msg:
+        error_handler(err_msg, db=args.db)
 
 
 # Edit only supports customer for now
