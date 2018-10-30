@@ -37,3 +37,16 @@ def edit_project(args):
     if args.link:
         project.link = args.link
     return project
+
+def edit_invoice(args):
+    if args.paid:
+        if args.db_query.paid:
+            args.db_query.paid = False
+        else:
+            args.db_query.paid = True
+    if args.sent:
+        if args.db_query.sent:
+            args.db_query.sent = False
+        else:
+            args.db_query.sent = True
+    return args.db_query

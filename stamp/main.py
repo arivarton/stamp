@@ -98,27 +98,24 @@ def delete(args):
 @db_commit_decorator
 def edit(args):
     edit_selection = args.parser_object.split(' ')[-1]
-    if edit_selection == 'workday':
-        if not args.id:
-            try:
-                args.id = args.db.current_stamp().id
-            except CurrentStampNotFoundError as err_msg:
-                error_handler(err_msg, db=args.db)
-        try:
+    try:
+        if edit_selection == 'workday':
+            if not args.id:
+                try:
+                    args.id = args.db.current_stamp().id
+                except CurrentStampNotFoundError as err_msg:
+                    error_handler(err_msg, db=args.db)
             changed_object = edit_workday(args)
-        except NoMatchingDatabaseEntryError as err_msg:
-            error_handler(err_msg, db=args.db)
 
-    elif edit_selection == 'customer':
-        try:
+        elif edit_selection == 'customer':
             changed_object = edit_customer(args)
-        except NoMatchingDatabaseEntryError as err_msg:
-            error_handler(err_msg, db=args.db)
 
-    elif edit_selection == 'project':
-        try:
+        elif edit_selection == 'project':
             changed_object = edit_project(args)
-        except NoMatchingDatabaseEntryError as err_msg:
-            error_handler(err_msg, db=args.db)
+
+        elif edit_selection == 'invoice':
+            changed_object = edit_invoice(args)
+    except NoMatchingDatabaseEntryError as err_msg:
+        error_handler(err_msg, db=args.db)
 
     args.db.add(changed_object)

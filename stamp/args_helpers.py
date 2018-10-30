@@ -87,10 +87,14 @@ class IdAction(argparse.Action):
         def get_db_object(namespace):
             called_from = namespace.parser_object.split(' ')[-1]
             try:
-                if called_from == 'workdays':
+                if called_from.startswith('workday'):
                     namespace.db_query = namespace.db.query_for_workdays(namespace)
-                elif called_from == 'invoices':
+                elif called_from.startswith('invoice'):
                     namespace.db_query = namespace.db.get_invoices(namespace)
+                elif called_from.startswith('project'):
+                    pass
+                elif called_from.startswith('customer'):
+                    pass
             except NoMatchingDatabaseEntryError as err_msg:
                 error_handler(err_msg)
         get_db_object(namespace)
