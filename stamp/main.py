@@ -2,7 +2,7 @@ import sys
 
 from .add import stamp_in
 from .end import stamp_out
-from .edit import edit_workday, edit_customer, edit_project
+from .edit import edit_workday, edit_customer, edit_project, edit_invoice
 from .status import print_current_stamp, Status
 from .delete import delete_workday_or_tag
 from .tag import tag_stamp
@@ -115,7 +115,10 @@ def edit(args):
 
         elif edit_selection == 'invoice':
             changed_object = edit_invoice(args)
+
     except NoMatchingDatabaseEntryError as err_msg:
         error_handler(err_msg, db=args.db)
 
-    args.db.add(changed_object)
+    current_db_session = args.db.session.object_session(changed_object)
+    current_db_session.add(changed_object)
+    current_db_session.commit()

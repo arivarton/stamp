@@ -202,6 +202,6 @@ def parse(args):
                                      help='Set or unset an invoices paid option.')
     edit_invoice_parser.add_argument('-s', '--sent', action='store_true',
                                      help='Set or unset an invoices sent option.')
-    edit_project_parser.set_defaults(func=edit, parser_object=edit_project_parser.prog)
+    edit_invoice_parser.set_defaults(func=edit, parser_object=edit_invoice_parser.prog)
 
     return main_parser.parse_args(args)

@@ -253,7 +253,7 @@ def invoices(invoices):
                     )
         invoices_str += '\n' + divider()
 
-        return invoices_str
+    return invoices_str
 
 
 def print_current_stamp(current_stamp):

@@ -156,12 +156,16 @@ class Database():
                 invoices = invoices.filter(Invoice.id==args.id)
         except NoMatchingDatabaseEntryError:
             raise NoMatchingDatabaseEntryError('No invoices created yet! See help for export command to create one.')
-        if not args.show_superseeded:
-            # order_by is set only because of a stackoverflow comment. Haven't
-            # tested if it's necessary.
-            # https://stackoverflow.com/questions/1370997/group-by-year-month-day-in-a-sqlalchemy
-            invoices = invoices.order_by(Invoice.month).group_by(Invoice.month)
-        return invoices
+        if hasattr(args, 'show_superseeded'):
+            if not args.show_superseeded:
+                # order_by is set only because of a stackoverflow comment. Haven't
+                # tested if it's necessary.
+                # https://stackoverflow.com/questions/1370997/group-by-year-month-day-in-a-sqlalchemy
+                invoices = invoices.order_by(Invoice.month).group_by(Invoice.month)
+        if invoices.count() == 1:
+            return invoices.first()
+        else:
+            return invoices
 
     def get_related_invoice(self, year, month):
         query = self.session.query(Invoice).filter(Invoice.month == month,

@@ -80,9 +80,13 @@ class IdAction(argparse.Action):
                                        nargs=nargs,
                                        default=default)
 
-
-
     def __call__(self, parser, namespace, values, option_string=None):
+        try:
+            if values:
+                setattr(namespace, self.dest, int(values))
+        except ValueError:
+            print('Invalid id!\nId must only consist of integers.')
+            sys.exit(0)
         @no_db_no_action_decorator
         def get_db_object(namespace):
             called_from = namespace.parser_object.split(' ')[-1]
@@ -98,12 +102,6 @@ class IdAction(argparse.Action):
             except NoMatchingDatabaseEntryError as err_msg:
                 error_handler(err_msg)
         get_db_object(namespace)
-        try:
-            if values:
-                setattr(namespace, self.dest, int(values))
-        except ValueError:
-            print('Invalid id!\nId must only consist of integers.')
-            sys.exit(0)
 
 
 class DbAction(argparse.Action):
