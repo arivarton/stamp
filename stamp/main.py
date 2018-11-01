@@ -48,10 +48,25 @@ def tag(args):
 
 @no_db_no_action_decorator
 def status(args):
+    called_from = args.parser_object.split(' ')[-1]
     args.interface = 'cli'
     try:
-        if hasattr(args, 'db_query'):
-            status_object = Status(args.db_query)
+        if called_from.startswith('workday'):
+            db_query = db.query_for_workdays(namespace)
+        elif called_from.startswith('invoice'):
+            if hasattr(args, 'show_superseeded'):
+                db_query = args.db.get_invoices(args.id, args.show_superseeded)
+            else:
+                db_query = args.db.get_invoices(args.id)
+        elif called_from.startswith('project'):
+            pass
+        elif called_from.startswith('customer'):
+            pass
+        else:
+            db_query = None
+
+        if db_query:
+            status_object = Status(db_query)
             if args.interface == 'cli':
                 print(status_object)
             elif args.interface == 'ui':
@@ -111,14 +126,12 @@ def edit(args):
             changed_object = edit_customer(args)
 
         elif edit_selection == 'project':
-            changed_object = edit_project(args)
+            changed_object = edit_project(args.db, args.id, args.name, args.link)
 
         elif edit_selection == 'invoice':
-            changed_object = edit_invoice(args)
+            changed_object = edit_invoice(args.db, args.id, args.paid, args.sent)
 
     except NoMatchingDatabaseEntryError as err_msg:
         error_handler(err_msg, db=args.db)
 
-    current_db_session = args.db.session.object_session(changed_object)
-    current_db_session.add(changed_object)
-    current_db_session.commit()
+    args.db.add(changed_object)

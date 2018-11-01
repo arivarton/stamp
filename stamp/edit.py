@@ -1,7 +1,7 @@
 import sys
 import re
 
-def edit_workday(args):
+def edit_workday(db, id, date=None, time=None, comment=None, customer=None):
     workday = args.db.query_for_workdays(args.id)
     if edit.date:
         workday.date = args.date
@@ -13,8 +13,9 @@ def edit_workday(args):
         workday.customer = args.customer
     return workday
 
-def edit_customer(args):
-    customer = args.db.query_for_customer(args.id)
+def edit_customer(db, id, name=None, contact=None, org_nr=None, address=None,
+                  zip_code=None, mail=None, phone=None):
+    customer = db.query_for_customer(id)
     if args.name:
         customer.name = args.name
     if args.contact:
@@ -31,23 +32,24 @@ def edit_customer(args):
         customer.phone = args.mail
     return customer
 
-def edit_project(args):
-    project = args.db.query_for_project(args.id)
+def edit_project(db, id, name=None, link=None):
+    project = db.query_for_project(id)
     if args.name:
         project.name = args.name
     if args.link:
         project.link = args.link
     return project
 
-def edit_invoice(args):
-    if args.paid:
-        if args.db_query.paid:
-            args.db_query.paid = False
+def edit_invoice(db, id, paid=False, sent=False):
+    db_query = db.get_invoices(id)
+    if paid:
+        if db_query.paid:
+            db_query.paid = False
         else:
-            args.db_query.paid = True
-    if args.sent:
-        if args.db_query.sent:
-            args.db_query.sent = False
+            db_query.paid = True
+    if sent:
+        if db_query.sent:
+            db_query.sent = False
         else:
-            args.db_query.sent = True
-    return args.db_query
+            db_query.sent = True
+    return db_query

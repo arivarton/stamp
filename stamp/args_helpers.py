@@ -11,7 +11,6 @@ from .helpers import error_handler
 
 __all__ = ['DateAction',
            'TimeAction',
-           'IdAction',
            'DbAction',
            'FromEnvAction']
 
@@ -63,45 +62,6 @@ class TimeAction(argparse.Action):
         except ValueError:
             print('Incorrect time format!\nExample of correct format for current time: %s' % datetime.today().strftime('%H:%M'))
             sys.exit(0)
-
-
-class IdAction(argparse.Action):
-    def __init__(self,
-                 option_strings,
-                 dest,
-                 help='Choose id.',
-                 required=False,
-                 nargs='?',
-                 default=None):
-        super(IdAction, self).__init__(option_strings,
-                                       dest,
-                                       help=help,
-                                       required=required,
-                                       nargs=nargs,
-                                       default=default)
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        try:
-            if values:
-                setattr(namespace, self.dest, int(values))
-        except ValueError:
-            print('Invalid id!\nId must only consist of integers.')
-            sys.exit(0)
-        @no_db_no_action_decorator
-        def get_db_object(namespace):
-            called_from = namespace.parser_object.split(' ')[-1]
-            try:
-                if called_from.startswith('workday'):
-                    namespace.db_query = namespace.db.query_for_workdays(namespace)
-                elif called_from.startswith('invoice'):
-                    namespace.db_query = namespace.db.get_invoices(namespace)
-                elif called_from.startswith('project'):
-                    pass
-                elif called_from.startswith('customer'):
-                    pass
-            except NoMatchingDatabaseEntryError as err_msg:
-                error_handler(err_msg)
-        get_db_object(namespace)
 
 
 class DbAction(argparse.Action):
