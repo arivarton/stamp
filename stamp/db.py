@@ -8,7 +8,7 @@ from sqlalchemy.orm import exc as orm_exc
 from .mappings import Workday, Customer, Base, Invoice, Project # NOQA
 from .exceptions import (NoMatchingDatabaseEntryError,
                          TooManyMatchingDatabaseEntriesError,
-                         CurrentStampNotFoundError)
+                         CurrentStampNotFoundError, NonExistingId)
 from .settings import DATA_DIR
 from .formatting import yes_or_no
 
@@ -57,43 +57,6 @@ class Database():
 
     def commit(self):
         self.session.commit()
-
-    def query_for_workdays(self, args):
-        # Used with delete or edit argument
-        if args.id:
-            workdays = self.session.query(Workday).get(args.id)
-            if not workdays:
-                raise NoMatchingDatabaseEntryError('Specified id not found!')
-
-        # Used with status or export argument
-        else:
-            try:
-                # Excluding current stamp
-                workdays = self.session.query(Workday).filter(Workday.end.isnot(None)).order_by(Workday.start)
-                # Query with filter
-                if hasattr(args, 'customer') and args.customer:
-                    workdays = workdays.filter(Customer.name==args.customer)
-                if hasattr(args, 'invoice_id') and args.invoice_id:
-                    workdays = workdays.filter(Workday.invoice_id==args.invoice_id)
-                if not workdays.count():
-                    raise NoMatchingDatabaseEntryError('No workday has been completed yet!')
-            except orm_exc.UnmappedInstanceError:
-                raise NoMatchingDatabaseEntryError('Specified id not found!')
-        return workdays
-
-    def query_for_customer(self, id):
-        customer = self.session.query(Customer).get(id)
-        if customer:
-            return customer
-        else:
-            raise NoMatchingDatabaseEntryError('No db entries matching id %s' % id)
-
-    def query_for_project(self, id):
-        project = self.session.query(Project).get(id)
-        if project:
-            return project
-        else:
-            raise NoMatchingDatabaseEntryError('No db entries matching id %s' % id)
 
     def current_stamp(self):
         try:
@@ -151,9 +114,10 @@ class Database():
 
     def get_invoices(self, id, show_superseeded=True):
         try:
-            invoices = self.query_db_all('Invoice')
             if id:
-                invoices = invoices.filter(Invoice.id==id).first()
+                invoices = self.session.query(Invoice).get(id)
+            else:
+                invoices = self.query_db_all('Invoice')
         except NoMatchingDatabaseEntryError:
             raise NoMatchingDatabaseEntryError('No invoices created yet! See help for export command to create one.')
         if not show_superseeded:
@@ -161,6 +125,8 @@ class Database():
             # tested if it's necessary.
             # https://stackoverflow.com/questions/1370997/group-by-year-month-day-in-a-sqlalchemy
             invoices = invoices.order_by(Invoice.month).group_by(Invoice.month)
+        if not invoices:
+            raise NonExistingID('Invoice with %s as id does not exist!')
         return invoices
 
     def get_related_invoice(self, year, month):
@@ -171,3 +137,40 @@ class Database():
             raise NoMatchingDatabaseEntryError('No invoice found for %s %s!' % (month, year))
         else:
             return query.first()
+
+    def query_for_project(self, id):
+        project = self.session.query(Project).get(id)
+        if project:
+            return project
+        else:
+            raise NoMatchingDatabaseEntryError('No db entries matching id %s' % id)
+
+    def query_for_customer(self, id):
+        customer = self.session.query(Customer).get(id)
+        if customer:
+            return customer
+        else:
+            raise NoMatchingDatabaseEntryError('No db entries matching id %s' % id)
+
+    def query_for_workdays(self, id, customer=None, invoice_id=None):
+        # Used with delete or edit argument
+        if id:
+            workdays = self.session.query(Workday).get(id)
+            if not workdays:
+                raise NoMatchingDatabaseEntryError('Specified id not found!')
+
+        # Used with status or export argument
+        else:
+            try:
+                # Excluding current stamp
+                workdays = self.session.query(Workday).filter(Workday.end.isnot(None)).order_by(Workday.start)
+                # Query with filter
+                if customer:
+                    workdays = workdays.filter(Customer.name==customer)
+                if invoice_id:
+                    workdays = workdays.filter(Workday.invoice_id==invoice_id)
+                if not workdays.count():
+                    raise NoMatchingDatabaseEntryError('No workday has been completed yet!')
+            except orm_exc.UnmappedInstanceError:
+                raise NoMatchingDatabaseEntryError('Specified id not found!')
+        return workdays

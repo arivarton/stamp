@@ -22,6 +22,10 @@ class NoMatchesError(StampError):
     pass
 
 
+class NonExistingId(StampError):
+    pass
+
+
 class ArgumentError(StampError):
     pass
 

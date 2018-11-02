@@ -9,7 +9,8 @@ from .tag import tag_stamp
 from .db import Database
 from .export import export_invoice
 from .exceptions import (NoMatchingDatabaseEntryError, CurrentStampNotFoundError,
-                         NoMatchesError, TooManyMatchesError, CanceledByUser)
+                         NoMatchesError, TooManyMatchesError, CanceledByUser,
+                         NonExistingId)
 from .helpers import error_handler
 from .decorators import db_commit_decorator, no_db_no_action_decorator
 
@@ -52,7 +53,7 @@ def status(args):
     args.interface = 'cli'
     try:
         if called_from.startswith('workday'):
-            db_query = db.query_for_workdays(namespace)
+            db_query = args.db.query_for_workdays(args.id)
         elif called_from.startswith('invoice'):
             if hasattr(args, 'show_superseeded'):
                 db_query = args.db.get_invoices(args.id, args.show_superseeded)
@@ -78,7 +79,7 @@ def status(args):
                 error_handler(err_msg)
     except NoMatchingDatabaseEntryError as err_msg:
         error_handler(err_msg, exit_on_error=False)
-    except CanceledByUser as err_msg:
+    except (CanceledByUser, NonExistingId) as err_msg:
         error_handler(err_msg, db=args.db)
 
 

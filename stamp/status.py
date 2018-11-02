@@ -1,3 +1,4 @@
+from sqlalchemy.orm.query import Query
 from .helpers import output_for_total_hours_date_and_wage, get_terminal_width
 from .formatting import divider
 
@@ -129,7 +130,10 @@ class Tag(ID):
 
 class Status(object):
     def __init__(self, db_query):
-        table = str(db_query._primary_entity.selectable)
+        if hasattr(db_query, '_primary_entity'):
+            table = str(db_query._primary_entity.selectable)
+        else:
+            table = str(db_query.__table__)
         if table == 'workday':
             self.id = ID(db_query)
             self.date = Date(db_query)
@@ -147,7 +151,10 @@ class Status(object):
             self.table = 'workday'
         elif table == 'invoice':
             self.table = 'invoice'
-        self.db_query = db_query.all()
+        if issubclass(db_query.__class__, Query):
+            self.db_query = db_query.all()
+        else:
+            self.db_query = [db_query]
 
     def __str__(self):
         if self.table == 'workday':

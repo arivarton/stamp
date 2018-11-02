@@ -76,7 +76,7 @@ def parse(args):
                                             help='Tag a stamp.',
                                             parents=[date_parameters,
                                                      db_parameters])
-    tag_parser.add_argument('id', type=int)
+    tag_parser.add_argument('id', type=int, nargs='?')
     tag_parser.add_argument('tag', type=str)
     tag_parser.set_defaults(func=tag, parser_object=tag_parser.prog)
 
@@ -104,7 +104,7 @@ def parse(args):
                                                           help='Show status of workdays.',
                                                           parents=[db_parameters,
                                                                    date_parameters])
-    status_workdays_parser.add_argument('id', type=int)
+    status_workdays_parser.add_argument('id', type=int, nargs='?')
     status_workdays_parser.set_defaults(func=status, parser_object=status_workdays_parser.prog)
 
     # Export parser
