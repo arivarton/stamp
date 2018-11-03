@@ -63,7 +63,7 @@ def create_invoice(db, workdays, customer, year, month):
     if isinstance(db, str):
         db = Database(db)
 
-    customer = db.get_one_db_entry('Customer', 'name', customer)
+    customer = db.get_with_filter('Customer', 'name', customer)
 
     invoice = Invoice(workdays=workdays.all(),
                       customer_id=customer.id,
@@ -79,7 +79,7 @@ def create_invoice(db, workdays, customer, year, month):
 def stamp_in(args):
     try:
         if args.customer:
-            customer = args.db.get_one_db_entry('Customer', 'name', args.customer)
+            customer = args.db.get_with_filter('Customer', 'name', args.customer)
         else:
             customer = args.db.get_last_workday_entry('customer')
     except NoMatchingDatabaseEntryError:
@@ -93,7 +93,7 @@ def stamp_in(args):
     # Validate project
     try:
         if args.project:
-            project = args.db.get_one_db_entry('Project', 'name', args.project)
+            project = args.db.get_with_filter('Project', 'name', args.project)
         else:
             project = args.db.get_last_workday_entry('project')
     except NoMatchingDatabaseEntryError:

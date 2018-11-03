@@ -53,7 +53,7 @@ def parse_export_filter(selected_month, selected_year, selected_customer,
                           'end': {'op_func': operator.lt, 'value': date_to}})
 
     try:
-        selected_customer = db.get_one_db_entry('Customer', 'name', selected_customer)
+        selected_customer = db.get_with_filter('Customer', 'name', selected_customer)
     except NoMatchingDatabaseEntryError as _err_msg:
         print(_err_msg)
         sys.exit(0)
@@ -66,7 +66,7 @@ def parse_export_filter(selected_month, selected_year, selected_customer,
     # Validate project
     if selected_project:
         try:
-            selected_project = db.get_one_db_entry('Project', 'name', selected_project)
+            selected_project = db.get_with_filter('Project', 'name', selected_project)
         except NoMatchingDatabaseEntryError as _err_msg:
             print(_err_msg)
             sys.exit(0)

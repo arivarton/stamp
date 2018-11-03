@@ -3,7 +3,6 @@ import sys
 import argparse
 from datetime import datetime
 
-from .db import Database
 from .settings import DATA_DIR, DB_FILE
 from .decorators import no_db_no_action_decorator
 from .exceptions import CurrentStampNotFoundError, RequiredValueError, NoMatchingDatabaseEntryError
@@ -71,7 +70,7 @@ class DbAction(argparse.Action):
                  help='Name of database.',
                  type=str, # NOQA
                  required=False,
-                 default=Database(os.path.join(DATA_DIR, DB_FILE) + '.db')):
+                 default=os.path.join(DATA_DIR, DB_FILE) + '.db'):
         super(DbAction, self).__init__(option_strings,
                                        dest,
                                        help=help,
@@ -81,7 +80,7 @@ class DbAction(argparse.Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
         db_dir = os.path.join(DATA_DIR, values) + '.db'
-        setattr(namespace, self.dest, Database(db_dir))
+        setattr(namespace, self.dest, db_dir)
 
 
 class FromEnvAction(argparse.Action):

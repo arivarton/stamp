@@ -58,6 +58,27 @@ class Database():
     def commit(self):
         self.session.commit()
 
+    def resolve_table_name(self, table_name):
+        try:
+            table = eval(table_name.capitalize()) # NOQA
+        except TypeError:
+            raise NoMatchingDatabaseEntryError('Table was not found!')
+        return table
+
+    def get(self, table_name, id=None):
+        table = self.resolve_table_name(table_name)
+        try:
+            if id:
+                query = self.session.query(table).get(id)
+            else:
+                query = self.session.query(table)
+        except NoMatchingDatabaseEntryError:
+            raise NoMatchingDatabaseEntryError('No %ss created yet!' % table_name.lower())
+        if not query:
+            raise NonExistingID('%s with %s as id does not exist!' % (table_name.capitalize(), id))
+        else:
+            return query
+
     def current_stamp(self):
         try:
             stamp = self.session.query(Workday).filter(Workday.end.is_(None))[0]
@@ -65,43 +86,25 @@ class Database():
             raise CurrentStampNotFoundError('Not stamped in!')
         return stamp
 
-    def query_db_all(self, Table):
-        table = eval(Table) # NOQA
-        query = self.session.query(table)
-        if query.count():
-            return query
-        else:
-            raise NoMatchingDatabaseEntryError('No database entries in %s table!' % Table)
-
-    def query_db_export_filter(self, Table, export_filter):
-        table = eval(Table) # NOQA
-        query = self.session.query(table)
+    def query_db_export_filter(self, table_name, export_filter):
+        query = self.get(table_name)
         for key, value in export_filter.items():
             query = query.filter(value['op_func'](getattr(table, key), value['value']))
-            if not query.count():
-                raise NoMatchingDatabaseEntryError('No matching database entry found with search string: %s' % value['value'])
-
-        return query
-
-    def query_db(self, Table, column_name, search_string):
-        try:
-            table = eval(Table) # NOQA
-        except TypeError:
-            raise NoMatchingDatabaseEntryError('Table was not found.')
-        db_filter = getattr(table, column_name)
-        db_filter = db_filter.is_(search_string)
-
-        return self.session.query(table).filter(db_filter)
-
-    def get_one_db_entry(self, Table, column_name, search_string):
-        query = self.query_db(Table, column_name, search_string)
-
-        if query.count() == 1:
-            return query.first()
-        elif query.count() > 1:
-            raise TooManyMatchingDatabaseEntriesError('Several database entries found matching', search_string + '!\n' + 'Canceling...')
+        if query.count() == 0:
+            raise NoMatchingDatabaseEntryError('No matching database entry found with search string: %s' % value['value'])
         else:
+            return query
+
+    def get_with_filter(self, table_name, column_name, search_string):
+        table = self.resolve_table_name(table_name)
+        query = self.get(table_name)
+        db_filter = getattr(table, column_name).is_(search_string)
+        query.filter(db_filter)
+
+        if query.count() == 0:
             raise NoMatchingDatabaseEntryError('No matching database entry found with search string: %s' % search_string)
+        else:
+            return query.all()
 
     def get_last_workday_entry(self, *args):
         query = self.session.query(Workday).order_by(Workday.id).first()
@@ -112,45 +115,15 @@ class Database():
                 query = getattr(query, attr)
             return query
 
-    def get_invoices(self, id, show_superseeded=True):
-        try:
-            if id:
-                invoices = self.session.query(Invoice).get(id)
-            else:
-                invoices = self.query_db_all('Invoice')
-        except NoMatchingDatabaseEntryError:
-            raise NoMatchingDatabaseEntryError('No invoices created yet! See help for export command to create one.')
-        if not show_superseeded:
-            # order_by is set only because of a stackoverflow comment. Haven't
-            # tested if it's necessary.
-            # https://stackoverflow.com/questions/1370997/group-by-year-month-day-in-a-sqlalchemy
-            invoices = invoices.order_by(Invoice.month).group_by(Invoice.month)
-        if not invoices:
-            raise NonExistingID('Invoice with %s as id does not exist!')
-        return invoices
-
     def get_related_invoice(self, year, month):
-        query = self.session.query(Invoice).filter(Invoice.month == month,
-                                                   Invoice.year == year).order_by(
-                                                       Invoice.id.desc())
-        if query.count() == 0:
+        invoices = self.get('Invoice', id)
+        invoices.filter(Invoice.month == month,
+                        Invoice.year == year).order_by(
+                        Invoice.id.desc())
+        if invoices.count() == 0:
             raise NoMatchingDatabaseEntryError('No invoice found for %s %s!' % (month, year))
         else:
-            return query.first()
-
-    def query_for_project(self, id):
-        project = self.session.query(Project).get(id)
-        if project:
-            return project
-        else:
-            raise NoMatchingDatabaseEntryError('No db entries matching id %s' % id)
-
-    def query_for_customer(self, id):
-        customer = self.session.query(Customer).get(id)
-        if customer:
-            return customer
-        else:
-            raise NoMatchingDatabaseEntryError('No db entries matching id %s' % id)
+            return invoices.first()
 
     def query_for_workdays(self, id, customer=None, invoice_id=None):
         # Used with delete or edit argument

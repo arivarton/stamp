@@ -90,22 +90,20 @@ def parse(args):
     status_parser.set_defaults(func=status, parser_object=status_parser.prog)
 
     status_subparsers = status_parser.add_subparsers()
-    status_invoices_parser = status_subparsers.add_parser('invoices', aliases=['i'],
-                                                          help='Show status of invoices.',
-                                                          parents=[db_parameters,
-                                                                   date_parameters])
-    status_invoices_parser.add_argument('id', type=int, nargs='?')
-    status_invoices_parser.add_argument('-s', '--show_superseeded',
-                                        action='store_true',
-                                        help='''Show all created invoices including
-                                        superseeded.''')
-    status_invoices_parser.set_defaults(func=status, parser_object=status_invoices_parser.prog)
+
     status_workdays_parser = status_subparsers.add_parser('workdays', aliases=['w'],
                                                           help='Show status of workdays.',
                                                           parents=[db_parameters,
                                                                    date_parameters])
     status_workdays_parser.add_argument('id', type=int, nargs='?')
     status_workdays_parser.set_defaults(func=status, parser_object=status_workdays_parser.prog)
+
+    status_invoices_parser = status_subparsers.add_parser('invoices', aliases=['i'],
+                                                          help='Show status of invoices.',
+                                                          parents=[db_parameters,
+                                                                   date_parameters])
+    status_invoices_parser.add_argument('id', type=int, nargs='?')
+    status_invoices_parser.set_defaults(func=status, parser_object=status_invoices_parser.prog)
 
     # Export parser
     export_parser = main_subparsers.add_parser('export', aliases=['x'],

@@ -55,14 +55,11 @@ def status(args):
         if called_from.startswith('workday'):
             db_query = args.db.query_for_workdays(args.id)
         elif called_from.startswith('invoice'):
-            if hasattr(args, 'show_superseeded'):
-                db_query = args.db.get_invoices(args.id, args.show_superseeded)
-            else:
-                db_query = args.db.get_invoices(args.id)
+            db_query = args.db.get('Invoice', args.id)
         elif called_from.startswith('project'):
-            pass
+            db_query = args.db.get('Project', args.id)
         elif called_from.startswith('customer'):
-            pass
+            db_query = args.db.get('Customer', args.id)
         else:
             db_query = None
 
