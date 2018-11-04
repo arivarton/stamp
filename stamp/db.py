@@ -80,11 +80,11 @@ class Database():
             return query
 
     def current_stamp(self):
-        try:
-            stamp = self.session.query(Workday).filter(Workday.end.is_(None))[0]
-        except IndexError:
+        stamp = self.session.query(Workday).filter_by(end=None).first()
+        if stamp:
+            return stamp
+        else:
             raise CurrentStampNotFoundError('Not stamped in!')
-        return stamp
 
     def query_db_export_filter(self, table_name, export_filter):
         query = self.get(table_name)
@@ -94,17 +94,6 @@ class Database():
             raise NoMatchingDatabaseEntryError('No matching database entry found with search string: %s' % value['value'])
         else:
             return query
-
-    def get_with_filter(self, table_name, column_name, search_string):
-        table = self.resolve_table_name(table_name)
-        query = self.get(table_name)
-        db_filter = getattr(table, column_name).is_(search_string)
-        query.filter(db_filter)
-
-        if query.count() == 0:
-            raise NoMatchingDatabaseEntryError('No matching database entry found with search string: %s' % search_string)
-        else:
-            return query.all()
 
     def get_last_workday_entry(self, *args):
         query = self.session.query(Workday).order_by(Workday.id).first()
@@ -125,7 +114,7 @@ class Database():
         else:
             return invoices.first()
 
-    def query_for_workdays(self, id, customer=None, invoice_id=None):
+    def get_workdays(self, id, customer=None, invoice_id=None):
         # Used with delete or edit argument
         if id:
             workdays = self.session.query(Workday).get(id)

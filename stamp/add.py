@@ -5,6 +5,7 @@ from .exceptions import NoMatchingDatabaseEntryError, CurrentStampNotFoundError
 from .mappings import Workday, Project, Customer, Invoice
 from .db import Database
 from .formatting import yes_or_no, provide_input, value_for
+from .mappings import Customer, Project
 
 
 def _create_stamp(args, customer, project, stamp):
@@ -63,7 +64,7 @@ def create_invoice(db, workdays, customer, year, month):
     if isinstance(db, str):
         db = Database(db)
 
-    customer = db.get_with_filter('Customer', 'name', customer)
+    customer = db.get('Customer').filter(Customer.name == customer).first()
 
     invoice = Invoice(workdays=workdays.all(),
                       customer_id=customer.id,
@@ -79,21 +80,21 @@ def create_invoice(db, workdays, customer, year, month):
 def stamp_in(args):
     try:
         if args.customer:
-            customer = args.db.get_with_filter('Customer', 'name', args.customer)
+            customer = args.db.get('Customer').filter(Customer.name == args.customer)
         else:
             customer = args.db.get_last_workday_entry('customer')
     except NoMatchingDatabaseEntryError:
         customer = yes_or_no('Do you wish to create a new customer?',
-                            no_message='Canceling...',
-                            no_function=sys.exit,
-                            no_function_args=(0,),
-                            yes_function=create_customer,
-                            yes_function_args=(args.db, args.customer,))
+                             no_message='Canceling...',
+                             no_function=sys.exit,
+                             no_function_args=(0,),
+                             yes_function=create_customer,
+                             yes_function_args=(args.db, args.customer,))
 
     # Validate project
     try:
         if args.project:
-            project = args.db.get_with_filter('Project', 'name', args.project)
+            project = args.db.get('Project').filter(Project.name == args.project)
         else:
             project = args.db.get_last_workday_entry('project')
     except NoMatchingDatabaseEntryError:

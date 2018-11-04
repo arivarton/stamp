@@ -21,7 +21,7 @@ from .helpers import output_for_total_hours_date_and_wage, get_month_names
 from .formatting import yes_or_no
 from .status import Status
 from .add import create_invoice
-from .mappings import Workday
+from .mappings import Workday, Customer, Project
 
 
 def parse_export_filter(selected_month, selected_year, selected_customer,
@@ -53,7 +53,7 @@ def parse_export_filter(selected_month, selected_year, selected_customer,
                           'end': {'op_func': operator.lt, 'value': date_to}})
 
     try:
-        selected_customer = db.get_with_filter('Customer', 'name', selected_customer)
+        selected_customer = db.get('Customer').filter(Customer.name == selected_customer)
     except NoMatchingDatabaseEntryError as _err_msg:
         print(_err_msg)
         sys.exit(0)
@@ -66,7 +66,7 @@ def parse_export_filter(selected_month, selected_year, selected_customer,
     # Validate project
     if selected_project:
         try:
-            selected_project = db.get_with_filter('Project', 'name', selected_project)
+            selected_project = db.get('Project').filter(Project.name == selected_project)
         except NoMatchingDatabaseEntryError as _err_msg:
             print(_err_msg)
             sys.exit(0)

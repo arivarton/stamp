@@ -16,33 +16,36 @@ def determine_total_hours_worked_and_wage_earned(workdays):
     total_wage = 0
 
     for workday in workdays:
-        total_seconds = (workday.end - workday.start).total_seconds()
-        hours = total_seconds // 3600
-        if hours < MINIMUM_HOURS:
-            hours = MINIMUM_HOURS
-            minutes = 0
+        if workday.end:
+            total_seconds = (workday.end - workday.start).total_seconds()
+            hours = total_seconds // 3600
+            if hours < MINIMUM_HOURS:
+                hours = MINIMUM_HOURS
+                minutes = 0
+            else:
+                minutes = (total_seconds % 3600) // 60
+            seconds = total_seconds % 60 # NOQA
+
+            # Add hours to wage
+            total_wage += hours * WAGE_PER_HOUR
+
+            # Add minutes to wage
+            # Minutes logic:
+            # If worktime has not reached 15 minutes there will be no added wage.
+            # If minutes is between 15 and 44.59 there will be half an hour added.
+            # If minutes is 45+ there will be added an hour...
+            if minutes >= 15 and minutes < 45:
+                total_wage += WAGE_PER_HOUR * 0.5
+                minutes = 30
+            elif minutes >= 45:
+                total_wage += WAGE_PER_HOUR * 1
+                minutes = 60
+            else:
+                minutes = 0
+
+            total_time += timedelta(hours=hours, minutes=minutes)
         else:
-            minutes = (total_seconds % 3600) // 60
-        seconds = total_seconds % 60 # NOQA
-
-        # Add hours to wage
-        total_wage += hours * WAGE_PER_HOUR
-
-        # Add minutes to wage
-        # Minutes logic:
-        # If worktime has not reached 15 minutes there will be no added wage.
-        # If minutes is between 15 and 44.59 there will be half an hour added.
-        # If minutes is 45+ there will be added an hour...
-        if minutes >= 15 and minutes < 45:
-            total_wage += WAGE_PER_HOUR * 0.5
-            minutes = 30
-        elif minutes >= 45:
-            total_wage += WAGE_PER_HOUR * 1
-            minutes = 60
-        else:
-            minutes = 0
-
-        total_time += timedelta(hours=hours, minutes=minutes)
+            pass
 
     return total_time.total_seconds() // 3600, (total_time.total_seconds() % 3600) // 60, total_wage
 

@@ -37,7 +37,7 @@ def tag(args):
     try:
         try:
             if args.id:
-                stamp = args.db.query_for_workdays(workday_id=int(args.id))
+                stamp = db.get('Workday', id)
             else:
                 stamp = args.db.current_stamp()
         except CurrentStampNotFoundError as err_msg:
@@ -53,7 +53,7 @@ def status(args):
     args.interface = 'cli'
     try:
         if called_from.startswith('workday'):
-            db_query = args.db.query_for_workdays(args.id)
+            db_query = args.db.get('Workday', args.id)
         elif called_from.startswith('invoice'):
             db_query = args.db.get('Invoice', args.id)
         elif called_from.startswith('project'):
@@ -97,11 +97,9 @@ def export(args):
 @db_commit_decorator
 def delete(args):
     try:
-        if args.id:
-            args.id = int(args.id)
-        else:
+        if not args.id:
                 args.id = args.db.current_stamp().id
-        delete_workday_or_tag(args.db, args)
+        delete_workday_or_tag(args.db, args.id, args.tag)
     except (CurrentStampNotFoundError, NoMatchingDatabaseEntryError) as err_msg:
         error_handler(err_msg, db=args.db)
 

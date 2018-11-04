@@ -95,7 +95,10 @@ class To(StatusColumn):
         self.headline = 'To'
         self.width = max(len(workdays[0].end.strftime(self.time_format)), len(self.headline))
         for workday in workdays:
-            self.values.append(workday.end.strftime(self.time_format))
+            if workday.end:
+                self.values.append(workday.end.strftime(self.time_format))
+            else:
+                self.values.append('')
 
 
 class InvoiceID(StatusColumn):
