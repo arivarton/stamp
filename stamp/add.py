@@ -8,11 +8,11 @@ from .formatting import yes_or_no, provide_input, value_for
 from .mappings import Customer, Project
 
 
-def _create_stamp(args, customer, project, stamp):
-    stamp.start = datetime.combine(args.date, args.time)
+def _create_stamp(db, customer, project, stamp, date, time):
+    stamp.start = datetime.combine(date, time)
     stamp.customer = customer
     stamp.project = project
-    args.db.add(stamp)
+    db.add(stamp)
 
     return stamp
 
@@ -77,49 +77,52 @@ def create_invoice(db, workdays, customer, year, month):
     return invoice
 
 
-def stamp_in(args):
+def stamp_in(db, customer, project, date, time):
     try:
-        if args.customer:
-            customer = args.db.get('Customer').filter(Customer.name == args.customer)
+        if customer:
+            customer_query = db.get('Customer').filter(Customer.name == customer).first()
+            if not customer_query:
+                raise NoMatchingDatabaseEntryError('Customer name not found!')
         else:
-            customer = args.db.get_last_workday_entry('customer')
+            customer_query = db.get_last_workday_entry('customer')
     except NoMatchingDatabaseEntryError:
-        customer = yes_or_no('Do you wish to create a new customer?',
+        customer_query = yes_or_no('Do you wish to create a new customer?',
                              no_message='Canceling...',
                              no_function=sys.exit,
                              no_function_args=(0,),
                              yes_function=create_customer,
-                             yes_function_args=(args.db, args.customer,))
+                             yes_function_args=(db, customer,))
 
     # Validate project
     try:
-        if args.project:
-            project = args.db.get('Project').filter(Project.name == args.project)
+        if project:
+            project_query = db.get('Project').filter(Project.name == project).first()
+            if not project_query:
+                raise NoMatchingDatabaseEntryError('Project name not found!')
         else:
-            project = args.db.get_last_workday_entry('project')
+            project_query = db.get_last_workday_entry('project')
     except NoMatchingDatabaseEntryError:
-        project = yes_or_no('Do you wish to create a new project?', # NOQA
-                            no_message='Canceling...',
-                            no_function=sys.exit,
-                            no_function_args=(0,),
-                            yes_function=create_project,
-                            yes_function_args=(args.db, customer.id),
-                            yes_function_kwargs={'project_name': args.project})
+        project_query = yes_or_no('Do you wish to create a new project?', # NOQA
+                                  no_message='Canceling...',
+                                  no_function=sys.exit,
+                                  no_function_args=(0,),
+                                  yes_function=create_project,
+                                  yes_function_args=(db, customer_query.id),
+                                  yes_function_kwargs={'project_name': project})
 
     # Create new stamp
     try:
-        stamp = args.db.current_stamp()
-        __ = yes_or_no('Already stamped in, do you wish to recreate the stamp with current date and time?',
-                       no_message='Former stamp preserved!',
-                       no_return=stamp,
-                       yes_message='Overwriting current stamp!',
-                       yes_function=_create_stamp,
-                       yes_function_args=(args, customer, project,
-                                          stamp))
+        stamp = db.current_stamp()
+        yes_or_no('Already stamped in, do you wish to recreate the stamp with current date and time?',
+                   no_message='Former stamp preserved!',
+                   yes_message='Overwriting current stamp!',
+                   yes_function=_create_stamp,
+                   yes_function_args=(db, customer_query, project_query,
+                                      stamp, date, time))
     except CurrentStampNotFoundError:
-        _workday = Workday(customer_id=customer.id, project_id=project.id)
+        _workday = Workday(customer_id=customer_query.id, project_id=project_query.id)
 
-        stamp = _create_stamp(args, customer, project, _workday)
+        stamp = _create_stamp(db, customer_query, project_query, _workday, date, time)
 
     print('Stamped in at %s %s' % (stamp.start.time().strftime('%H:%M'),
                                    stamp.start.date().strftime('%x')))

@@ -17,7 +17,8 @@ from .decorators import db_commit_decorator, no_db_no_action_decorator
 @db_commit_decorator
 def add(args):
     try:
-        return stamp_in(args)
+        return stamp_in(args.db, args.customer, args.project, args.date,
+                        args.time)
     except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
         error_handler(err_msg, db=args.db)
 

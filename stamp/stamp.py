@@ -9,7 +9,7 @@ from .helpers import error_handler
 from .db import Database
 
 
-def run():
+def run(args=sys.argv[1:]):
     parser = parse(sys.argv[1:])
     parser.db = Database(parser.db)
 
