@@ -7,11 +7,11 @@ from .helpers import auto_correct_tag, manually_correct_tag
 from .exceptions import CurrentStampNotFoundError
 
 
-def stamp_out(args):
-    stamp = args.db.current_stamp()
+def stamp_out(db, date, time):
+    stamp = db.current_stamp()
     if not stamp:
         raise CurrentStampNotFoundError('No stamp present. Stamp in first!')
-    stamp.end = datetime.combine(args.date, args.time)
+    stamp.end = datetime.combine(date, time)
     for tag in stamp.tags:
         if tag.recorded > stamp.end or tag.recorded < stamp.start:
             print('Tag with id %d has a recorded date/time that is out of the stamp\'s bounds. Please correct the recorded tag date/time.' % tag.id)
@@ -24,11 +24,11 @@ def stamp_out(args):
                                           'no_function_args': (0,),
                                           'yes_function': manually_correct_tag,
                                           'yes_function_args': (tag, stamp,
-                                                                args.db.session)},
+                                                                db.session)},
                       yes_message='Auto correcting tags!',
                       yes_function=auto_correct_tag,
-                      yes_function_args=(tag, stamp, args.db.session,))
-    args.db.add(stamp)
-    print('Stamped out at %s %s' % (args.time.strftime('%H:%M'), args.date.strftime('%x')))
+                      yes_function_args=(tag, stamp, db.session,))
+    db.add(stamp)
+    print('Stamped out at %s %s' % (time.strftime('%H:%M'), date.strftime('%x')))
 
     return stamp
