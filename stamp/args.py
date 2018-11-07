@@ -111,7 +111,7 @@ def parse(args):
                                           parents=[filter_parameters,
                                                    db_parameters])
     export_parser.add_argument('month', type=str)
-    export_parser.add_argument('year', type=str)
+    export_parser.add_argument('year', type=int)
     export_parser.add_argument('customer', type=str)
     export_parser.add_argument('-p', '--pdf', action='store_true',
                                help='Export to PDF.')

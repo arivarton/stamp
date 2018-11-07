@@ -22,6 +22,44 @@ from .formatting import yes_or_no
 from .status import Status
 from .add import create_invoice
 from .mappings import Workday, Customer, Project
+from .db import Database
+
+
+class get_export_filter(Object):
+    def __init__(self, db: Database, month: str, year: int, customer: str, project: str):
+        self.db = db
+        self.month = self._init_month(month)
+        self.year = year
+        self.customer = self._init_customer(customer)
+        self.project = self._init_project(project)
+
+    def _init_month(self, month):
+        # Validate month
+        _months = list()
+        for month in get_month_names():
+            if month.startswith(selected_month.capitalize()):
+                _months.append(month)
+        if len(_months) > 1:
+            raise TooManyMatchesError('Refine month argument! These months are currently matching: %s.' %
+                                    ', '.join(_selected_month))
+        elif not _months:
+            raise NoMatchesError('%s is not an acceptable month format.' % selected_month)
+        else:
+            return ''.join(_months)
+
+    def _init_customer(self, customer):
+        try:
+            customer = db.get('Customer').filter(Customer.name == customer).first()
+        except (NoMatchingDatabaseEntryError, TooManyMatchingDatabaseEntriesError) as err_msg:
+            error_handler(err_msg)
+        return customer.id
+
+    def _init_project(self, project):
+        try:
+            project = db.get('Customer').filter(Project.name == project).first()
+        except (NoMatchingDatabaseEntryError, TooManyMatchingDatabaseEntriesError) as err_msg:
+            error_handler(err_msg)
+        return project.id
 
 
 def parse_export_filter(selected_month, selected_year, selected_customer,
@@ -53,7 +91,7 @@ def parse_export_filter(selected_month, selected_year, selected_customer,
                           'end': {'op_func': operator.lt, 'value': date_to}})
 
     try:
-        selected_customer = db.get('Customer').filter(Customer.name == selected_customer)
+        selected_customer = db.get('Customer').filter(Customer.name == selected_customer).first()
     except NoMatchingDatabaseEntryError as _err_msg:
         print(_err_msg)
         sys.exit(0)
@@ -66,7 +104,7 @@ def parse_export_filter(selected_month, selected_year, selected_customer,
     # Validate project
     if selected_project:
         try:
-            selected_project = db.get('Project').filter(Project.name == selected_project)
+            selected_project = db.get('Project').filter(Project.name == selected_project).first()
         except NoMatchingDatabaseEntryError as _err_msg:
             print(_err_msg)
             sys.exit(0)
@@ -249,6 +287,11 @@ def export_pdf(db, year, month, customer, invoice):
 
 def export_invoice(db, year, month, customer, project, save_pdf=False):
     export_filter, month = parse_export_filter(month, year, customer, db, project)
+    workdays = db.get('Workday').filter(Workday.start >= export_filter.start,
+                                        Workday.end < export.filter.end,
+                                        Workday.customer_id == export_filter.customer,
+                                        Workday.project_id == export_filter.project).order_by(Workday.start)
+
     workdays = db.query_db_export_filter('Workday', export_filter).order_by(Workday.start)
     try:
         related_invoice = db.get_related_invoice(year, month)
