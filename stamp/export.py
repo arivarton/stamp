@@ -25,96 +25,51 @@ from .mappings import Workday, Customer, Project
 from .db import Database
 
 
-class get_export_filter(Object):
+class get_export_filter(object):
     def __init__(self, db: Database, month: str, year: int, customer: str, project: str):
         self.db = db
-        self.month = self._init_month(month)
+        self.month = self._validate_month(month)
         self.year = year
-        self.customer = self._init_customer(customer)
-        self.project = self._init_project(project)
+        self.customer = self._get_customer(customer)
+        self.project = self._get_project(project)
+        self.start = self._get_start(self.month, self.year)
+        self.end = self._get_end(self.start)
 
-    def _init_month(self, month):
+    def _validate_month(self, month_name):
         # Validate month
         _months = list()
         for month in get_month_names():
-            if month.startswith(selected_month.capitalize()):
+            if month.startswith(month_name.capitalize()):
                 _months.append(month)
         if len(_months) > 1:
             raise TooManyMatchesError('Refine month argument! These months are currently matching: %s.' %
-                                    ', '.join(_selected_month))
+                                    ', '.join(_months))
         elif not _months:
-            raise NoMatchesError('%s is not an acceptable month format.' % selected_month)
+            raise NoMatchesError('%s is not an acceptable month format.' % _months)
         else:
             return ''.join(_months)
 
-    def _init_customer(self, customer):
+    def _get_customer(self, customer):
         try:
-            customer = db.get('Customer').filter(Customer.name == customer).first()
-        except (NoMatchingDatabaseEntryError, TooManyMatchingDatabaseEntriesError) as err_msg:
+            customer = self.db.get('Customer').filter(Customer.name == customer).first()
+        except NoMatchingDatabaseEntryError as err_msg:
             error_handler(err_msg)
-        return customer.id
+        return customer
 
-    def _init_project(self, project):
+    def _get_project(self, project):
         try:
-            project = db.get('Customer').filter(Project.name == project).first()
-        except (NoMatchingDatabaseEntryError, TooManyMatchingDatabaseEntriesError) as err_msg:
+            project = self.db.get('Project').filter(Project.name == project).first()
+        except NoMatchingDatabaseEntryError as err_msg:
             error_handler(err_msg)
-        return project.id
+        return project
 
+    def _get_start(self, month, year):
+        return datetime.strptime('%s %s' % (month, year),
+                                 '%B %Y')
 
-def parse_export_filter(selected_month, selected_year, selected_customer,
-                        db, selected_project=None):
-    export_filter = dict()
-    # Validate month
-    _selected_month = list()
-    for month in get_month_names():
-        if month.startswith(selected_month.capitalize()):
-            _selected_month.append(month)
-    if len(_selected_month) > 1:
-        raise TooManyMatchesError('Refine month argument! These months are currently matching: %s.' %
-                                  ', '.join(_selected_month))
-    elif not _selected_month:
-        raise NoMatchesError('%s is not an acceptable month format.' % selected_month)
-    else:
-        selected_month = ''.join(_selected_month)
-
-    # Validate year
-    try:
-        date_from = datetime.strptime('%s %s' % (selected_month, selected_year),
-                                      '%B %Y')
-        _month_days = calendar.monthrange(date_from.year, date_from.month)[1]
-        date_to = date_from + timedelta(days=_month_days)
-    except ValueError:
-        raise ArgumentError('Year argument format wrong! This is the correct format: YYYY. For example: 2018.')
-
-    export_filter.update({'start': {'op_func': operator.ge, 'value': date_from},
-                          'end': {'op_func': operator.lt, 'value': date_to}})
-
-    try:
-        selected_customer = db.get('Customer').filter(Customer.name == selected_customer).first()
-    except NoMatchingDatabaseEntryError as _err_msg:
-        print(_err_msg)
-        sys.exit(0)
-    except TooManyMatchingDatabaseEntriesError as _err_msg:
-        print(_err_msg)
-        sys.exit(0)
-    export_filter.update({'customer_id': {'op_func': operator.eq,
-                                          'value': selected_customer.id}})
-
-    # Validate project
-    if selected_project:
-        try:
-            selected_project = db.get('Project').filter(Project.name == selected_project).first()
-        except NoMatchingDatabaseEntryError as _err_msg:
-            print(_err_msg)
-            sys.exit(0)
-        except TooManyMatchingDatabaseEntriesError as _err_msg:
-            print(_err_msg)
-            sys.exit(0)
-        export_filter.update({'project_id': {'op_func': operator.eq,
-                                             'value': selected_project.id}})
-
-    return export_filter, selected_month
+    def _get_end(self, start):
+        _month_days = calendar.monthrange(start.year, start.month)[1]
+        return start + timedelta(days=_month_days)
 
 
 def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
@@ -286,15 +241,14 @@ def export_pdf(db, year, month, customer, invoice):
 
 
 def export_invoice(db, year, month, customer, project, save_pdf=False):
-    export_filter, month = parse_export_filter(month, year, customer, db, project)
+    export_filter = get_export_filter(db, month, year, customer, project)
     workdays = db.get('Workday').filter(Workday.start >= export_filter.start,
-                                        Workday.end < export.filter.end,
-                                        Workday.customer_id == export_filter.customer,
-                                        Workday.project_id == export_filter.project).order_by(Workday.start)
+                                        Workday.end < export_filter.end,
+                                        Workday.customer_id == export_filter.customer.id,
+                                        Workday.project_id == export_filter.project.id).order_by(Workday.start)
 
-    workdays = db.query_db_export_filter('Workday', export_filter).order_by(Workday.start)
     try:
-        related_invoice = db.get_related_invoice(year, month)
+        related_invoice = db.get_related_invoice(year, export_filter.month)
         workday_ids = [i.id for i in workdays]
         related_invoice_ids = [i.id for i in related_invoice.workdays]
         if workday_ids == related_invoice_ids:
@@ -323,7 +277,7 @@ def export_invoice(db, year, month, customer, project, save_pdf=False):
                                 yes_message='Redoing invoice for specified month!',
                                 yes_function=create_invoice,
                                 yes_function_args=(db, workdays, customer, year,
-                                                   month))
+                                                   export_filter.month))
     except NoMatchingDatabaseEntryError:
         status_object = Status(workdays)
         print(status_object)
@@ -334,9 +288,9 @@ def export_invoice(db, year, month, customer, project, save_pdf=False):
                             yes_message='Creating new invoice!',
                             yes_function=create_invoice,
                             yes_function_args=(db, workdays, customer, year,
-                                               month))
+                                               export_filter.month))
     except KeyboardInterrupt:
         print('Canceling...')
         sys.exit(0)
     if save_pdf:
-        return export_pdf(db, year, month, customer, invoice)
+        return export_pdf(db, year, export_filter.month, customer, invoice)

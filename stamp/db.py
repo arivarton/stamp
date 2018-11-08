@@ -105,7 +105,7 @@ class Database():
             return query
 
     def get_related_invoice(self, year, month):
-        invoices = self.get('Invoice', id)
+        invoices = self.get('Invoice')
         invoices.filter(Invoice.month == month,
                         Invoice.year == year).order_by(
                         Invoice.id.desc())
