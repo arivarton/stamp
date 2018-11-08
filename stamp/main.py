@@ -10,7 +10,7 @@ from .db import Database
 from .export import export_invoice
 from .exceptions import (NoMatchingDatabaseEntryError, CurrentStampNotFoundError,
                          NoMatchesError, TooManyMatchesError, CanceledByUser,
-                         NonExistingId)
+                         NonExistingId, DeleteNotAllowedError)
 from .helpers import error_handler
 from .decorators import db_commit_decorator, no_db_no_action_decorator
 

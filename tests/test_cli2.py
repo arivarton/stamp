@@ -18,6 +18,7 @@ from stamp.tag import tag_stamp
 from stamp.end import stamp_out
 from stamp.status import Status
 from stamp.export import export_invoice
+from stamp.delete import delete_workday_or_tag
 
 testing_db = 'test_%s' % uuid4().hex
 testing_db_path = os.path.join(settings.DATA_DIR, testing_db) + '.db'
@@ -175,6 +176,60 @@ class TestStampCLI(unittest.TestCase):
                                   stamp, lorem.paragraph()))
         # Stamp out
         self.assertTrue(stamp_out(db, date_and_time.date(), date_and_time.time()))
+
+        # Create another workday to test workday deletion
+        # Stamp in
+        with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
+            stamp = stamp_in(db, customer_name, project_name, date_and_time.date(),
+                             date_and_time.time())
+        self.assertTrue(stamp)
+        # Tag with current time
+        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+                                  stamp, 'This should be deleted.'))
+        # Tag with 1 added hour
+        date_and_time = date_and_time + timedelta(hours=1)
+        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+                                  stamp, 'This should be deleted.'))
+        # Tag with 3 added hours
+        date_and_time = date_and_time + timedelta(hours=2)
+        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+                                  stamp, 'This should be deleted.'))
+        # Tag with 5 added hours
+        date_and_time = date_and_time + timedelta(hours=2)
+        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+                                  stamp, 'This should be deleted.'))
+        # Stamp out
+        self.assertTrue(stamp_out(db, date_and_time.date(), date_and_time.time()))
+        # Delete
+        delete_workday_or_tag(db, stamp.id)
+
+        # Create another workday to test tag deletion
+        date_and_time = datetime.now() + timedelta(days=10)
+        # Stamp in
+        with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
+            stamp = stamp_in(db, customer_name, project_name, date_and_time.date(),
+                             date_and_time.time())
+        self.assertTrue(stamp)
+        # Tag with current time
+        tag = tag_stamp(db, date_and_time.date(), date_and_time.time(),
+                        stamp, 'This should be deleted.')
+        self.assertTrue(tag)
+        # Tag with 1 added hour
+        date_and_time = date_and_time + timedelta(hours=1)
+        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+                                  stamp, 'This should not be deleted.'))
+        # Tag with 3 added hours
+        date_and_time = date_and_time + timedelta(hours=2)
+        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+                                  stamp, 'This should not be deleted.'))
+        # Tag with 5 added hours
+        date_and_time = date_and_time + timedelta(hours=2)
+        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+                                  stamp, 'This should not be deleted.'))
+        # Stamp out
+        self.assertTrue(stamp_out(db, date_and_time.date(), date_and_time.time()))
+        # Delete
+        delete_workday_or_tag(db, stamp.id, tag.id)
 
         # Status of workdays
         status_object = Status(db.get('Workday', None))
