@@ -17,8 +17,8 @@ from .decorators import db_commit_decorator, no_db_no_action_decorator
 @db_commit_decorator
 def add(args):
     try:
-        return stamp_in(args.db, args.customer, args.project, args.date,
-                        args.time)
+        stamp_in(args.db, args.customer, args.project, args.date,
+                 args.time)
     except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
         error_handler(err_msg, db=args.db)
 
@@ -27,7 +27,7 @@ def add(args):
 @db_commit_decorator
 def end(args):
     try:
-        return stamp_out(args.db, args.date, args.time)
+        stamp_out(args.db, args.date, args.time)
     except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
         error_handler(err_msg, db=args.db)
 
@@ -43,7 +43,7 @@ def tag(args):
                 stamp = args.db.current_stamp()
         except CurrentStampNotFoundError as err_msg:
             error_handler(err_msg, db=args.db)
-        return tag_stamp(args.db, args.date, args.time, stamp, args.tag)
+        tag_stamp(args.db, args.date, args.time, stamp, args.tag)
     except CanceledByUser as err_msg:
         error_handler(err_msg, db=args.db)
 
@@ -81,14 +81,12 @@ def status(args):
         error_handler(err_msg, db=args.db)
 
 
-    return True
-
 @no_db_no_action_decorator
 @db_commit_decorator
 def export(args):
     try:
-        return export_invoice(args.db, args.year, args.month, args.customer,
-                              args.project, args.pdf)
+        export_invoice(args.db, args.year, args.month, args.customer,
+                       args.project, args.pdf)
     except (NoMatchingDatabaseEntryError, TooManyMatchesError, NoMatchesError,
             CanceledByUser) as err_msg:
         error_handler(err_msg, db=args.db)
