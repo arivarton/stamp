@@ -101,7 +101,8 @@ def delete(args):
         if not args.id:
                 args.id = args.db.current_stamp().id
         delete_workday_or_tag(args.db, args.id, args.tag)
-    except (CurrentStampNotFoundError, NoMatchingDatabaseEntryError) as err_msg:
+    except (CurrentStampNotFoundError, NoMatchingDatabaseEntryError,
+            DeleteNotAllowedError) as err_msg:
         error_handler(err_msg, db=args.db)
 
 

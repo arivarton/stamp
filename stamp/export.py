@@ -25,7 +25,7 @@ from .mappings import Workday, Customer, Project
 from .db import Database
 
 
-class get_export_filter(object):
+class GetExportFilter(object):
     def __init__(self, db: Database, month: str, year: int, customer: str, project: str):
         self.db = db
         self.month = self._validate_month(month)
@@ -241,7 +241,7 @@ def export_pdf(db, year, month, customer, invoice):
 
 
 def export_invoice(db, year, month, customer, project, save_pdf=False):
-    export_filter = get_export_filter(db, month, year, customer, project)
+    export_filter = GetExportFilter(db, month, year, customer, project)
     workdays = db.get('Workday').filter(Workday.start >= export_filter.start,
                                         Workday.end < export_filter.end,
                                         Workday.customer_id == export_filter.customer.id,

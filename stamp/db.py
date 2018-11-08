@@ -5,7 +5,7 @@ from sqlalchemy import exc, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import exc as orm_exc
 
-from .mappings import Workday, Customer, Base, Invoice, Project # NOQA
+from .mappings import Workday, Customer, Base, Invoice, Project, Tag
 from .exceptions import (NoMatchingDatabaseEntryError,
                          TooManyMatchingDatabaseEntriesError,
                          CurrentStampNotFoundError, NonExistingId)
@@ -75,7 +75,7 @@ class Database():
         except NoMatchingDatabaseEntryError:
             raise NoMatchingDatabaseEntryError('No %ss created yet!' % table_name.lower())
         if not query:
-            raise NonExistingID('%s with %s as id does not exist!' % (table_name.capitalize(), id))
+            raise NonExistingId('%s with %s as id does not exist!' % (table_name.capitalize(), id))
         else:
             return query
 

@@ -120,11 +120,16 @@ def parse(args):
 
     # Delete parser
     delete_parser = main_subparsers.add_parser('delete', aliases=['d'],
-                                          help='Delete a registered worktime.',
+                                          help='Delete a registered worktime. \
+                                               Be aware that running this without \
+                                               id will delete current stamp!',
                                           parents=[db_parameters])
     delete_parser.add_argument('id', type=int, nargs='?', default=None)
     delete_parser.add_argument('-t', '--tag', type=int, help='''Choose tag id to
                                delete.''')
+    delete_parser.add_argument('-f', '--force', action='store_true',
+                               help='Force deletion. Use with caution, this could\
+                               corrupt the database.')
     delete_parser.set_defaults(func=delete)
 
     # Edit parser

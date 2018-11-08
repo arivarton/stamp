@@ -76,7 +76,8 @@ class Workday(Base):
     invoice_id = Column(ForeignKey('invoice.id'), default=None)
 
     tags = relationship('Tag', order_by='Tag.recorded',
-                        cascade='all, delete, delete-orphan', lazy='dynamic')
+                        cascade='all, delete, delete-orphan', lazy='dynamic',
+                        backref='workday')
 
 
 class Tag(Base):
