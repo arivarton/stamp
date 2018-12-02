@@ -130,47 +130,54 @@ class Tag(ID):
         for workday in workdays:
             self.values.append([[tag.id, tag.recorded.strftime(self.time_format), tag.tag] for tag in workday.tags])
 
+class PopulatedObject(object):
+    def __init__(self, object, table):
+        if table == 'workday':
+            self.id = ID(object)
+            self.date = Date(object)
+            self.customer = Customer(object)
+            self.project = Project(object)
+            self.from_time = From(object)
+            self.to_time = To(object)
+            self.invoice_id = InvoiceID(object)
+            # Anything after this attribute will not be added to total width in
+            # workday
+            self.total_workday = TotalWorkday(self.__dict__.values(), object)
+            self.total_columns = len(self.__dict__.values())
+            self.tags = Tag(object)
+            self.total_hours, __, self.total_wage = output_for_total_hours_date_and_wage(object)
+            self.table = 'workday'
+        elif table == 'invoice':
+            self.table = 'invoice'
+
+
 
 class Status(object):
     def __init__(self, db_query):
+        self.time_format = '%H:%M'
         if hasattr(db_query, '_primary_entity'):
             table = str(db_query._primary_entity.selectable)
         else:
             table = str(db_query.__table__)
-        if table == 'workday':
-            self.id = ID(db_query)
-            self.date = Date(db_query)
-            self.customer = Customer(db_query)
-            self.project = Project(db_query)
-            self.from_time = From(db_query)
-            self.to_time = To(db_query)
-            self.invoice_id = InvoiceID(db_query)
-            # Anything after this attribute will not be added to total width in
-            # workday
-            self.total_workday = TotalWorkday(self.__dict__.values(), db_query)
-            self.total_columns = len(self.__dict__.values())
-            self.tags = Tag(db_query)
-            self.total_hours, __, self.total_wage = output_for_total_hours_date_and_wage(db_query)
-            self.table = 'workday'
-        elif table == 'invoice':
-            self.table = 'invoice'
-        if issubclass(db_query.__class__, Query):
+        if issubclass(object.__class__, Query):
             self.db_query = db_query.all()
         else:
             self.db_query = [db_query]
 
     def __str__(self):
         if self.table == 'workday':
-            return self.printable_workday()
+            return self.workdays(self.db_query)
         elif self.table == 'invoice':
-            return invoices(self.db_query)
+            return self.invoices(self.db_query)
 
     def printable_workday(self):
         return_value = ''
         return_value += '\n' + self.id.get_headline() + self.date.get_headline() + self.customer.get_headline() + self.project.get_headline() + self.from_time.get_headline() + self.to_time.get_headline() + self.invoice_id.get_headline() + self.total_workday.get_headline() + '\n'
         return_value += divider()
-        for workday_id, date, customer, project, from_time, to_time, invoice_id, total_workday in zip(self.id, self.date, self.customer, self.project, self.from_time, self.to_time, self.invoice_id, self.total_workday):
+        for workday_id, date, customer, project, from_time, to_time, invoice_id, total_workday, tags in zip(self.id, self.date, self.customer, self.project, self.from_time, self.to_time, self.invoice_id, self.total_workday, self.tags):
             return_value += '\n' + workday_id + date + customer + project + from_time + to_time + invoice_id + total_workday + '\n'
+            return_value += divider()
+            return_value += '\n' + 'the tag: ' + tags[1] + '\n'
             return_value += divider()
         return return_value
 
@@ -183,87 +190,168 @@ class Status(object):
         return return_value
 
 
-def invoices(invoices):
-    # Headlines
-    created_headline = 'Created on'
-    year_headline = 'Year'
-    month_headline = 'Month'
-    customer_headline = 'Customer'
-    pdf_headline = 'PDF'
-    sent_headline = 'Sent'
-    paid_headline = 'Paid'
-    not_exported_message = 'Not exported'
+    def workdays(self):
+        # Headlines
+        date_headline = 'Date'
+        customer_headline = 'Customer'
+        project_headline = 'Project'
+        from_headline = 'From'
+        to_headline = 'To'
+        invoice_id_headline = 'Invoice ID'
+        total_workday_headline = 'Total'
 
-    # Width for columns
-    widths = {
-        'id': len(max([str(x.id) for x in invoices], key=len)) + 2,
-        'created': max(len(invoices[0].created.date().isoformat()), len(created_headline)) + 3,
-        'customer': max(len(invoices[0].customer.name), len(customer_headline)) + 3,
-        'year': max(len(max([x.year if x.year else '' for x in invoices], key=len)), len(year_headline)) + 1,
-        'month': max(len(max([x.month if x.month else '' for x in invoices], key=len)), len(month_headline)) + 3,
-        'pdf': max(len(max([x.pdf if x.pdf else '' for x in invoices], key=len)), len(pdf_headline), len(not_exported_message)) + 4,
-        'sent': max(len('Yes'), len(sent_headline)) + 1,
-        'paid': max(len('Yes'), len(paid_headline))
-    }
+        # Width for columns
+        widths = {
+            'id': len(max([str(x.id) for x in self.db_query], key=len)) + 2,
+            'date': max(len(self.db_query[0].start.date().isoformat()), len(date_headline)) + 3,
+            'customer': max(len(max([x.customer.name for x in self.db_query], key=len)), len(customer_headline)) + 2,
+            'project': max(len(max([x.project.name for x in self.db_query], key=len)), len(project_headline)) + 4,
+            'from': max(len(db_query[0].start.strftime(self.time_format)), len(from_headline)),
+            'to': max(len(db_query[0].end.strftime(self.time_format)), len(to_headline)),
+            'invoice_id': max(len(max([str(x.invoice_id) for x in db_query], key=len)), len(invoice_id_headline))
+        }
 
-    widths.update({'total': sum(widths.values()) + 7})
+        widths.update({'total_workday': sum(widths.values()) + 11})
 
-    divider()
-    invoices_str = '\n'
-    invoices_str += '{0:<{id_width}} {1:<{created_width}} {2:<{customer_width}} {3:<{year_width}} {4:<{month_width}} {5:<{pdf_width}} {6:<{sent_width}} {7:<{paid_width}}'.format(
-                     '',
-                     created_headline,
-                     customer_headline,
-                     year_headline,
-                     month_headline,
-                     pdf_headline,
-                     sent_headline,
-                     paid_headline,
-                     id_width=widths['id'],
-                     created_width=widths['created'],
-                     customer_width=widths['customer'],
-                     year_width=widths['year'],
-                     month_width=widths['month'],
-                     pdf_width=widths['pdf'],
-                     sent_width=widths['sent'],
-                     paid_width=widths['paid']
-                     )
-    invoices_str += '\n' + divider()
-
-    # Output for each invoice
-    for invoice in invoices:
-
-        if invoice.sent:
-            invoice_sent = 'Yes'
-        else:
-            invoice_sent = 'No'
-
-        if invoice.paid:
-            invoice_paid = 'Yes'
-        else:
-            invoice_paid = 'No'
-
+        divider()
+        invoices_str = '\n'
         invoices_str += '{0:<{id_width}} {1:<{created_width}} {2:<{customer_width}} {3:<{year_width}} {4:<{month_width}} {5:<{pdf_width}} {6:<{sent_width}} {7:<{paid_width}}'.format(
-                        invoice.id,
-                        invoice.created.date().isoformat(),
-                        invoice.customer.name,
-                        invoice.year,
-                        invoice.month,
-                        invoice.pdf or not_exported_message,
-                        invoice_sent,
-                        invoice_paid,
-                        id_width=widths['id'],
-                        created_width=widths['created'],
-                        customer_width=widths['customer'],
-                        year_width=widths['year'],
-                        month_width=widths['month'],
-                        pdf_width=widths['pdf'],
-                        sent_width=widths['sent'],
-                        paid_width=widths['paid']
-                    )
+                         '',
+                         created_headline,
+                         customer_headline,
+                         year_headline,
+                         month_headline,
+                         pdf_headline,
+                         sent_headline,
+                         paid_headline,
+                         id_width=widths['id'],
+                         created_width=widths['created'],
+                         customer_width=widths['customer'],
+                         year_width=widths['year'],
+                         month_width=widths['month'],
+                         pdf_width=widths['pdf'],
+                         sent_width=widths['sent'],
+                         paid_width=widths['paid']
+                         )
         invoices_str += '\n' + divider()
 
-    return invoices_str
+        # Output for each invoice
+        for invoice in self.db_query:
+
+            if invoice.sent:
+                invoice_sent = 'Yes'
+            else:
+                invoice_sent = 'No'
+
+            if invoice.paid:
+                invoice_paid = 'Yes'
+            else:
+                invoice_paid = 'No'
+
+            invoices_str += '{0:<{id_width}} {1:<{created_width}} {2:<{customer_width}} {3:<{year_width}} {4:<{month_width}} {5:<{pdf_width}} {6:<{sent_width}} {7:<{paid_width}}'.format(
+                            invoice.id,
+                            invoice.created.date().isoformat(),
+                            invoice.customer.name,
+                            invoice.year,
+                            invoice.month,
+                            invoice.pdf or not_exported_message,
+                            invoice_sent,
+                            invoice_paid,
+                            id_width=widths['id'],
+                            created_width=widths['created'],
+                            customer_width=widths['customer'],
+                            year_width=widths['year'],
+                            month_width=widths['month'],
+                            pdf_width=widths['pdf'],
+                            sent_width=widths['sent'],
+                            paid_width=widths['paid']
+                        )
+            invoices_str += '\n' + divider()
+
+        return invoices_str
+
+
+    def invoices(self):
+        # Headlines
+        created_headline = 'Created on'
+        year_headline = 'Year'
+        month_headline = 'Month'
+        customer_headline = 'Customer'
+        pdf_headline = 'PDF'
+        sent_headline = 'Sent'
+        paid_headline = 'Paid'
+        not_exported_message = 'Not exported'
+
+        # Width for columns
+        widths = {
+            'id': len(max([str(x.id) for x in self.db_query], key=len)) + 2,
+            'created': max(len(self.db_query[0].created.date().isoformat()), len(created_headline)) + 3,
+            'customer': max(len(self.db_query[0].customer.name), len(customer_headline)) + 3,
+            'year': max(len(max([x.year if x.year else '' for x in self.db_query], key=len)), len(year_headline)) + 1,
+            'month': max(len(max([x.month if x.month else '' for x in self.db_query], key=len)), len(month_headline)) + 3,
+            'pdf': max(len(max([x.pdf if x.pdf else '' for x in self.db_query], key=len)), len(pdf_headline), len(not_exported_message)) + 4,
+            'sent': max(len('Yes'), len(sent_headline)) + 1,
+            'paid': max(len('Yes'), len(paid_headline))
+        }
+
+        widths.update({'total': sum(widths.values()) + 7})
+
+        divider()
+        invoices_str = '\n'
+        invoices_str += '{0:<{id_width}} {1:<{created_width}} {2:<{customer_width}} {3:<{year_width}} {4:<{month_width}} {5:<{pdf_width}} {6:<{sent_width}} {7:<{paid_width}}'.format(
+                         '',
+                         created_headline,
+                         customer_headline,
+                         year_headline,
+                         month_headline,
+                         pdf_headline,
+                         sent_headline,
+                         paid_headline,
+                         id_width=widths['id'],
+                         created_width=widths['created'],
+                         customer_width=widths['customer'],
+                         year_width=widths['year'],
+                         month_width=widths['month'],
+                         pdf_width=widths['pdf'],
+                         sent_width=widths['sent'],
+                         paid_width=widths['paid']
+                         )
+        invoices_str += '\n' + divider()
+
+        # Output for each invoice
+        for invoice in self.db_query:
+
+            if invoice.sent:
+                invoice_sent = 'Yes'
+            else:
+                invoice_sent = 'No'
+
+            if invoice.paid:
+                invoice_paid = 'Yes'
+            else:
+                invoice_paid = 'No'
+
+            invoices_str += '{0:<{id_width}} {1:<{created_width}} {2:<{customer_width}} {3:<{year_width}} {4:<{month_width}} {5:<{pdf_width}} {6:<{sent_width}} {7:<{paid_width}}'.format(
+                            invoice.id,
+                            invoice.created.date().isoformat(),
+                            invoice.customer.name,
+                            invoice.year,
+                            invoice.month,
+                            invoice.pdf or not_exported_message,
+                            invoice_sent,
+                            invoice_paid,
+                            id_width=widths['id'],
+                            created_width=widths['created'],
+                            customer_width=widths['customer'],
+                            year_width=widths['year'],
+                            month_width=widths['month'],
+                            pdf_width=widths['pdf'],
+                            sent_width=widths['sent'],
+                            paid_width=widths['paid']
+                        )
+            invoices_str += '\n' + divider()
+
+        return invoices_str
 
 
 def print_current_stamp(current_stamp):
