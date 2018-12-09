@@ -1,3 +1,4 @@
+import sys
 from sqlalchemy.orm.query import Query
 from .helpers import output_for_total_hours_date_and_wage, get_terminal_width
 from .formatting import divider
@@ -156,19 +157,19 @@ class Status(object):
     def __init__(self, db_query):
         self.time_format = '%H:%M'
         if hasattr(db_query, '_primary_entity'):
-            table = str(db_query._primary_entity.selectable)
+            self.table = str(db_query._primary_entity.selectable)
         else:
-            table = str(db_query.__table__)
-        if issubclass(object.__class__, Query):
+            self.table = str(db_query.__table__)
+        if issubclass(db_query.__class__, Query):
             self.db_query = db_query.all()
         else:
             self.db_query = [db_query]
 
     def __str__(self):
         if self.table == 'workday':
-            return self.workdays(self.db_query)
+            return self.workdays()
         elif self.table == 'invoice':
-            return self.invoices(self.db_query)
+            return self.invoices()
 
     def printable_workday(self):
         return_value = ''
@@ -206,38 +207,40 @@ class Status(object):
             'date': max(len(self.db_query[0].start.date().isoformat()), len(date_headline)) + 3,
             'customer': max(len(max([x.customer.name for x in self.db_query], key=len)), len(customer_headline)) + 2,
             'project': max(len(max([x.project.name for x in self.db_query], key=len)), len(project_headline)) + 4,
-            'from': max(len(db_query[0].start.strftime(self.time_format)), len(from_headline)),
-            'to': max(len(db_query[0].end.strftime(self.time_format)), len(to_headline)),
-            'invoice_id': max(len(max([str(x.invoice_id) for x in db_query], key=len)), len(invoice_id_headline))
+            'from': max(len(self.db_query[0].start.strftime(self.time_format)), len(from_headline)),
+            'to': max(len(self.db_query[0].end.strftime(self.time_format)), len(to_headline)),
+            'invoice_id': max(len(max([str(x.invoice_id) for x in self.db_query], key=len)), len(invoice_id_headline))
         }
 
-        widths.update({'total_workday': sum(widths.values()) + 11})
 
         return_str = divider()
         return_str += '\n'
         # TODO:
-        #  return_str += '{0:<{id_width}} {1:<{created_width}} {2:<{customer_width}} {3:<{year_width}} {4:<{month_width}} {5:<{pdf_width}} {6:<{sent_width}} {7:<{paid_width}}'.format(
-        #                   '',
-        #                   created_headline,
-        #                   customer_headline,
-        #                   year_headline,
-        #                   month_headline,
-        #                   pdf_headline,
-        #                   sent_headline,
-        #                   paid_headline,
-        #                   id_width=widths['id'],
-        #                   created_width=widths['created'],
-        #                   customer_width=widths['customer'],
-        #                   year_width=widths['year'],
-        #                   month_width=widths['month'],
-        #                   pdf_width=widths['pdf'],
-        #                   sent_width=widths['sent'],
-        #                   paid_width=widths['paid']
-        #                   )
-        #  return_str += '\n' + divider()
+        return_str += '{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{project_width}} {4:<{from_width}} {5:<{to_width}} {6:^{invoice_id_width}} {7:>{total_width}}'.format(
+                         '',
+                         date_headline,
+                         customer_headline,
+                         project_headline,
+                         from_headline,
+                         to_headline,
+                         invoice_id_headline,
+                         total_workday_headline,
+                         id_width=widths['id'],
+                         date_width=widths['date'],
+                         customer_width=widths['customer'],
+                         project_width=widths['project'],
+                         from_width=widths['from'],
+                         to_width=widths['to'],
+                         invoice_id_width=widths['invoice_id'],
+                         total_width=sum(widths.values()) + 11
+                         )
+        return_str += '\n' + divider()
 
         # Output for each workday
         for workday in self.db_query:
+            total_time, date, total_owed = output_for_total_hours_date_and_wage(workday)
+            total_output = total_time + ' for ' + total_owed,
+            total_width = 1
             return_str += '{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{project_width}} {4:<{from_width}} {5:<{to_width}} {6:^{invoice_id_width}} {7:>{total_width}}'.format(
                             workday.id,
                             workday.start.date().isoformat(),
@@ -245,8 +248,8 @@ class Status(object):
                             workday.project.name,
                             workday.start.strftime(self.time_format),
                             workday.end.strftime(self.time_format),
-                            workday.invoice_id,
-                            output_for_total_hours_date_and_wage(workday),
+                            workday.invoice_id or '',
+                            total_time + ' for ' + total_owed,
                             id_width=widths['id'],
                             date_width=widths['date'],
                             customer_width=widths['customer'],
@@ -254,7 +257,7 @@ class Status(object):
                             from_width=widths['from'],
                             to_width=widths['to'],
                             invoice_id_width=widths['invoice_id'],
-                            total_width=widths['total_workday']
+                            total_width=total_width
                         )
             return_str += '\n' + divider()
 
