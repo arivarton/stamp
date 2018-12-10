@@ -2,155 +2,42 @@ import sys
 from sqlalchemy.orm.query import Query
 from .helpers import output_for_total_hours_date_and_wage, get_terminal_width
 from .formatting import divider
+from .exceptions import RequiredValueError
 
 
-class StatusColumn(object):
-    def __init__(self):
-        self.headline = ''
-        self.width = 5
-        self.alignment = '<'
-        self.values = list()
-        self.time_format = '%H:%M'
-        self.left_margin = 0
-        self.right_margin = 1
-        self.selected_workday = 0
-
-    def __str__(self):
-        return '{0}{1:{alignment}{width}}{2}'.format(self.left_margin*' ',
-                                                     str(self.values[self.selected_workday]),
-                                                     self.right_margin*' ',
-                                                     alignment=self.alignment,
-                                                     width=self.width)
-
-    def __iter__(self):
-        self.selected_workday = 0
-        return self
-
-    def __next__(self):
-        if self.selected_workday < len(self.values):
-            return_value = self.__str__()
-            self.selected_workday += 1
-            return return_value
+class Column(object):
+    def __init__(self, name=None width=10, headline=''):
+        if not name and headline is '':
+            raise RequiredValueError('If no headline is set, name is required to be set!')
+        if not name:
+            self.name = headline
         else:
-            raise StopIteration
-
-    def add_value(self, value):
-        self.values.append(value)
-
-    def get_headline(self):
-        return '{0}{1:{alignment}{width}}{2}'.format(self.left_margin*' ',
-                                                     str(self.headline),
-                                                     self.right_margin*' ',
-                                                     alignment=self.alignment,
-                                                     width=self.width)
+            self.name = name
+        if not isinstance(width, int):
+            raise ValueError('width argument must be an int!')
+        self.width = width
+        self.headline = headline
+        if not isinstance(self.name, str) and isinstance(self.headline, str):
+            raise ValueError('name and headline arguments must be str types!')
 
 
-class ID(StatusColumn):
-    def __init__(self, workdays):
-        super().__init__()
-        self.width = len(max([str(x.id) for x in workdays], key=len)) + 2
-        for workday in workdays:
-            self.values.append(workday.id)
+class ColumnWrapper(object):
+    def add(self, column):
+        if issubclass(column.__class__, Column):
+            name = column.name.lower().replace(' ', '_')
+            setattr(self, name, column)
+        else:
+            raise ValueError('column argument must be a Column class!')
+    def total_width(self):
+        total_width = 0
+        for width in vars(self).values():
+            total_width += width
+        return total_width
 
 
-class Date(StatusColumn):
-    def __init__(self, workdays):
-        super().__init__()
-        self.headline = 'Date'
-        self.width = max(len(workdays[0].start.date().isoformat()), len(self.headline)) + 3
-        for workday in workdays:
-            __, date, __ = output_for_total_hours_date_and_wage(workday)
-            self.values.append(date)
-
-
-class Customer(StatusColumn):
-    def __init__(self, workdays):
-        super().__init__()
-        self.headline = 'Customer'
-        self.width = max(len(max([x.customer.name for x in workdays], key=len)), len(self.headline)) + 2
-        for workday in workdays:
-            self.values.append(workday.customer.name)
-
-
-class Project(StatusColumn):
-    def __init__(self, workdays):
-        super().__init__()
-        self.headline = 'Project'
-        self.width = max(len(max([x.project.name for x in workdays], key=len)), len(self.headline)) + 4
-        for workday in workdays:
-            self.values.append(workday.project.name)
-
-
-class From(StatusColumn):
-    def __init__(self, workdays):
-        super().__init__()
-        self.headline = 'From'
-        self.width = max(len(workdays[0].start.strftime(self.time_format)), len(self.headline))
-        for workday in workdays:
-            self.values.append(workday.start.strftime(self.time_format))
-
-
-class To(StatusColumn):
-    def __init__(self, workdays):
-        super().__init__()
-        self.headline = 'To'
-        self.width = max(len(workdays[0].end.strftime(self.time_format)), len(self.headline))
-        for workday in workdays:
-            if workday.end:
-                self.values.append(workday.end.strftime(self.time_format))
-            else:
-                self.values.append('')
-
-
-class InvoiceID(StatusColumn):
-    def __init__(self, workdays):
-        super().__init__()
-        self.headline = 'Invoice ID'
-        self.width = max(len(max([str(x.invoice_id) for x in workdays], key=len)), len(self.headline))
-        self.alignment = '^'
-        for workday in workdays:
-            self.values.append(workday.invoice_id or '')
-
-
-class TotalWorkday(StatusColumn):
-    def __init__(self, items, workdays):
-        super().__init__()
-        self.headline = 'Total'
-        self.width = get_terminal_width() - (sum([value.width for value in items]) + 11)
-        self.alignment = '>'
-        for workday in workdays:
-            total_hours, __, total_wage = output_for_total_hours_date_and_wage(workday)
-            self.values.append(total_hours + ' for ' + total_wage)
-
-
-class Tag(ID):
-    def __init__(self, workdays):
-        # Get width from id
-        super().__init__(workdays)
-        self.alignment = '<'
-        for workday in workdays:
-            self.values.append([[tag.id, tag.recorded.strftime(self.time_format), tag.tag] for tag in workday.tags])
-
-class PopulatedObject(object):
-    def __init__(self, object, table):
-        if table == 'workday':
-            self.id = ID(object)
-            self.date = Date(object)
-            self.customer = Customer(object)
-            self.project = Project(object)
-            self.from_time = From(object)
-            self.to_time = To(object)
-            self.invoice_id = InvoiceID(object)
-            # Anything after this attribute will not be added to total width in
-            # workday
-            self.total_workday = TotalWorkday(self.__dict__.values(), object)
-            self.total_columns = len(self.__dict__.values())
-            self.tags = Tag(object)
-            self.total_hours, __, self.total_wage = output_for_total_hours_date_and_wage(object)
-            self.table = 'workday'
-        elif table == 'invoice':
-            self.table = 'invoice'
-
+class Table(object):
+    def __init__(self):
+        self.columns = ColumnWrapper()
 
 
 class Status(object):
@@ -192,39 +79,50 @@ class Status(object):
 
 
     def workdays(self):
+        workdays = Table()
+        workdays.columns.add(Column(name='id',
+                             width=len(max([str(x.id) for x in self.db_query], key=len)) + 2))
+        workdays.columns.add(Column(headline='Date',
+                                    width=max(len(self.db_query[0].start.date().isoformat()), len(headlines['date'])) + 3))
+        workdays.columns.add(Column(headline='Customer',
+                                    width=max(len(max([x.customer.name for x in self.db_query], key=len)), len(headlines['customer'])) + 2))
+        workdays.columns.add(Column(headline='Project',
+                                    width=max(len(max([x.project.name for x in self.db_query], key=len)), len(headlines['project'])) + 4))
+        workdays.columns.add(Column(headline='From',
+                                    width=max(len(self.db_query[0].start.strftime(self.time_format)), len(headlines['from']))))
+        workdays.columns.add(Column(headline='To',
+                                    width=max(len(self.db_query[0].end.strftime(self.time_format)), len(headlines['to']))))
+        workdays.columns.add(Column(headline='Invoice ID',
+                                    width=max(len(max([str(x.invoice_id) for x in self.db_query], key=len)), len(headlines['invoice_id']))))
+
         # Headlines
-        date_headline = 'Date'
-        customer_headline = 'Customer'
-        project_headline = 'Project'
-        from_headline = 'From'
-        to_headline = 'To'
-        invoice_id_headline = 'Invoice ID'
-        total_workday_headline = 'Total'
+        headlines = {
+            'date': 'Date',
+            'customer': 'Customer',
+            'project': 'Project',
+            'from': 'From',
+            'to': 'To',
+            'invoice_id': 'Invoice ID',
+            'total_workday': 'Total'
+        }
 
         # Width for columns
-        widths = {
-            'id': len(max([str(x.id) for x in self.db_query], key=len)) + 2,
-            'date': max(len(self.db_query[0].start.date().isoformat()), len(date_headline)) + 3,
-            'customer': max(len(max([x.customer.name for x in self.db_query], key=len)), len(customer_headline)) + 2,
-            'project': max(len(max([x.project.name for x in self.db_query], key=len)), len(project_headline)) + 4,
-            'from': max(len(self.db_query[0].start.strftime(self.time_format)), len(from_headline)),
-            'to': max(len(self.db_query[0].end.strftime(self.time_format)), len(to_headline)),
-            'invoice_id': max(len(max([str(x.invoice_id) for x in self.db_query], key=len)), len(invoice_id_headline))
-        }
+        total_widths = sum(widths.values())
 
 
         return_str = divider()
         return_str += '\n'
         # TODO:
-        return_str += '{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{project_width}} {4:<{from_width}} {5:<{to_width}} {6:^{invoice_id_width}} {7:>{total_width}}'.format(
-                         '',
-                         date_headline,
-                         customer_headline,
-                         project_headline,
-                         from_headline,
-                         to_headline,
-                         invoice_id_headline,
-                         total_workday_headline,
+        return_str += '{0:<{id_width}}{1:<{date_width}}{2:<{customer_width}}{3:<{project_width}}{4:<{from_width}}{5:<{to_width}}{6:^{invoice_id_width}}{7:>{total_width}}'.format(
+                         workdays.columns.id.headline,
+                         workdays.columns.date.headline,
+                         workdays.columns.customer.headline,
+                         workdays.columns.project.headline,
+                         workdays.columns.from.headline,
+                         workdays.columns.to.headline,
+                         workdays.columns.invoice_id.headline,
+                         workdays.columns.invoice_id.headline,
+                         headlines['total_workday'],
                          id_width=widths['id'],
                          date_width=widths['date'],
                          customer_width=widths['customer'],
@@ -232,7 +130,7 @@ class Status(object):
                          from_width=widths['from'],
                          to_width=widths['to'],
                          invoice_id_width=widths['invoice_id'],
-                         total_width=sum(widths.values()) + 11
+                         total_width=get_terminal_width() - (workdays.columns.total_width() + 5)
                          )
         return_str += '\n' + divider()
 
@@ -240,8 +138,8 @@ class Status(object):
         for workday in self.db_query:
             total_time, date, total_owed = output_for_total_hours_date_and_wage(workday)
             total_output = total_time + ' for ' + total_owed,
-            total_width = 1
-            return_str += '{0:<{id_width}} {1:<{date_width}} {2:<{customer_width}} {3:<{project_width}} {4:<{from_width}} {5:<{to_width}} {6:^{invoice_id_width}} {7:>{total_width}}'.format(
+            total_width = get_terminal_width() - (sum(widths.values()) + len(total_output))
+            return_str += '{0:<{id_width}}{1:<{date_width}}{2:<{customer_width}}{3:<{project_width}}{4:<{from_width}}{5:<{to_width}}{6:^{invoice_id_width}}{7:>{total_width}}'.format(
                             workday.id,
                             workday.start.date().isoformat(),
                             workday.customer.name,
