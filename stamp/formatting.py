@@ -98,3 +98,9 @@ def divider(divider_type='-', alignment='<', text=''):
 
 def format_column(text, width, alignment='^'):
     return '{0:{alignment}{width}}'.format(text, alignment=alignment, width=width)
+
+def boolean_yes_or_no(boolean):
+    if boolean:
+        return 'Yes'
+    else:
+        return 'No'

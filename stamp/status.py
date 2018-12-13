@@ -1,7 +1,7 @@
 import sys
 from sqlalchemy.orm.query import Query
 from .helpers import output_for_total_hours_date_and_wage, get_terminal_width
-from .formatting import divider
+from .formatting import divider, boolean_yes_or_no
 from .exceptions import RequiredValueError
 
 
@@ -159,65 +159,48 @@ class Status(object):
 
 
     def invoices(self):
-        # Headlines
-        created_headline = 'Created on'
-        year_headline = 'Year'
-        month_headline = 'Month'
-        customer_headline = 'Customer'
-        pdf_headline = 'PDF'
-        sent_headline = 'Sent'
-        paid_headline = 'Paid'
         not_exported_message = 'Not exported'
-
-        # Width for columns
-        widths = {
-            'id': len(max([str(x.id) for x in self.db_query], key=len)) + 2,
-            'created': max(len(self.db_query[0].created.date().isoformat()), len(created_headline)) + 3,
-            'customer': max(len(self.db_query[0].customer.name), len(customer_headline)) + 3,
-            'year': max(len(max([x.year if x.year else '' for x in self.db_query], key=len)), len(year_headline)) + 1,
-            'month': max(len(max([x.month if x.month else '' for x in self.db_query], key=len)), len(month_headline)) + 3,
-            'pdf': max(len(max([x.pdf if x.pdf else '' for x in self.db_query], key=len)), len(pdf_headline), len(not_exported_message)) + 4,
-            'sent': max(len('Yes'), len(sent_headline)) + 1,
-            'paid': max(len('Yes'), len(paid_headline))
-        }
-
-        widths.update({'total': sum(widths.values()) + 7})
-
+        invoices = Table()
+        invoices.columns.add(Column(name='id',
+                                    width=len(max([str(x.id) for x in self.db_query], key=len)) + 3))
+        invoices.columns.add(Column(headline='Created on',
+                                    width=len(self.db_query[0].created.date().isoformat()) + 6))
+        invoices.columns.add(Column(headline='Customer',
+                                    width=len(max([x.customer.name for x in self.db_query], key=len)) + 6))
+        invoices.columns.add(Column(headline='Year',
+                                    width=len(max([x.year if x.year else '' for x in self.db_query], key=len)) + 6))
+        invoices.columns.add(Column(headline='Month',
+                                    width=len(max([x.month if x.month else '' for x in self.db_query], key=len)) + 6))
+        invoices.columns.add(Column(headline='PDF',
+                                    width=max(len(max([x.pdf if x.pdf else '' for x in self.db_query], key=len)), len(not_exported_message)) + 6))
+        invoices.columns.add(Column(headline='Sent',
+                                    width=max(len('Yes'), len('Sent')) + 6))
+        invoices.columns.add(Column(headline='Paid',
+                                    width=max(len('Yes'), len('Paid')) + 6))
         return_str = divider()
         return_str += '\n'
         return_str += '{0:<{id_width}} {1:<{created_width}} {2:<{customer_width}} {3:<{year_width}} {4:<{month_width}} {5:<{pdf_width}} {6:<{sent_width}} {7:<{paid_width}}'.format(
-                         '',
-                         created_headline,
-                         customer_headline,
-                         year_headline,
-                         month_headline,
-                         pdf_headline,
-                         sent_headline,
-                         paid_headline,
-                         id_width=widths['id'],
-                         created_width=widths['created'],
-                         customer_width=widths['customer'],
-                         year_width=widths['year'],
-                         month_width=widths['month'],
-                         pdf_width=widths['pdf'],
-                         sent_width=widths['sent'],
-                         paid_width=widths['paid']
+                         invoices.columns.id.headline,
+                         invoices.columns.created_on.headline,
+                         invoices.columns.customer.headline,
+                         invoices.columns.year.headline,
+                         invoices.columns.month.headline,
+                         invoices.columns.pdf.headline,
+                         invoices.columns.sent.headline,
+                         invoices.columns.paid.headline,
+                         id_width=invoices.columns.id.width,
+                         created_width=invoices.columns.created_on.width,
+                         customer_width=invoices.columns.customer.width,
+                         year_width=invoices.columns.year.width,
+                         month_width=invoices.columns.month.width,
+                         pdf_width=invoices.columns.pdf.width,
+                         sent_width=invoices.columns.sent.width,
+                         paid_width=invoices.columns.paid.width
                          )
         return_str += '\n' + divider()
 
         # Output for each invoice
         for invoice in self.db_query:
-
-            if invoice.sent:
-                invoice_sent = 'Yes'
-            else:
-                invoice_sent = 'No'
-
-            if invoice.paid:
-                invoice_paid = 'Yes'
-            else:
-                invoice_paid = 'No'
-
             return_str += '{0:<{id_width}} {1:<{created_width}} {2:<{customer_width}} {3:<{year_width}} {4:<{month_width}} {5:<{pdf_width}} {6:<{sent_width}} {7:<{paid_width}}'.format(
                             invoice.id,
                             invoice.created.date().isoformat(),
@@ -225,16 +208,16 @@ class Status(object):
                             invoice.year,
                             invoice.month,
                             invoice.pdf or not_exported_message,
-                            invoice_sent,
-                            invoice_paid,
-                            id_width=widths['id'],
-                            created_width=widths['created'],
-                            customer_width=widths['customer'],
-                            year_width=widths['year'],
-                            month_width=widths['month'],
-                            pdf_width=widths['pdf'],
-                            sent_width=widths['sent'],
-                            paid_width=widths['paid']
+                            boolean_yes_or_no(invoice.sent),
+                            boolean_yes_or_no(invoice.paid),
+                            id_width=invoices.columns.id.width,
+                            created_width=invoices.columns.created_on.width,
+                            customer_width=invoices.columns.customer.width,
+                            year_width=invoices.columns.year.width,
+                            month_width=invoices.columns.month.width,
+                            pdf_width=invoices.columns.pdf.width,
+                            sent_width=invoices.columns.sent.width,
+                            paid_width=invoices.columns.paid.width
                         )
             return_str += '\n' + divider()
 
