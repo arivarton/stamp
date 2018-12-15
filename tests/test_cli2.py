@@ -13,9 +13,9 @@ sys.path.append('../stamp')
 
 from stamp import settings # NOQA
 from stamp.db import Database
-from stamp.add import stamp_in
+from stamp.add import new_stamp
 from stamp.tag import tag_stamp
-from stamp.end import stamp_out
+from stamp.end import end_stamp
 from stamp.status import Status
 from stamp.export import export_invoice
 from stamp.delete import delete_workday_or_tag
@@ -36,7 +36,7 @@ class TestStampCLI(unittest.TestCase):
         date_and_time = datetime.now()
         # Stamp in
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = stamp_in(db, customer_name, project_name, date_and_time.date(),
+            stamp = new_stamp(db, customer_name, project_name, date_and_time.date(),
                              date_and_time.time())
         self.assertTrue(stamp)
         # Tag with current time
@@ -51,13 +51,13 @@ class TestStampCLI(unittest.TestCase):
         self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Stamp out
-        self.assertTrue(stamp_out(db, date_and_time.date(), date_and_time.time()))
+        self.assertTrue(end_stamp(db, date_and_time.date(), date_and_time.time()))
 
         # Create another workday a day later
         date_and_time = datetime.now() + timedelta(days=1)
         # Stamp in
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = stamp_in(db, customer_name, project_name, date_and_time.date(),
+            stamp = new_stamp(db, customer_name, project_name, date_and_time.date(),
                              date_and_time.time())
         self.assertTrue(stamp)
         # Tag with current time
@@ -72,13 +72,13 @@ class TestStampCLI(unittest.TestCase):
         self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Stamp out
-        self.assertTrue(stamp_out(db, date_and_time.date(), date_and_time.time()))
+        self.assertTrue(end_stamp(db, date_and_time.date(), date_and_time.time()))
 
         # Create another workday a day before
         date_and_time = datetime.now() + timedelta(days=-1)
         # Stamp in
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = stamp_in(db, customer_name, project_name, date_and_time.date(),
+            stamp = new_stamp(db, customer_name, project_name, date_and_time.date(),
                              date_and_time.time())
         self.assertTrue(stamp)
         # Tag with current time
@@ -97,7 +97,7 @@ class TestStampCLI(unittest.TestCase):
         self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Stamp out
-        self.assertTrue(stamp_out(db, date_and_time.date(), date_and_time.time()))
+        self.assertTrue(end_stamp(db, date_and_time.date(), date_and_time.time()))
 
         # Create another workday with random date
         random_year = rrange(1900, 2200)
@@ -110,7 +110,7 @@ class TestStampCLI(unittest.TestCase):
                                  minute=rrange(0, 60))
         # Stamp in
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = stamp_in(db, customer_name, project_name, date_and_time.date(),
+            stamp = new_stamp(db, customer_name, project_name, date_and_time.date(),
                              date_and_time.time())
         self.assertTrue(stamp)
         # Tag with current time
@@ -129,13 +129,13 @@ class TestStampCLI(unittest.TestCase):
         self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Stamp out
-        self.assertTrue(stamp_out(db, date_and_time.date(), date_and_time.time()))
+        self.assertTrue(end_stamp(db, date_and_time.date(), date_and_time.time()))
 
         # Create another workday a day later
         date_and_time = date_and_time + timedelta(days=1)
         # Stamp in
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = stamp_in(db, customer_name, project_name, date_and_time.date(),
+            stamp = new_stamp(db, customer_name, project_name, date_and_time.date(),
                              date_and_time.time())
         self.assertTrue(stamp)
         # Tag with current time
@@ -150,13 +150,13 @@ class TestStampCLI(unittest.TestCase):
         self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Stamp out
-        self.assertTrue(stamp_out(db, date_and_time.date(), date_and_time.time()))
+        self.assertTrue(end_stamp(db, date_and_time.date(), date_and_time.time()))
 
         # Create another workday a day before
         date_and_time = date_and_time + timedelta(days=-2)
         # Stamp in
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = stamp_in(db, customer_name, project_name, date_and_time.date(),
+            stamp = new_stamp(db, customer_name, project_name, date_and_time.date(),
                              date_and_time.time())
         self.assertTrue(stamp)
         # Tag with current time
@@ -175,12 +175,12 @@ class TestStampCLI(unittest.TestCase):
         self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Stamp out
-        self.assertTrue(stamp_out(db, date_and_time.date(), date_and_time.time()))
+        self.assertTrue(end_stamp(db, date_and_time.date(), date_and_time.time()))
 
         # Create another workday to test workday deletion
         # Stamp in
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = stamp_in(db, customer_name, project_name, date_and_time.date(),
+            stamp = new_stamp(db, customer_name, project_name, date_and_time.date(),
                              date_and_time.time())
         self.assertTrue(stamp)
         # Tag with current time
@@ -199,7 +199,7 @@ class TestStampCLI(unittest.TestCase):
         self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
                                   stamp, 'This should be deleted.'))
         # Stamp out
-        self.assertTrue(stamp_out(db, date_and_time.date(), date_and_time.time()))
+        self.assertTrue(end_stamp(db, date_and_time.date(), date_and_time.time()))
         # Delete
         delete_workday_or_tag(db, stamp.id)
 
@@ -207,7 +207,7 @@ class TestStampCLI(unittest.TestCase):
         date_and_time = datetime.now() + timedelta(days=10)
         # Stamp in
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = stamp_in(db, customer_name, project_name, date_and_time.date(),
+            stamp = new_stamp(db, customer_name, project_name, date_and_time.date(),
                              date_and_time.time())
         self.assertTrue(stamp)
         # Tag with current time
@@ -227,7 +227,7 @@ class TestStampCLI(unittest.TestCase):
         self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
                                   stamp, 'This should not be deleted.'))
         # Stamp out
-        self.assertTrue(stamp_out(db, date_and_time.date(), date_and_time.time()))
+        self.assertTrue(end_stamp(db, date_and_time.date(), date_and_time.time()))
         # Delete
         delete_workday_or_tag(db, stamp.id, tag.id)
 

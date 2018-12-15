@@ -7,7 +7,7 @@ from .helpers import auto_correct_tag, manually_correct_tag
 from .exceptions import CurrentStampNotFoundError
 
 
-def stamp_out(db, date, time):
+def end_stamp(db, date, time):
     stamp = db.current_stamp()
     if not stamp:
         raise CurrentStampNotFoundError('No stamp present. Stamp in first!')

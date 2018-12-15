@@ -3,7 +3,7 @@ import argparse
 
 from . import __version__
 from .args_helpers import *
-from .main import add, end, tag, status, export, delete, edit
+from .main import stamp_in, stamp_out, tag, status, export, delete, edit
 from .exceptions import RequiredValueError
 from .helpers import error_handler
 
@@ -62,14 +62,14 @@ def parse(args):
                                                customer_parameters,
                                                project_parameters,
                                                db_parameters])
-    in_parser.set_defaults(func=add)
+    in_parser.set_defaults(func=stamp_in)
 
     # End parser
     out_parser = main_subparsers.add_parser('out', aliases=['o'],
                                             help='End current stamp.',
                                             parents=[date_parameters,
                                             db_parameters])
-    out_parser.set_defaults(func=end)
+    out_parser.set_defaults(func=stamp_out)
 
     # Tag parser
     tag_parser = main_subparsers.add_parser('tag', aliases=['t'],

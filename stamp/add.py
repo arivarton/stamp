@@ -77,7 +77,7 @@ def create_invoice(db, workdays, customer, year, month):
     return invoice
 
 
-def stamp_in(db, customer, project, date, time):
+def new_stamp(db, customer, project, date, time):
     try:
         if customer:
             customer_query = db.get('Customer').filter(Customer.name == customer).first()

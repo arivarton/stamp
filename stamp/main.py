@@ -1,7 +1,7 @@
 import sys
 
-from .add import stamp_in
-from .end import stamp_out
+from .add import new_stamp
+from .end import end_stamp
 from .edit import edit_workday, edit_customer, edit_project, edit_invoice
 from .status import print_current_stamp, Status
 from .delete import delete_workday_or_tag
@@ -15,19 +15,19 @@ from .helpers import error_handler
 from .decorators import db_commit_decorator, no_db_no_action_decorator
 
 @db_commit_decorator
-def add(args):
+def stamp_in(args):
     try:
-        stamp_in(args.db, args.customer, args.project, args.date,
-                 args.time)
+        new_stamp(args.db, args.customer, args.project, args.date,
+                  args.time)
     except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
         error_handler(err_msg, db=args.db)
 
 
 @no_db_no_action_decorator
 @db_commit_decorator
-def end(args):
+def stamp_out(args):
     try:
-        stamp_out(args.db, args.date, args.time)
+        end_stamp(args.db, args.date, args.time)
     except (CurrentStampNotFoundError, CanceledByUser) as err_msg:
         error_handler(err_msg, db=args.db)
 
