@@ -105,10 +105,9 @@ class Database():
             return query
 
     def get_related_invoice(self, year, month):
-        invoices = self.get('Invoice')
-        invoices.filter(Invoice.month == month,
-                        Invoice.year == year).order_by(
-                        Invoice.id.desc())
+        invoices = self.get('Invoice').filter(Invoice.month == month,
+                                              Invoice.year == year).order_by(
+                                              Invoice.id.desc())
         if invoices.count() == 0:
             raise NoMatchingDatabaseEntryError('No invoice found for %s %s!' % (month, year))
         else:

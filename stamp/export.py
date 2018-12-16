@@ -226,7 +226,7 @@ def export_pdf(db, year, month, customer, invoice):
                                 # DB name
                                 db.session.connection().engine.url.database.split('/')[-1].split('.')[0],
                                 customer,
-                                year,
+                                str(year),
                                 month)
         pdf_file = create_pdf(invoice.workdays, save_dir, invoice.id)
         invoice.pdf = pdf_file
@@ -244,8 +244,10 @@ def export_invoice(db, year, month, customer, project, save_pdf=False):
     export_filter = GetExportFilter(db, month, year, customer, project)
     workdays = db.get('Workday').filter(Workday.start >= export_filter.start,
                                         Workday.end < export_filter.end,
-                                        Workday.customer_id == export_filter.customer.id,
-                                        Workday.project_id == export_filter.project.id).order_by(Workday.start)
+                                        Workday.customer_id == export_filter.customer.id)
+    if project:
+        workdays.filter(Workday.project_id == export_filter.project.id)
+    workdays.order_by(Workday.start)
 
     try:
         related_invoice = db.get_related_invoice(year, export_filter.month)
