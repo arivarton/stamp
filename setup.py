@@ -10,6 +10,8 @@ exec_dir = path.abspath(path.dirname(__file__))
 
 with open(path.join(exec_dir, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
+with open(path.join(exec_dir, 'requirements.txt'), encoding='utf-8') as f:
+    install_requires = f.read().rstrip().split('\n')
 
 setup(
     name='stamp',
@@ -43,10 +45,7 @@ setup(
     ],
     keywords='work hours time log register stamp',
     python_requires='>=3',
-    install_requires=[
-        'sqlalchemy',
-        'reportlab',
-    ],
+    install_requires=install_requires,
     packages=find_packages(exclude=['tests', ]),
     entry_points={
         'console_scripts': [
