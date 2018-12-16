@@ -12,8 +12,7 @@ from .exceptions import (NoMatchingDatabaseEntryError,
 from .settings import DATA_DIR
 from .formatting import yes_or_no
 
-
-
+__all__ = ['Database']
 
 class Database():
     def __init__(self, db_file):

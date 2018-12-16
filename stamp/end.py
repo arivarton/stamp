@@ -6,6 +6,7 @@ from .formatting import yes_or_no
 from .helpers import auto_correct_tag, manually_correct_tag
 from .exceptions import CurrentStampNotFoundError
 
+__all__ = ['end_stamp']
 
 def end_stamp(db, date, time):
     stamp = db.current_stamp()

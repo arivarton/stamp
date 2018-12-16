@@ -5,6 +5,12 @@ from sqlalchemy.orm import relationship, validates
 
 from .helpers import get_month_names
 
+__all__ = ['Customer',
+           'Project',
+           'Invoice',
+           'Workday',
+           'Tag']
+
 Base = declarative_base()
 
 

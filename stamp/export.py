@@ -24,6 +24,8 @@ from .add import create_invoice
 from .mappings import Workday, Customer, Project
 from .db import Database
 
+__all__ = ['export_invoice']
+
 
 class GetExportFilter(object):
     def __init__(self, db: Database, month: str, year: int, customer: str, project: str):

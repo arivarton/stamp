@@ -1,6 +1,11 @@
 import sys
 import re
 
+__all__ = ['edit_workday',
+           'edit_customer',
+           'edit_project',
+           'edit_invoice']
+
 def edit_workday(db, id, date=None, time=None, comment=None, customer=None):
     workday = db.get('Workday', id)
     if date:

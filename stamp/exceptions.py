@@ -1,3 +1,15 @@
+__all__ = ['TagOutsideTimeBoundaryError',
+           'NoMatchingDatabaseEntryError',
+           'TooManyMatchingDatabaseEntriesError',
+           'TooManyMatchesError',
+           'NoMatchesError',
+           'NonExistingId',
+           'ArgumentError',
+           'CurrentStampNotFoundError',
+           'CanceledByUser',
+           'RequiredValueError',
+           'DeleteNotAllowedError']
+
 class StampError(Exception):
     pass
 

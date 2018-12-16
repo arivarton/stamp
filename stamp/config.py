@@ -6,6 +6,8 @@ import yaml
 from .settings import CONFIG_DIR, CONFIG_FILE, DB_FILE
 from .helpers import error_handler
 
+__all__ = ['HandleConfig']
+
 
 class ConfigValue(object):
     def __init__(self, config):
@@ -53,7 +55,6 @@ class HandleConfig(object):
         self.config = self.load_config()
 
     def validate_config_values(self, config) -> None:
-        """Validate config values."""
         for value in self.values:
             if not value.validate():
                 error_handler('Error when validating the %s option in config file!' % value.__class__.__name__, exit_on_error=True)

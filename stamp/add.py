@@ -7,6 +7,8 @@ from .db import Database
 from .formatting import yes_or_no, provide_input, value_for
 from .mappings import Customer, Project
 
+__all__ = ['new_stamp',
+           'create_invoice']
 
 def _create_stamp(db, customer, project, stamp, date, time):
     stamp.start = datetime.combine(date, time)
@@ -27,7 +29,7 @@ def _add_details(Table):
     return Table
 
 
-def create_project(db, customer_id, project_name=None):
+def _create_project(db, customer_id, project_name=None):
     if not project_name:
         project_name = provide_input('project name')
     project = Project(name=project_name, customer_id=customer_id)
@@ -44,7 +46,7 @@ def create_project(db, customer_id, project_name=None):
     return project
 
 
-def create_customer(db, customer_name=None):
+def _create_customer(db, customer_name=None):
     if not customer_name:
         customer_name = provide_input('customer name')
     customer = Customer(name=customer_name)
@@ -90,7 +92,7 @@ def new_stamp(db, customer, project, date, time):
                              no_message='Canceling...',
                              no_function=sys.exit,
                              no_function_args=(0,),
-                             yes_function=create_customer,
+                             yes_function=_create_customer,
                              yes_function_args=(db, customer,))
 
     # Validate project
@@ -106,7 +108,7 @@ def new_stamp(db, customer, project, date, time):
                                   no_message='Canceling...',
                                   no_function=sys.exit,
                                   no_function_args=(0,),
-                                  yes_function=create_project,
+                                  yes_function=_create_project,
                                   yes_function_args=(db, customer_query.id),
                                   yes_function_kwargs={'project_name': project})
 

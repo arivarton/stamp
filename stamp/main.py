@@ -14,6 +14,14 @@ from .exceptions import (NoMatchingDatabaseEntryError, CurrentStampNotFoundError
 from .helpers import error_handler
 from .decorators import db_commit_decorator, no_db_no_action_decorator
 
+__all__ = ['stamp_in',
+           'stamp_out',
+           'tag',
+           'status',
+           'export',
+           'delete',
+           'edit']
+
 @db_commit_decorator
 def stamp_in(args):
     try:

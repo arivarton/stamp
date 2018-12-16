@@ -4,8 +4,15 @@ from datetime import datetime, timedelta
 
 from .settings import MINIMUM_HOURS, WAGE_PER_HOUR, CURRENCY
 
+__all__ = ['output_for_total_hours_date_and_wage',
+           'auto_correct_tag',
+           'manually_correct_tag',
+           'get_terminal_width',
+           'get_month_names',
+           'error_handler']
 
-def determine_total_hours_worked_and_wage_earned(workdays):
+
+def _determine_total_hours_worked_and_wage_earned(workdays):
     # If workdays is an object (Workday) it must be put in a list
     try:
         workdays = list(workdays)
@@ -51,7 +58,7 @@ def determine_total_hours_worked_and_wage_earned(workdays):
 
 
 def output_for_total_hours_date_and_wage(workday):
-    hours, minutes, wage = determine_total_hours_worked_and_wage_earned(workday)
+    hours, minutes, wage = _determine_total_hours_worked_and_wage_earned(workday)
     output_total_wage = '%d%s' % (wage, CURRENCY)
     output_total_hours = '%dh' % hours
     if minutes:

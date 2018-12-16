@@ -9,6 +9,7 @@ from .helpers import error_handler
 
 from .settings import DATA_DIR, DB_FILE
 
+__all__ = ['parse']
 
 def parse(args):
     # [Main parser]
