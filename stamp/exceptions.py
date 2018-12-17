@@ -57,3 +57,7 @@ class RequiredValueError(StampError):
 
 class DeleteNotAllowedError(StampError):
     pass
+
+
+class ConfigValueError(StampError):
+    pass
