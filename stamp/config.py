@@ -102,7 +102,7 @@ class Currency(ConfigValue):
         self.choices.extend(['NOK', 'ISK', 'USD'])
 
 
-class ValueWrapper(object):
+class ValuesWrapper(object):
     def add(self, value):
         if issubclass(value.__class__, ConfigValue):
             regex = re.compile('(?!^)(?=[A-Z])')
@@ -114,7 +114,7 @@ class ValueWrapper(object):
 
 class HandleConfig(object):
     def __init__(self):
-        self.values = ValueWrapper()
+        self.values = ValuesWrapper()
 
         # Add values
         self.values.add(Interface())

@@ -1,5 +1,5 @@
 # Stamp introduction
-Register work hours in cli (Curses interface is under development).
+Register work hours in cli.
 Stamp in before starting the workday, tag points in time with comments and stamp out when workday is over.
 Hours are saved to a sqlite database and exportable to pdf.
 PDF is currently in Norwegian, needs to be translated.
@@ -12,7 +12,7 @@ See stamp/settings.py.
 
 # Install
 ### (Optional) Create virtual python environment
-Download 'virtualenv'
+Download and install 'virtualenv' for your distribution.
 
 `mkvirtualenv 'stamp-0.1.6'`
 
