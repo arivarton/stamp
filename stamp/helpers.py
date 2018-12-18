@@ -2,7 +2,7 @@ import sys
 import shutil
 from datetime import datetime, timedelta
 
-from .settings import MINIMUM_HOURS, WAGE_PER_HOUR, CURRENCY
+from .config import Config
 
 __all__ = ['output_for_total_hours_date_and_wage',
            'auto_correct_tag',
@@ -11,6 +11,7 @@ __all__ = ['output_for_total_hours_date_and_wage',
            'get_month_names',
            'error_handler']
 
+settings = Config()
 
 def _determine_total_hours_worked_and_wage_earned(workdays):
     # If workdays is an object (Workday) it must be put in a list
@@ -26,15 +27,15 @@ def _determine_total_hours_worked_and_wage_earned(workdays):
         if workday.end:
             total_seconds = (workday.end - workday.start).total_seconds()
             hours = total_seconds // 3600
-            if hours < MINIMUM_HOURS:
-                hours = MINIMUM_HOURS
+            if hours < settings.values.minimum_hours.value:
+                hours = settings.values.minimum_hours.value
                 minutes = 0
             else:
                 minutes = (total_seconds % 3600) // 60
             seconds = total_seconds % 60 # NOQA
 
             # Add hours to wage
-            total_wage += hours * WAGE_PER_HOUR
+            total_wage += hours * settings.values.wage_per_hour.value
 
             # Add minutes to wage
             # Minutes logic:
@@ -42,10 +43,10 @@ def _determine_total_hours_worked_and_wage_earned(workdays):
             # If minutes is between 15 and 44.59 there will be half an hour added.
             # If minutes is 45+ there will be added an hour...
             if minutes >= 15 and minutes < 45:
-                total_wage += WAGE_PER_HOUR * 0.5
+                total_wage += settings.values.wage_per_hour.value * 0.5
                 minutes = 30
             elif minutes >= 45:
-                total_wage += WAGE_PER_HOUR * 1
+                total_wage += settings.values.wage_per_hour.value * 1
                 minutes = 60
             else:
                 minutes = 0
@@ -59,7 +60,7 @@ def _determine_total_hours_worked_and_wage_earned(workdays):
 
 def output_for_total_hours_date_and_wage(workday):
     hours, minutes, wage = _determine_total_hours_worked_and_wage_earned(workday)
-    output_total_wage = '%d%s' % (wage, CURRENCY)
+    output_total_wage = '%d%s' % (wage, settings.values.currency.value)
     output_total_hours = '%dh' % hours
     if minutes:
         output_total_hours += ', %dm' % minutes

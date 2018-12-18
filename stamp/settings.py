@@ -18,17 +18,3 @@ DB_FILE = os.environ.get('STAMP_DEV_DB_FILE',
 FILE_DIR = os.path.expanduser(os.environ.get('STAMP_FILE_DIR', DEFAULT_DIR))
 INVOICE_DIR = os.path.expanduser(os.environ.get('STAMP_INVOICE_DIR',
                                                 '~/Documents/stamp/Invoices'))
-
-# User settings
-MINIMUM_HOURS = int(os.getenv('STAMP_MINIMUM_HOURS') or 2)
-STANDARD_HOURS = os.getenv('STAMP_STANDARD_HOURS') or '08:00-16:00'
-LUNCH = os.getenv('STAMP_LUNCH') or '00:30'
-WAGE_PER_HOUR = int(os.getenv('STAMP_WAGE_PER_HOUR') or 300)
-CURRENCY = os.getenv('STAMP_CURRENCY') or ',-'
-ORG_NR = os.getenv('STAMP_ORG_NR')
-COMPANY_NAME = os.getenv('STAMP_NAME')
-COMPANY_ADDRESS = os.getenv('STAMP_ADDRESS')
-COMPANY_ZIP_CODE = os.getenv('STAMP_ZIP_CODE')
-COMPANY_ACCOUNT_NUMBER = os.getenv('STAMP_ACCOUNT_NUMBER')
-PHONE = os.getenv('STAMP_PHONE')
-MAIL = os.getenv('STAMP_MAIL')

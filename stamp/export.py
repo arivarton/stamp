@@ -11,8 +11,7 @@ from reportlab.lib.units import inch
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT, TA_CENTER
 
-from .settings import (ORG_NR, FILE_DIR, COMPANY_NAME, COMPANY_ADDRESS,
-                       COMPANY_ZIP_CODE, COMPANY_ACCOUNT_NUMBER, MAIL, PHONE,
+from .settings import (FILE_DIR,
                        INVOICE_DIR)
 from .exceptions import (TooManyMatchesError, ArgumentError, NoMatchesError,
                          NoMatchingDatabaseEntryError,
@@ -23,8 +22,11 @@ from .status import Status
 from .add import create_invoice
 from .mappings import Workday, Customer, Project
 from .db import Database
+from .config import Config
 
 __all__ = ['export_invoice']
+
+settings = Config()
 
 
 class GetExportFilter(object):
@@ -120,17 +122,17 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
 
         # Sellers customer info
         canvas.setFont('Times-Bold', 12)
-        canvas.drawString(customer_width, customer_height, COMPANY_NAME)
+        canvas.drawString(customer_width, customer_height, settings.values.company_name.value)
         canvas.setFont('Times-Bold', 9)
         canvas.drawString(customer_width, customer_height - 37, "Org nr:")
         canvas.drawString(customer_width, customer_height - 48, "Epost:")
         canvas.drawString(customer_width, customer_height - 59, "Tlf:")
         canvas.setFont('Times-Roman', 9)
-        canvas.drawString(customer_width, customer_height - 10, COMPANY_ADDRESS)
-        canvas.drawString(customer_width, customer_height - 21, COMPANY_ZIP_CODE)
-        canvas.drawString(customer_width + 50, customer_height - 37, ORG_NR)
-        canvas.drawString(customer_width + 50, customer_height - 48, MAIL)
-        canvas.drawString(customer_width + 50, customer_height - 59, PHONE)
+        canvas.drawString(customer_width, customer_height - 10, settings.values.company_address.value)
+        canvas.drawString(customer_width, customer_height - 21, settings.values.company_zip.value)
+        canvas.drawString(customer_width + 50, customer_height - 37, settings.values.organization_number.value)
+        canvas.drawString(customer_width + 50, customer_height - 48, settings.values.mail_address.value)
+        canvas.drawString(customer_width + 50, customer_height - 59, settings.values.phone_number.value)
 
         # Buyers customer info
         canvas.setFont('Times-Bold', 14)
@@ -159,8 +161,8 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
         # Bottom info
         canvas.setFont('Times-Roman', 9)
         canvas.drawCentredString(PAGE_WIDTH/2.0, bottom_height, output_wage)
-        canvas.drawString(bottom_width, bottom_height, COMPANY_NAME)
-        canvas.drawString(bottom_end_width, bottom_height, COMPANY_ACCOUNT_NUMBER)
+        canvas.drawString(bottom_width, bottom_height, settings.values.company_name.value)
+        canvas.drawString(bottom_end_width, bottom_height, settings.values.company_account_number.value)
 
         canvas.restoreState()
 
@@ -169,8 +171,8 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
         # Bottom info
         canvas.setFont('Times-Roman', 9)
         canvas.drawCentredString(PAGE_WIDTH/2.0, bottom_height, output_wage)
-        canvas.drawString(bottom_width, bottom_height, COMPANY_NAME)
-        canvas.drawString(bottom_end_width, bottom_height, COMPANY_ACCOUNT_NUMBER)
+        canvas.drawString(bottom_width, bottom_height, settings.values.company_name.value)
+        canvas.drawString(bottom_end_width, bottom_height, settings.values.company_account_number.value)
         canvas.restoreState()
 
     def new_page(canvas, doc):
