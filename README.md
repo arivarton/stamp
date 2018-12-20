@@ -27,6 +27,15 @@ Download and install 'virtualenv' for your distribution.
 
 `python3 setup.py install`
 
+# Config
+To see available config options and their current values run `stamp --show_config`.
+
+To set config values it's possible to use either a config file or environment variables.
+The config file has the highest priority.
+
+Config file location should be in $XDG_CONFIG_HOME/.config/stamp/config. If the XDG environment variable is not set then the directory is ~/.config/stamp/config.
+
+The environment variables take the same name as in the config file but with a preceding 'STAMP_' and the rest in uppercase. For example: 'STAMP_DATABASE_PATH'.
 
 # Usage
 Run `stamp --help`
