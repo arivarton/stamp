@@ -4,14 +4,18 @@ import sys
 import curses
 from .args import parse
 from .ui.main import main as curses_interface
-from .exceptions import RequiredValueError
-from .helpers import error_handler
 from .db import Database
+from .config import Config
 
 
 def run(args=sys.argv[1:]):
     parser = parse(sys.argv[1:])
     parser.db = Database(parser.db)
+    parser.config = Config(parser.config)
+
+    if(parser.show_config):
+        print(parser.config.values)
+        sys.exit(0)
 
     if vars(parser):
         parser.func(parser)

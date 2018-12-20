@@ -3,7 +3,7 @@ import sys
 import argparse
 from datetime import datetime
 
-from .settings import DATA_DIR, DB_FILE
+from .settings import DATA_DIR, DB_FILE, CONFIG_DIR, CONFIG_FILE
 from .decorators import no_db_no_action_decorator
 from .exceptions import CurrentStampNotFoundError, RequiredValueError, NoMatchingDatabaseEntryError
 from .helpers import error_handler
@@ -11,7 +11,8 @@ from .helpers import error_handler
 __all__ = ['DateAction',
            'TimeAction',
            'DbAction',
-           'FromEnvAction']
+           'FromEnvAction',
+           'ConfigAction']
 
 class DateAction(argparse.Action):
     date_format = '%x'
@@ -81,6 +82,26 @@ class DbAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         db_dir = os.path.join(DATA_DIR, values) + '.db'
         setattr(namespace, self.dest, db_dir)
+
+
+class ConfigAction(argparse.Action):
+    def __init__(self,
+                 option_strings,
+                 dest,
+                 help='Path to config file.',
+                 type=str, # NOQA
+                 required=False,
+                 default=os.path.join(CONFIG_DIR, CONFIG_FILE)):
+        super(ConfigAction, self).__init__(option_strings,
+                                       dest,
+                                       help=help,
+                                       type=type,
+                                       required=required,
+                                       default=default)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        config_dir = os.path.expanduser(values)
+        setattr(namespace, self.dest, config_dir)
 
 
 class FromEnvAction(argparse.Action):

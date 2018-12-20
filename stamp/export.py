@@ -26,8 +26,6 @@ from .config import Config
 
 __all__ = ['export_invoice']
 
-settings = Config()
-
 
 class GetExportFilter(object):
     def __init__(self, db: Database, month: str, year: int, customer: str, project: str):
@@ -76,7 +74,7 @@ class GetExportFilter(object):
         return start + timedelta(days=_month_days)
 
 
-def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
+def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
     if invoice_id:
         file_name = str(invoice_id) + '-invoice.pdf'
     else:
@@ -122,17 +120,17 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
 
         # Sellers customer info
         canvas.setFont('Times-Bold', 12)
-        canvas.drawString(customer_width, customer_height, settings.values.company_name.value)
+        canvas.drawString(customer_width, customer_height, config.company_name.value)
         canvas.setFont('Times-Bold', 9)
         canvas.drawString(customer_width, customer_height - 37, "Org nr:")
         canvas.drawString(customer_width, customer_height - 48, "Epost:")
         canvas.drawString(customer_width, customer_height - 59, "Tlf:")
         canvas.setFont('Times-Roman', 9)
-        canvas.drawString(customer_width, customer_height - 10, settings.values.company_address.value)
-        canvas.drawString(customer_width, customer_height - 21, settings.values.company_zip.value)
-        canvas.drawString(customer_width + 50, customer_height - 37, settings.values.organization_number.value)
-        canvas.drawString(customer_width + 50, customer_height - 48, settings.values.mail_address.value)
-        canvas.drawString(customer_width + 50, customer_height - 59, settings.values.phone_number.value)
+        canvas.drawString(customer_width, customer_height - 10, config.company_address.value)
+        canvas.drawString(customer_width, customer_height - 21, config.company_zip.value)
+        canvas.drawString(customer_width + 50, customer_height - 37, config.organization_number.value)
+        canvas.drawString(customer_width + 50, customer_height - 48, config.mail_address.value)
+        canvas.drawString(customer_width + 50, customer_height - 59, config.phone_number.value)
 
         # Buyers customer info
         canvas.setFont('Times-Bold', 14)
@@ -161,8 +159,8 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
         # Bottom info
         canvas.setFont('Times-Roman', 9)
         canvas.drawCentredString(PAGE_WIDTH/2.0, bottom_height, output_wage)
-        canvas.drawString(bottom_width, bottom_height, settings.values.company_name.value)
-        canvas.drawString(bottom_end_width, bottom_height, settings.values.company_account_number.value)
+        canvas.drawString(bottom_width, bottom_height, config.company_name.value)
+        canvas.drawString(bottom_end_width, bottom_height, config.company_account_number.value)
 
         canvas.restoreState()
 
@@ -171,8 +169,8 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
         # Bottom info
         canvas.setFont('Times-Roman', 9)
         canvas.drawCentredString(PAGE_WIDTH/2.0, bottom_height, output_wage)
-        canvas.drawString(bottom_width, bottom_height, settings.values.company_name.value)
-        canvas.drawString(bottom_end_width, bottom_height, settings.values.company_account_number.value)
+        canvas.drawString(bottom_width, bottom_height, config.company_name.value)
+        canvas.drawString(bottom_end_width, bottom_height, config.company_account_number.value)
         canvas.restoreState()
 
     def new_page(canvas, doc):
@@ -224,7 +222,7 @@ def create_pdf(workdays, save_dir, invoice_id=None): # NOQA
     return file_dir
 
 
-def export_pdf(db, year, month, customer, invoice):
+def export_pdf(db, year, month, customer, invoice, config):
     try:
         save_dir = os.path.join(INVOICE_DIR,
                                 # DB name
@@ -232,7 +230,7 @@ def export_pdf(db, year, month, customer, invoice):
                                 customer,
                                 str(year),
                                 month)
-        pdf_file = create_pdf(invoice.workdays, save_dir, invoice.id)
+        pdf_file = create_pdf(invoice.workdays, save_dir, config, invoice.id)
         invoice.pdf = pdf_file
         invoice.month = month
         invoice.year = year
@@ -244,7 +242,7 @@ def export_pdf(db, year, month, customer, invoice):
     return pdf_file
 
 
-def export_invoice(db, year, month, customer, project, save_pdf=False):
+def export_invoice(db, year, month, customer, project, config, save_pdf=False):
     export_filter = GetExportFilter(db, month, year, customer, project)
     workdays = db.get('Workday').filter(Workday.start >= export_filter.start,
                                         Workday.end < export_filter.end,
@@ -299,4 +297,4 @@ def export_invoice(db, year, month, customer, project, save_pdf=False):
         print('Canceling...')
         sys.exit(0)
     if save_pdf:
-        return export_pdf(db, year, export_filter.month, customer, invoice)
+        return export_pdf(db, year, export_filter.month, customer, invoice, config)

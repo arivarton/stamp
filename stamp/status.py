@@ -45,7 +45,8 @@ class Table(object):
 
 
 class Status(object):
-    def __init__(self, db_query):
+    def __init__(self, db_query, config):
+        self.config = config
         self.time_format = '%H:%M'
         if hasattr(db_query, '_primary_entity'):
             self.table = str(db_query._primary_entity.selectable)
@@ -133,7 +134,7 @@ class Status(object):
 
         # Output for each workday
         for workday in self.db_query:
-            total_time, date, total_owed = output_for_total_hours_date_and_wage(workday)
+            total_time, date, total_owed = output_for_total_hours_date_and_wage(workday, self.config)
             total_output = total_time + ' for ' + total_owed
             total_width = get_terminal_width() - (workdays.total_column_width())
             return_str += '{0:<{id_width}}{1:^{date_width}}{2:^{customer_width}}{3:^{project_width}}{4:^{from_width}}{5:^{to_width}}{6:^{invoice_id_width}}{7:>{total_width}}'.format(

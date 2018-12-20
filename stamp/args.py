@@ -20,6 +20,10 @@ def parse(args):
                                           (http://www.arivarton.com)''')
     main_parser.add_argument('-v', '--version', action='version', version=__version__,
                              help='Display current version.')
+    main_parser.add_argument('--show_config', action='store_true',
+                             help='Display current configuration values.')
+    main_parser.add_argument('--db', action=DbAction)
+    main_parser.add_argument('--config', action=ConfigAction)
 
     # [Parent paramaters]
 
@@ -47,10 +51,6 @@ def parse(args):
                                     env_var='STAMP_STANDARD_PROJECT',
                                     help='Set the project to add hours to.')
 
-    # Database parameters
-    db_parameters = argparse.ArgumentParser(add_help=False)
-    db_parameters.add_argument('--db', action=DbAction)
-
     # [Subparsers]
     main_subparsers = main_parser.add_subparsers()
 
@@ -61,22 +61,19 @@ def parse(args):
                                            will automatically finish.''',
                                       parents=[date_parameters,
                                                customer_parameters,
-                                               project_parameters,
-                                               db_parameters])
+                                               project_parameters])
     in_parser.set_defaults(func=stamp_in)
 
     # End parser
     out_parser = main_subparsers.add_parser('out', aliases=['o'],
                                             help='End current stamp.',
-                                            parents=[date_parameters,
-                                            db_parameters])
+                                            parents=[date_parameters])
     out_parser.set_defaults(func=stamp_out)
 
     # Tag parser
     tag_parser = main_subparsers.add_parser('tag', aliases=['t'],
                                             help='Tag a stamp.',
-                                            parents=[date_parameters,
-                                                     db_parameters])
+                                            parents=[date_parameters])
     tag_parser.add_argument('id', type=int, nargs='?')
     tag_parser.add_argument('tag', type=str)
     tag_parser.set_defaults(func=tag, parser_object=tag_parser.prog)
@@ -86,31 +83,27 @@ def parse(args):
                                                help='Show registered hours.',
                                                parents=[filter_parameters,
                                                        customer_parameters,
-                                                       project_parameters,
-                                                       db_parameters])
+                                                       project_parameters])
     status_parser.set_defaults(func=status, parser_object=status_parser.prog)
 
     status_subparsers = status_parser.add_subparsers()
 
     status_workdays_parser = status_subparsers.add_parser('workdays', aliases=['w'],
                                                           help='Show status of workdays.',
-                                                          parents=[db_parameters,
-                                                                   date_parameters])
+                                                          parents=[date_parameters])
     status_workdays_parser.add_argument('id', type=int, nargs='?')
     status_workdays_parser.set_defaults(func=status, parser_object=status_workdays_parser.prog)
 
     status_invoices_parser = status_subparsers.add_parser('invoices', aliases=['i'],
                                                           help='Show status of invoices.',
-                                                          parents=[db_parameters,
-                                                                   date_parameters])
+                                                          parents=[date_parameters])
     status_invoices_parser.add_argument('id', type=int, nargs='?')
     status_invoices_parser.set_defaults(func=status, parser_object=status_invoices_parser.prog)
 
     # Export parser
     export_parser = main_subparsers.add_parser('export', aliases=['x'],
                                                help='Export hours to file.',
-                                          parents=[filter_parameters,
-                                                   db_parameters])
+                                          parents=[filter_parameters])
     export_parser.add_argument('month', type=str)
     export_parser.add_argument('year', type=int)
     export_parser.add_argument('customer', type=str)
@@ -123,8 +116,7 @@ def parse(args):
     delete_parser = main_subparsers.add_parser('delete', aliases=['d'],
                                           help='Delete a registered worktime. \
                                                Be aware that running this without \
-                                               id will delete current stamp!',
-                                          parents=[db_parameters])
+                                               id will delete current stamp!')
     delete_parser.add_argument('id', type=int, nargs='?', default=None)
     delete_parser.add_argument('-t', '--tag', type=int, help='''Choose tag id to
                                delete.''')
@@ -135,13 +127,11 @@ def parse(args):
 
     # Edit parser
     edit_parser = main_subparsers.add_parser('edit', aliases=['e'],
-                                             help='Edit options.',
-                                             parents=[db_parameters])
+                                             help='Edit options.')
     edit_subparsers = edit_parser.add_subparsers()
     # Edit workday
     edit_workday_parser = edit_subparsers.add_parser('workday', aliases=['w', 'wd'],
-                                                     help='Edit a selected workday.',
-                                                     parents=[db_parameters])
+                                                     help='Edit a selected workday.')
     edit_workday_parser.add_argument('id', type=int)
     edit_workday_parser.add_argument('-d', '--date', type=str,
                                       help='Change from and to date.')
@@ -155,20 +145,17 @@ def parse(args):
     edit_workday_subparsers = edit_workday_parser.add_subparsers()
     # Edit workday time
     edit_workday_time_parser = edit_workday_subparsers.add_parser('time', aliases=['t'],
-                                                                  help='Edit the time registered on a workday.',
-                                                                  parents=[db_parameters])
+                                                                  help='Edit the time registered on a workday.')
     edit_workday_time_parser.add_argument('-s', '--start', type=str,
                                           help='''Specify start time to store.''')
     edit_workday_time_parser.add_argument('-e', '--end', type=str,
                                           help='''Specify start time to store.''')
     # Edit workday tag
     edit_workday_tag_parser = edit_workday_subparsers.add_parser('tag', aliases=['tg'],
-                                                                 help='Edit tags related to selected workday.',
-                                                                 parents=[db_parameters])
+                                                                 help='Edit tags related to selected workday.')
     # Edit customer
     edit_customer_parser = edit_subparsers.add_parser('customer', aliases=['c'],
-                                                      help='Edit a selected customer.',
-                                                      parents=[db_parameters])
+                                                      help='Edit a selected customer.')
     edit_customer_parser.add_argument('id', type=int)
     edit_customer_parser.add_argument('-n', '--name', type=str,
                                       help='Change name.')
@@ -188,8 +175,7 @@ def parse(args):
 
     # Edit project
     edit_project_parser = edit_subparsers.add_parser('project', aliases=['p'],
-                                                      help='Edit a selected project.',
-                                                      parents=[db_parameters])
+                                                      help='Edit a selected project.')
     edit_project_parser.add_argument('id', type=int)
     edit_project_parser.add_argument('-n', '--name', type=str,
                                       help='Change name.')
@@ -199,8 +185,7 @@ def parse(args):
 
     # Edit invoice
     edit_invoice_parser = edit_subparsers.add_parser('invoice', aliases=['i'],
-                                                     help='Edit a selected invoice.',
-                                                     parents=[db_parameters])
+                                                     help='Edit a selected invoice.')
     edit_invoice_parser.add_argument('id', type=int)
     edit_invoice_parser.add_argument('-p', '--paid', action='store_true',
                                      help='Set or unset an invoices paid option.')

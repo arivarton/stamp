@@ -24,10 +24,10 @@ class ConfigValue(object):
     def __init__(self):
         self.env_variable_name = 'STAMP_' + re.sub('(?!^)(?=[A-Z])', '_', self.__class__.__name__).upper()
         self.env_variable_value = os.getenv(self.env_variable_name)
-        self.value = self.env_variable_value
         self.choices = None
         self.validated = False
         self.type = str
+        self.add_default_value(self.env_variable_value)
 
     def __str__(self):
         return self.value
@@ -38,18 +38,38 @@ class ConfigValue(object):
                 raise ConfigValueError('%s is not a valid choice! These are the valid choices: %s.' % (self.value, ', '.join(self.choices)))
         self.validated = True
 
+    def add_default_value(self, default_value):
+        self.value = self.type(self.env_variable_value or default_value)
+
+    def replace_value(self, value):
+        self.value = self.type(value)
+
 
 class Interface(ConfigValue):
     def __init__(self):
         super().__init__()
-        self.value = 'cli' or self.env_variable_value
+        self.add_default_value('cli')
         self.choices = ['cli', 'curses']
 
 
 class DatabasePath(ConfigValue):
     def __init__(self):
         super().__init__()
-        self.value = DATA_DIR or self.env_variable_value
+        self.add_default_value(DATA_DIR)
+
+    def _validate(self):
+        if not os.path.exists(self.value):
+            try:
+                os.makedirs(self.value)
+            except PermissionError:
+                error_handler('Permission denied to create path %s!' % self.value)
+        super()._validate()
+
+
+class LogoPath(ConfigValue):
+    def __init__(self):
+        super().__init__()
+        self.add_default_value(DATA_DIR)
 
     def _validate(self):
         if not os.path.exists(self.value):
@@ -63,7 +83,7 @@ class DatabasePath(ConfigValue):
 class MinimumHours(ConfigValue):
     def __init__(self):
         super().__init__()
-        self.value = 2.0 or self.env_variable_value
+        self.add_default_value(2.0)
         self.type = float
 
     def _validate(self):
@@ -75,7 +95,7 @@ class MinimumHours(ConfigValue):
 class StandardHours(ConfigValue):
     def __init__(self):
         super().__init__()
-        self.value = '08:00-16:00' or self.env_variable_value
+        self.add_default_value('08:00-16:00')
 
     def _validate(self):
         if re.match('\d\d:\d\d-\d\d:\d\d', self.value) is None:
@@ -92,7 +112,7 @@ class StandardHours(ConfigValue):
 class LunchHours(ConfigValue):
     def __init__(self):
         super().__init__()
-        self.value = 0.5 or self.env_variable_value
+        self.add_default_value(0.5)
         self.type = float
 
     def _validate(self):
@@ -104,7 +124,7 @@ class LunchHours(ConfigValue):
 class WagePerHour(ConfigValue):
     def __init__(self):
         super().__init__()
-        self.value = 300 or self.env_variable_value
+        self.add_default_value(300)
         self.type = int
 
     def _validate(self):
@@ -116,7 +136,7 @@ class WagePerHour(ConfigValue):
 class Currency(ConfigValue):
     def __init__(self):
         super().__init__()
-        self.value = 'NOK' or self.env_variable_value
+        self.add_default_value('NOK')
         self.choices = ['NOK', 'ISK', 'USD']
 
 
@@ -215,7 +235,8 @@ class ValuesWrapper(object):
 
 
 class Config(object):
-    def __init__(self):
+    def __init__(self, config_path):
+        self.config_path = config_path
         self.values = ValuesWrapper()
 
         # Add values
@@ -234,12 +255,10 @@ class Config(object):
         self.values.add(PhoneNumber())
         self.values.add(MailAddress())
 
-        self.config_path = os.path.join(CONFIG_DIR, CONFIG_FILE)
         try:
             self.load()
         except ConfigValueError as err_msg:
             error_handler(err_msg)
-        self.correct_types()
 
     def validate_config_values(self):
         for value in self.values.__dict__.values():
@@ -249,11 +268,6 @@ class Config(object):
                 except ConfigValueError as err_msg:
                     error_handler('Error when validating the %s option in config file!' % value.__class__.__name__, exit_on_error=False)
                     error_handler(err_msg)
-
-    def correct_types(self):
-        for value in self.values.__dict__.values():
-            if value.value:
-                value.value = value.type(value.value)
 
     def load(self):
         """Load config.
@@ -273,5 +287,5 @@ class Config(object):
             if key.replace(' ', '_') not in self.values.__dict__.keys():
                 raise ConfigValueError('%s is not a valid config setting' % key)
             else:
-                self.values.__dict__[key].value = value
+                self.values.__dict__[key].replace_value(value)
         self.validate_config_values()

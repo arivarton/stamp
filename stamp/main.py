@@ -73,7 +73,7 @@ def status(args):
             db_query = None
 
         if db_query:
-            status_object = Status(db_query)
+            status_object = Status(db_query, args.config.values)
             if args.interface == 'cli':
                 print(status_object)
             elif args.interface == 'ui':
@@ -94,7 +94,7 @@ def status(args):
 def export(args):
     try:
         export_invoice(args.db, args.year, args.month, args.customer,
-                       args.project, args.pdf)
+                       args.project, args.config.values, args.pdf)
     except (NoMatchingDatabaseEntryError, TooManyMatchesError, NoMatchesError,
             CanceledByUser) as err_msg:
         error_handler(err_msg, db=args.db)
