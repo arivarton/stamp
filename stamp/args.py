@@ -1,15 +1,17 @@
+import sys
 import os
 import argparse
 
 from . import __version__
 from .args_helpers import *
-from .main import stamp_in, stamp_out, tag, status, export, delete, edit
+from .main import stamp_in, stamp_out, tag, status, export, delete, edit, config
 from .exceptions import RequiredValueError
-from .helpers import error_handler
-
+from .config import Config
 from .settings import DATA_DIR, DB_FILE
 
 __all__ = ['parse']
+
+settings = Config(None)
 
 def parse(args):
     # [Main parser]
@@ -20,8 +22,6 @@ def parse(args):
                                           (http://www.arivarton.com)''')
     main_parser.add_argument('-v', '--version', action='version', version=__version__,
                              help='Display current version.')
-    main_parser.add_argument('--show_config', action='store_true',
-                             help='Display current configuration values.')
     main_parser.add_argument('--db', action=DbAction)
     main_parser.add_argument('--config', action=ConfigAction)
 
@@ -54,6 +54,7 @@ def parse(args):
     # [Subparsers]
     main_subparsers = main_parser.add_subparsers()
 
+
     # Add parser
     in_parser = main_subparsers.add_parser('in', aliases=['i'],
                                            help='''Add stamp. If added with
@@ -64,11 +65,13 @@ def parse(args):
                                                project_parameters])
     in_parser.set_defaults(func=stamp_in)
 
+
     # End parser
     out_parser = main_subparsers.add_parser('out', aliases=['o'],
                                             help='End current stamp.',
                                             parents=[date_parameters])
     out_parser.set_defaults(func=stamp_out)
+
 
     # Tag parser
     tag_parser = main_subparsers.add_parser('tag', aliases=['t'],
@@ -77,6 +80,7 @@ def parse(args):
     tag_parser.add_argument('id', type=int, nargs='?')
     tag_parser.add_argument('tag', type=str)
     tag_parser.set_defaults(func=tag, parser_object=tag_parser.prog)
+
 
     # Status parser
     status_parser = main_subparsers.add_parser('status', aliases=['s'],
@@ -100,6 +104,7 @@ def parse(args):
     status_invoices_parser.add_argument('id', type=int, nargs='?')
     status_invoices_parser.set_defaults(func=status, parser_object=status_invoices_parser.prog)
 
+
     # Export parser
     export_parser = main_subparsers.add_parser('export', aliases=['x'],
                                                help='Export hours to file.',
@@ -111,6 +116,7 @@ def parse(args):
                                help='Export to PDF.')
     export_parser.add_argument('project', type=str, nargs='?')
     export_parser.set_defaults(func=export)
+
 
     # Delete parser
     delete_parser = main_subparsers.add_parser('delete', aliases=['d'],
@@ -124,6 +130,7 @@ def parse(args):
                                help='Force deletion. Use with caution, this could\
                                corrupt the database.')
     delete_parser.set_defaults(func=delete)
+
 
     # Edit parser
     edit_parser = main_subparsers.add_parser('edit', aliases=['e'],
@@ -192,5 +199,28 @@ def parse(args):
     edit_invoice_parser.add_argument('-s', '--sent', action='store_true',
                                      help='Set or unset an invoices sent option.')
     edit_invoice_parser.set_defaults(func=edit, parser_object=edit_invoice_parser.prog)
+
+
+    # Config parser
+    config_parser = main_subparsers.add_parser('config', aliases=['c'],
+                                             help='See and edit config options.')
+    config_subparsers = config_parser.add_subparsers()
+    # Show config
+    config_show_parser = config_subparsers.add_parser('show', aliases=['s'],
+                                                     help='Display current configuration values.')
+    config_show_parser.set_defaults(func=config, parser_object=config_show_parser.prog)
+    # Edit config
+    config_edit_parser = config_subparsers.add_parser('edit', aliases=['e'],
+                                                     help='Edit configuration values.')
+    for key, value in settings.values.__dict__.items():
+        if value.choices:
+            config_edit_parser.add_argument('--%s' % key, type=str, choices=value.choices)
+        else:
+            config_edit_parser.add_argument('--%s' % key, type=str)
+    config_edit_parser.set_defaults(func=config, parser_object=config_edit_parser.prog)
+    # Provision config
+    config_provision_parser = config_subparsers.add_parser('provision', aliases=['p'],
+                                                           help='Provision a new config file with default values.')
+    config_provision_parser.set_defaults(func=config, parser_object=config_provision_parser.prog)
 
     return main_parser.parse_args(args)

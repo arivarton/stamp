@@ -139,3 +139,19 @@ def edit(args):
         error_handler(err_msg, db=args.db)
 
     args.db.add(changed_object)
+
+def config(args):
+    config_selection = args.parser_object.split(' ')[-1]
+    if config_selection == 'show':
+        print(args.config.values)
+    elif config_selection == 'edit':
+        for key, value in args.config.values.__dict__.items():
+            if key in args.__dict__.keys():
+                value = getattr(args, key)
+                if value:
+                    edit_value = getattr(args.config.values, key)
+                    edit_value.value = value
+        written_dict = {key: value.value for key, value in args.config.values.__dict__.items()} 
+        args.config.write(written_dict)
+    elif config_selection == 'provision':
+        args.config.write({key: value.value for key, value in args.config.values.__dict__.items()})

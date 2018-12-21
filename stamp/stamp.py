@@ -11,11 +11,6 @@ from .config import Config
 def run(args=sys.argv[1:]):
     parser = parse(sys.argv[1:])
     parser.config = Config(parser.config)
-
-    if(parser.show_config):
-        print(parser.config.values)
-        sys.exit(0)
-
     parser.db = Database(parser.db)
 
     if vars(parser):
