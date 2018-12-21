@@ -14,18 +14,19 @@ See stamp/settings.py.
 ### (Optional) Create virtual python environment
 Download and install 'virtualenv' for your distribution.
 
-`mkvirtualenv 'stamp-0.1.6'`
-
-`workon 'stamp-0.1.6'`
+```bash
+mkvirtualenv 'stamp-0.1.6'
+workon 'stamp-0.1.6'
+```
 
 ### Download the "stable" version which is currently 0.1.6
-`wget https://gitlab.com/arivarton/stamp/-/archive/0.1.6/stamp-0.1.6.tar.gz`
 
-`tar -xvzf stamp-0.1.6.tar.gz`
-
-`cd stamp-0.1.6`
-
-`python3 setup.py install`
+```bash
+wget https://gitlab.com/arivarton/stamp/-/archive/0.1.6/stamp-0.1.6.tar.gz
+tar -xvzf stamp-0.1.6.tar.gz
+cd stamp-0.1.6
+python3 setup.py install
+```
 
 
 # Config
