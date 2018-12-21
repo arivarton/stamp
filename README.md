@@ -33,11 +33,11 @@ python3 setup.py install
 Config file location should be in $XDG_CONFIG_HOME/.config/stamp/config. If the XDG environment variable is not set then the directory is ~/.config/stamp/config.
 
 ```bash
-# To see available config options and their current values 
+# See available config options and their current values 
 stamp config show
-# To edit values AND create config file if not present
+# Edit values AND create config file if not present
 stamp config edit --value 'my option'
-# To provision a config file with current config values
+# Provision a config file with current config values
 stamp config provision
 ```
 
