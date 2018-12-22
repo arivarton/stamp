@@ -13,4 +13,4 @@ if not os.path.exists(FILE_DIR):
 if not os.path.exists(CONFIG_DIR):
     os.makedirs(CONFIG_DIR)
 
-__version__ = '0.1.6'
+__version__ = '0.1.7'

@@ -35,6 +35,8 @@ Config file location should be in $XDG_CONFIG_HOME/.config/stamp/config. If the 
 ```bash
 # See available config options and their current values 
 stamp config show
+# See available values to edit
+stamp config edit --help
 # Edit values AND create config file if not present
 stamp config edit --value 'my option'
 # Provision a config file with current config values
@@ -60,3 +62,7 @@ A manual fix by entering the hours again to a new database will be required.
 
 # Disclaimer
 This software is still in alpha and is therefore not recommended for daily usage as any changes of versions can make the old database unreadable.
+
+
+# Version change summary
+0.1.7: Config has been implemented.

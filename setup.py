@@ -15,7 +15,7 @@ with open(path.join(exec_dir, 'requirements.txt'), encoding='utf-8') as f:
 
 setup(
     name='stamp',
-    version='0.1.6',
+    version='0.1.7',
     description='Register workhours in terminal.',
     long_description=long_description,
     long_description_content_type='text/markdown',
