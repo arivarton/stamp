@@ -1,5 +1,3 @@
-import sys
-import os
 import argparse
 
 from . import __version__
@@ -108,7 +106,7 @@ def parse(args):
     # Export parser
     export_parser = main_subparsers.add_parser('export', aliases=['x'],
                                                help='Export hours to file.',
-                                          parents=[filter_parameters])
+                                               parents=[filter_parameters])
     export_parser.add_argument('month', type=str)
     export_parser.add_argument('year', type=int)
     export_parser.add_argument('customer', type=str)

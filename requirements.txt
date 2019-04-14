@@ -1,3 +1,4 @@
 sqlalchemy
+sqlalchemy-migrate
 reportlab
 PyYAML

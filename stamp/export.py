@@ -16,7 +16,7 @@ from .settings import (FILE_DIR,
 from .exceptions import (TooManyMatchesError, ArgumentError, NoMatchesError,
                          NoMatchingDatabaseEntryError,
                          TooManyMatchingDatabaseEntriesError)
-from .helpers import output_for_total_hours_date_and_wage, get_month_names
+from .helpers import output_for_total_hours_date_and_wage, get_month_names, error_handler
 from .formatting import yes_or_no
 from .status import Status
 from .add import create_invoice
@@ -27,11 +27,11 @@ from .config import Config
 __all__ = ['export_invoice']
 
 
-class GetExportFilter(object):
-    def __init__(self, db: Database, month: str, year: int, customer: str, project: str):
+class GetExportFilter(object):  # pylint: disable=too-few-public-methods
+    def __init__(self, db: Database, year: int, month: str, customer: str, project: str):
         self.db = db
-        self.month = self._validate_month(month)
         self.year = year
+        self.month = self._validate_month(month)
         self.customer = self._get_customer(customer)
         self.project = self._get_project(project)
         self.start = self._get_start(self.month, self.year)
@@ -39,17 +39,17 @@ class GetExportFilter(object):
 
     def _validate_month(self, month_name):
         # Validate month
-        _months = list()
+        months = list()
         for month in get_month_names():
             if month.startswith(month_name.capitalize()):
-                _months.append(month)
-        if len(_months) > 1:
+                months.append(month)
+        if len(months) > 1:
             raise TooManyMatchesError('Refine month argument! These months are currently matching: %s.' %
-                                    ', '.join(_months))
-        elif not _months:
-            raise NoMatchesError('%s is not an acceptable month format.' % _months)
+                                      ', '.join(months))
+        elif not months:
+            raise NoMatchesError('%s is not an acceptable month format. These are the month names to match: %s.' % (month_name, ', '.join(get_month_names())))
         else:
-            return ''.join(_months)
+            return ''.join(months)
 
     def _get_customer(self, customer):
         try:
@@ -243,7 +243,7 @@ def export_pdf(db, year, month, customer, invoice, config):
 
 
 def export_invoice(db, year, month, customer, project, config, save_pdf=False):
-    export_filter = GetExportFilter(db, month, year, customer, project)
+    export_filter = GetExportFilter(db, year, month, customer, project)
     workdays = db.get('Workday').filter(Workday.start >= export_filter.start,
                                         Workday.end < export_filter.end,
                                         Workday.customer_id == export_filter.customer.id)
