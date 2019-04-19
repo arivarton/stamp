@@ -1,11 +1,12 @@
 import argparse
+import os
 
 from . import __version__
 from .args_helpers import *
 from .main import stamp_in, stamp_out, tag, status, export, delete, edit, config
 from .exceptions import RequiredValueError
 from .config import Config
-from .settings import DATA_DIR, DB_FILE
+from .settings import DATA_DIR, DB_FILE, CONFIG_DIR, CONFIG_FILE
 
 __all__ = ['parse']
 
@@ -201,7 +202,8 @@ def parse(args):
 
     # Config parser
     config_parser = main_subparsers.add_parser('config', aliases=['c'],
-                                             help='See and edit config options.')
+                                               help='See and edit config options.',
+                                               description='Config file path is %s' % os.path.join(CONFIG_DIR, CONFIG_FILE))
     config_subparsers = config_parser.add_subparsers()
     # Show config
     config_show_parser = config_subparsers.add_parser('show', aliases=['s'],

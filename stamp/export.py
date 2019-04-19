@@ -21,7 +21,6 @@ from .status import Status
 from .add import create_invoice
 from .mappings import Workday, Customer, Project
 from .db import Database
-from .config import Config
 
 __all__ = ['export_invoice']
 

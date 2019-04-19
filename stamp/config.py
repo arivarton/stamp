@@ -244,6 +244,7 @@ class Config(object):
         self.values.add(Interface())
         self.values.add(DatabasePath())
         self.values.add(LogoPath())
+        self.values.add(InvoicePath())
         self.values.add(MinimumHours())
         self.values.add(StandardHours())
         self.values.add(LunchHours())
