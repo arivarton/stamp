@@ -1,7 +1,6 @@
 import os
 import sys
 import calendar
-import operator
 
 from datetime import datetime, timedelta
 
