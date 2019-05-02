@@ -109,7 +109,7 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
     bottom_end_width = PAGE_WIDTH - 108
     bottom_height = 18
 
-    output_hours, __, output_wage = output_for_total_hours_date_and_wage(workdays)
+    output_hours, __, output_wage = output_for_total_hours_date_and_wage(workdays, config)
     def myFirstPage(canvas, doc):
         canvas.saveState()
         if os.path.isfile(logo_file):
@@ -178,6 +178,7 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
     doc = SimpleDocTemplate(file_dir)
     Story = [Spacer(1, 2*inch)]
     workday_header = [[Paragraph('Dato', header_style),
+                      Paragraph('Prosjekt', header_style),
                       Paragraph('Fra', header_style),
                       Paragraph('Til', header_style),
                       Paragraph('Timer', header_style),
@@ -189,8 +190,9 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
     tag_rows = []
     for workday in workdays:
         workday_tags = []
-        hours, date, wage = output_for_total_hours_date_and_wage(workday)
+        hours, date, wage = output_for_total_hours_date_and_wage(workday, config)
         workday_rows.append([Paragraph(date, workday_style),
+                             Paragraph(workday.project.name, workday_style),
                              Paragraph(workday.start.time().strftime('%H:%M'), workday_style),
                              Paragraph(workday.end.time().strftime('%H:%M'), workday_style),
                              Paragraph(hours.strip('h'), workday_style),
@@ -267,10 +269,10 @@ def export_invoice(db, year, month, customer, project, config, save_pdf=False):
                 print('Invoice already exists. Append --pdf if you want to export pdf!')
         else:
             print('Old workdays:')
-            status_object = Status(related_invoice.workdays)
+            status_object = Status(related_invoice.workdays, config)
             print(status_object)
             print('Current workdays:')
-            status_object = Status(workdays)
+            status_object = Status(workdays, config)
             print(status_object)
             invoice = yes_or_no('Invoice already exists for this month but does not contain the same work days/hours. Do you wish to create a new invoice for this month? This cannot be undone!',
                                 no_message='Canceling...',
@@ -281,7 +283,7 @@ def export_invoice(db, year, month, customer, project, config, save_pdf=False):
                                 yes_function_args=(db, workdays, customer, year,
                                                    export_filter.month))
     except NoMatchingDatabaseEntryError:
-        status_object = Status(workdays)
+        status_object = Status(workdays, config)
         print(status_object)
         invoice = yes_or_no('Do you wish to create a invoice containing these workdays?',
                             no_message='Canceling...',

@@ -57,9 +57,9 @@ def _determine_total_hours_worked_and_wage_earned(workdays, config):
 def output_for_total_hours_date_and_wage(workday, config):
     hours, minutes, wage = _determine_total_hours_worked_and_wage_earned(workday, config)
     output_total_wage = '%d%s' % (wage, config.currency.value)
-    output_total_hours = '%d' % hours
+    output_total_hours = '%dt' % hours
     if minutes:
-        output_total_hours += ', %d' % minutes
+        output_total_hours += ', %dm' % minutes
     # Add output date if the workday is not a list
     # If workday is a list, then it means total hours are being calculated
     # and the date is unneccesary
