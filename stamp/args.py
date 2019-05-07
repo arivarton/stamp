@@ -139,14 +139,12 @@ def parse(args):
     edit_workday_parser = edit_subparsers.add_parser('workday', aliases=['w', 'wd'],
                                                      help='Edit a selected workday.')
     edit_workday_parser.add_argument('id', type=int)
-    edit_workday_parser.add_argument('-d', '--date', type=str,
-                                      help='Change from and to date.')
-    edit_workday_parser.add_argument('-t', '--time', type=str,
-                                      help='Change from and to time.')
     edit_workday_parser.add_argument('-c', '--comment', type=str,
                                       help='Change comment.')
     edit_workday_parser.add_argument('-u', '--customer', type=str,
                                       help='Change customer.')
+    edit_workday_parser.add_argument('-p', '--project', type=str,
+                                      help='Change project.')
     edit_workday_parser.set_defaults(func=edit, parser_object=edit_workday_parser.prog)
     edit_workday_subparsers = edit_workday_parser.add_subparsers()
     # Edit workday time

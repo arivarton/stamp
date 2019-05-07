@@ -134,3 +134,12 @@ class Database():
             except orm_exc.UnmappedInstanceError:
                 raise NoMatchingDatabaseEntryError('Specified id not found!')
         return workdays
+
+    def get_project(self, project_name):
+        project = self.get('Project').filter(Project.name == project_name)
+        if project.count() == 0:
+            raise NoMatchingDatabaseEntryError('No matching project found for %s!' % project_name)
+        elif project.count() > 1:
+            raise TooManyMatchingDatabaseEntriesError('Several projects matches this string: %s!' % project_name)
+        else:
+            return project.first()

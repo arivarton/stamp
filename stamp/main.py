@@ -10,7 +10,7 @@ from .db import Database
 from .export import export_invoice
 from .exceptions import (NoMatchingDatabaseEntryError, CurrentStampNotFoundError,
                          NoMatchesError, TooManyMatchesError, CanceledByUser,
-                         NonExistingId, DeleteNotAllowedError)
+                         NonExistingId, DeleteNotAllowedError, TooManyMatchingDatabaseEntriesError)
 from .helpers import error_handler
 from .decorators import db_commit_decorator, no_db_no_action_decorator
 
@@ -135,7 +135,7 @@ def edit(args):
         elif edit_selection == 'invoice':
             changed_object = edit_invoice(args.db, args.id, args.paid, args.sent)
 
-    except NoMatchingDatabaseEntryError as err_msg:
+    except (NoMatchingDatabaseEntryError, TooManyMatchingDatabaseEntriesError) as err_msg:
         error_handler(err_msg, db=args.db)
 
     args.db.add(changed_object)

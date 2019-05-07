@@ -6,16 +6,14 @@ __all__ = ['edit_workday',
            'edit_project',
            'edit_invoice']
 
-def edit_workday(db, id, date=None, time=None, comment=None, customer=None):
-    workday = db.get('Workday', id)
-    if date:
-        workday.date = date
-    if time:
-        workday.time = time
-    if comment:
-        workday.comment = comment
-    if customer:
-        workday.customer = customer
+def edit_workday(args):
+    workday = args.db.get('Workday', args.id)
+    if args.comment:
+        workday.comment = args.comment
+    if args.customer:
+        workday.customer = args.customer
+    if args.project:
+        workday.project = args.db.get_project(args.project)
     return workday
 
 def edit_customer(db, id, name=None, contact=None, org_nr=None, address=None,
