@@ -15,7 +15,7 @@ from .settings import (FILE_DIR,
 from .exceptions import (TooManyMatchesError, ArgumentError, NoMatchesError,
                          NoMatchingDatabaseEntryError,
                          TooManyMatchingDatabaseEntriesError)
-from .helpers import output_for_total_hours_date_and_wage, get_month_names, error_handler
+from .helpers import calculate_workhours, calculate_wage, get_month_names, error_handler
 from .formatting import yes_or_no
 from .status import Status
 from .add import create_invoice
@@ -108,8 +108,9 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
     bottom_width = 18
     bottom_end_width = PAGE_WIDTH - 108
     bottom_height = 18
+    output_hours = sum([calculate_workhours(w.start, w.end) for w in workdays])
+    output_wage = calculate_wage(output_hours, config.wage_per_hour.value)
 
-    output_hours, __, output_wage = output_for_total_hours_date_and_wage(workdays, config)
     def myFirstPage(canvas, doc):
         canvas.saveState()
         if os.path.isfile(logo_file):
@@ -156,7 +157,7 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
 
         # Bottom info
         canvas.setFont('Times-Roman', 9)
-        canvas.drawCentredString(PAGE_WIDTH/2.0, bottom_height, output_wage)
+        canvas.drawCentredString(PAGE_WIDTH/2.0, bottom_height, str(round(output_wage, 2)))
         canvas.drawString(bottom_width, bottom_height, config.company_name.value)
         canvas.drawString(bottom_end_width, bottom_height, config.company_account_number.value)
 
@@ -166,7 +167,7 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
         canvas.saveState()
         # Bottom info
         canvas.setFont('Times-Roman', 9)
-        canvas.drawCentredString(PAGE_WIDTH/2.0, bottom_height, output_wage)
+        canvas.drawCentredString(PAGE_WIDTH/2.0, bottom_height, str(round(output_wage, 2)))
         canvas.drawString(bottom_width, bottom_height, config.company_name.value)
         canvas.drawString(bottom_end_width, bottom_height, config.company_account_number.value)
         canvas.restoreState()
@@ -190,21 +191,21 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
     tag_rows = []
     for workday in workdays:
         workday_tags = []
-        hours, date, wage = output_for_total_hours_date_and_wage(workday, config)
-        workday_rows.append([Paragraph(date, workday_style),
+        hours = calculate_workhours(workday.start, workday.end)
+        workday_rows.append([Paragraph(workday.start.date().isoformat(), workday_style),
                              Paragraph(workday.project.name, workday_style),
                              Paragraph(workday.start.time().strftime('%H:%M'), workday_style),
                              Paragraph(workday.end.time().strftime('%H:%M'), workday_style),
-                             Paragraph(hours.strip('h'), workday_style),
-                             Paragraph(wage, workday_style)])
+                             Paragraph(str(round(hours, 2)), workday_style),
+                             Paragraph('%s %s' % (str(round(calculate_wage(hours, config.wage_per_hour.value), 2)), config.currency.value), workday_style)])
         for tag in workday.tags:
-            workday_tags.append([Table([[Paragraph(date + ' ' + tag.recorded.strftime('%H:%M'), tag_header_style)],
+            workday_tags.append([Table([[Paragraph(workday.start.date().isoformat() + ' ' + tag.recorded.strftime('%H:%M'), tag_header_style)],
                                 [Paragraph(tag.tag, tag_style)]], style=[('LINEBELOW', (0,0), (0,0), 0.1, 'black'),
                                                                          ('BOTTOMPADDING', (0,1), (-1,-1), 12)])])
         if workday_tags:
             tag_rows.append([Table(workday_tags, style=[('BOTTOMPADDING', (-1,-1), (-1,-1), 45)])])
-    workday_rows.append(['', '', '', Paragraph(output_hours, workday_conclusion_style),
-                         Paragraph(output_wage, workday_conclusion_style)])
+    workday_rows.append(['', '', '', '', Paragraph(str(round(output_hours, 2)), workday_conclusion_style),
+                         Paragraph('%s %s' % (str(round(output_wage, 2)), config.currency.value), workday_conclusion_style)])
 
 
     # Add workdays to story

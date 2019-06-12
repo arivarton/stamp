@@ -85,8 +85,8 @@ def parse(args):
     status_parser = main_subparsers.add_parser('status', aliases=['s'],
                                                help='Show registered hours.',
                                                parents=[filter_parameters,
-                                                       customer_parameters,
-                                                       project_parameters])
+                                                        customer_parameters,
+                                                        project_parameters])
     status_parser.set_defaults(func=status, parser_object=status_parser.prog)
 
     status_subparsers = status_parser.add_subparsers()
@@ -119,9 +119,9 @@ def parse(args):
 
     # Delete parser
     delete_parser = main_subparsers.add_parser('delete', aliases=['d'],
-                                          help='Delete a registered worktime. \
-                                               Be aware that running this without \
-                                               id will delete current stamp!')
+                                               help='Delete a registered worktime. \
+                                                    Be aware that running this without \
+                                                    id will delete current stamp!')
     delete_parser.add_argument('id', type=int, nargs='?', default=None)
     delete_parser.add_argument('-t', '--tag', type=int, help='''Choose tag id to
                                delete.''')
@@ -140,11 +140,11 @@ def parse(args):
                                                      help='Edit a selected workday.')
     edit_workday_parser.add_argument('id', type=int)
     edit_workday_parser.add_argument('-c', '--comment', type=str,
-                                      help='Change comment.')
+                                     help='Change comment.')
     edit_workday_parser.add_argument('-u', '--customer', type=str,
-                                      help='Change customer.')
+                                     help='Change customer.')
     edit_workday_parser.add_argument('-p', '--project', type=str,
-                                      help='Change project.')
+                                     help='Change project.')
     edit_workday_parser.set_defaults(func=edit, parser_object=edit_workday_parser.prog)
     edit_workday_subparsers = edit_workday_parser.add_subparsers()
     # Edit workday time
@@ -179,12 +179,12 @@ def parse(args):
 
     # Edit project
     edit_project_parser = edit_subparsers.add_parser('project', aliases=['p'],
-                                                      help='Edit a selected project.')
+                                                     help='Edit a selected project.')
     edit_project_parser.add_argument('id', type=int)
     edit_project_parser.add_argument('-n', '--name', type=str,
-                                      help='Change name.')
+                                     help='Change name.')
     edit_project_parser.add_argument('-u', '--link', type=str,
-                                      help='Change link to website.')
+                                     help='Change link to website.')
     edit_project_parser.set_defaults(func=edit, parser_object=edit_project_parser.prog)
 
     # Edit invoice
@@ -205,11 +205,11 @@ def parse(args):
     config_subparsers = config_parser.add_subparsers()
     # Show config
     config_show_parser = config_subparsers.add_parser('show', aliases=['s'],
-                                                     help='Display current configuration values.')
+                                                      help='Display current configuration values.')
     config_show_parser.set_defaults(func=config, parser_object=config_show_parser.prog)
     # Edit config
     config_edit_parser = config_subparsers.add_parser('edit', aliases=['e'],
-                                                     help='Edit configuration values.')
+                                                      help='Edit configuration values.')
     for key, value in settings.values.__dict__.items():
         if value.choices:
             config_edit_parser.add_argument('--%s' % key, type=str, choices=value.choices)

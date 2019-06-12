@@ -1,12 +1,9 @@
-import sys
-
 from .add import new_stamp
 from .end import end_stamp
 from .edit import edit_workday, edit_customer, edit_project, edit_invoice
 from .status import print_current_stamp, Status
 from .delete import delete_workday_or_tag
 from .tag import tag_stamp
-from .db import Database
 from .export import export_invoice
 from .exceptions import (NoMatchingDatabaseEntryError, CurrentStampNotFoundError,
                          NoMatchesError, TooManyMatchesError, CanceledByUser,
@@ -46,7 +43,7 @@ def tag(args):
     try:
         try:
             if args.id:
-                stamp = db.get('Workday', id)
+                stamp = args.db.get('Workday', id)
             else:
                 stamp = args.db.current_stamp()
         except CurrentStampNotFoundError as err_msg:

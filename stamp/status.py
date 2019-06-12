@@ -1,6 +1,6 @@
 import sys
 from sqlalchemy.orm.query import Query
-from .helpers import output_for_total_hours_date_and_wage, get_terminal_width
+from .helpers import get_terminal_width, calculate_workhours, calculate_wage
 from .formatting import divider, boolean_yes_or_no
 from .exceptions import RequiredValueError
 
@@ -110,52 +110,53 @@ class Status(object):
         return_str += '\n'
         # TODO:
         return_str += '{0:<{id_width}}{1:^{date_width}}{2:^{customer_width}}{3:^{project_width}}{4:^{from_width}}{5:^{to_width}}{6:^{invoice_id_width}}{7:>{total_width}}'.format(
-                         # Headlines
-                         workdays.columns.id.headline,
-                         workdays.columns.date.headline,
-                         workdays.columns.customer.headline,
-                         workdays.columns.project.headline,
-                         workdays.columns.from_date.headline,
-                         workdays.columns.to_date.headline,
-                         workdays.columns.invoice_id.headline,
-                         workdays.columns.total.headline,
+            # Headlines
+            workdays.columns.id.headline,
+            workdays.columns.date.headline,
+            workdays.columns.customer.headline,
+            workdays.columns.project.headline,
+            workdays.columns.from_date.headline,
+            workdays.columns.to_date.headline,
+            workdays.columns.invoice_id.headline,
+            workdays.columns.total.headline,
 
-                         # Widths
-                         id_width=workdays.columns.id.width,
-                         date_width=workdays.columns.date.width,
-                         customer_width=workdays.columns.customer.width,
-                         project_width=workdays.columns.project.width,
-                         from_width=workdays.columns.from_date.width,
-                         to_width=workdays.columns.to_date.width,
-                         invoice_id_width=workdays.columns.invoice_id.width,
-                         total_width=get_terminal_width() - (workdays.total_column_width())
-                         )
+            # Widths
+            id_width=workdays.columns.id.width,
+            date_width=workdays.columns.date.width,
+            customer_width=workdays.columns.customer.width,
+            project_width=workdays.columns.project.width,
+            from_width=workdays.columns.from_date.width,
+            to_width=workdays.columns.to_date.width,
+            invoice_id_width=workdays.columns.invoice_id.width,
+            total_width=get_terminal_width() - (workdays.total_column_width())
+        )
         return_str += '\n' + divider()
 
         # Output for each workday
         for workday in self.db_query:
-            total_time, date, total_owed = output_for_total_hours_date_and_wage(workday, self.config)
-            total_output = total_time + ' for ' + total_owed
+            total_time = calculate_workhours(workday.start, workday.end)
+            total_owed = calculate_wage(total_time, self.config.wage_per_hour.value)
+            total_output = str(round(total_time, 2)) + ' for ' + str(round(total_owed, 2))
             total_width = get_terminal_width() - (workdays.total_column_width())
             return_str += '{0:<{id_width}}{1:^{date_width}}{2:^{customer_width}}{3:^{project_width}}{4:^{from_width}}{5:^{to_width}}{6:^{invoice_id_width}}{7:>{total_width}}'.format(
-                            workday.id,
-                            workday.start.date().isoformat(),
-                            workday.customer.name,
-                            workday.project.name,
-                            workday.start.strftime(self.time_format),
-                            workday.end.strftime(self.time_format),
-                            workday.invoice_id or '',
-                            total_output,
-                            # Widths
-                            id_width=workdays.columns.id.width,
-                            date_width=workdays.columns.date.width,
-                            customer_width=workdays.columns.customer.width,
-                            project_width=workdays.columns.project.width,
-                            from_width=workdays.columns.from_date.width,
-                            to_width=workdays.columns.to_date.width,
-                            invoice_id_width=workdays.columns.invoice_id.width,
-                            total_width=total_width
-                        )
+                workday.id,
+                workday.start.date().isoformat(),
+                workday.customer.name,
+                workday.project.name,
+                workday.start.strftime(self.time_format),
+                workday.end.strftime(self.time_format),
+                workday.invoice_id or '',
+                total_output,
+                # Widths
+                id_width=workdays.columns.id.width,
+                date_width=workdays.columns.date.width,
+                customer_width=workdays.columns.customer.width,
+                project_width=workdays.columns.project.width,
+                from_width=workdays.columns.from_date.width,
+                to_width=workdays.columns.to_date.width,
+                invoice_id_width=workdays.columns.invoice_id.width,
+                total_width=total_width
+            )
             return_str += '\n' + divider()
 
         return return_str
