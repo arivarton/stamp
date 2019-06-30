@@ -1,3 +1,4 @@
+import sys
 from .add import new_stamp
 from .end import end_stamp
 from .edit import edit_workday, edit_customer, edit_project, edit_invoice
@@ -58,18 +59,8 @@ def status(args):
     called_from = args.parser_object.split(' ')[-1]
     args.interface = 'cli'
     try:
-        if called_from.startswith('workday'):
-            db_query = args.db.get('Workday', args.id)
-        elif called_from.startswith('invoice'):
-            db_query = args.db.get('Invoice', args.id)
-        elif called_from.startswith('project'):
-            db_query = args.db.get('Project', args.id)
-        elif called_from.startswith('customer'):
-            db_query = args.db.get('Customer', args.id)
-        else:
-            db_query = None
-
-        if db_query:
+        if called_from != 'status':
+            db_query = args.db.get(called_from[:-1].capitalize(), args.id)
             status_object = Status(db_query, args.config.values)
             if args.interface == 'cli':
                 print(status_object)

@@ -1,5 +1,7 @@
-import sys
+from datetime import datetime
+
 from sqlalchemy.orm.query import Query
+
 from .helpers import get_terminal_width, calculate_workhours, calculate_wage
 from .formatting import divider, boolean_yes_or_no
 from .exceptions import RequiredValueError
@@ -134,7 +136,12 @@ class Status(object):
 
         # Output for each workday
         for workday in self.db_query:
-            total_time = calculate_workhours(workday.start, workday.end)
+            if workday.end:
+                total_time = calculate_workhours(workday.start, workday.end)
+                end_output = workday.end.strftime(self.time_format)
+            else:
+                total_time = calculate_workhours(workday.start, datetime.now())
+                end_output = 'Active'
             total_owed = calculate_wage(total_time, self.config.wage_per_hour.value)
             total_output = str(round(total_time, 2)) + ' for ' + str(round(total_owed, 2))
             total_width = get_terminal_width() - (workdays.total_column_width())
@@ -144,7 +151,7 @@ class Status(object):
                 workday.customer.name,
                 workday.project.name,
                 workday.start.strftime(self.time_format),
-                workday.end.strftime(self.time_format),
+                end_output,
                 workday.invoice_id or '',
                 total_output,
                 # Widths

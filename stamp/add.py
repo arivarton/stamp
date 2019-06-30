@@ -89,11 +89,11 @@ def new_stamp(db, customer, project, date, time):
             customer_query = db.get_last_workday_entry('customer')
     except NoMatchingDatabaseEntryError:
         customer_query = yes_or_no('Do you wish to create a new customer?',
-                             no_message='Canceling...',
-                             no_function=sys.exit,
-                             no_function_args=(0,),
-                             yes_function=_create_customer,
-                             yes_function_args=(db, customer,))
+                                   no_message='Canceling...',
+                                   no_function=sys.exit,
+                                   no_function_args=(0,),
+                                   yes_function=_create_customer,
+                                   yes_function_args=(db, customer,))
 
     # Validate project
     try:
@@ -116,11 +116,11 @@ def new_stamp(db, customer, project, date, time):
     try:
         stamp = db.current_stamp()
         yes_or_no('Already stamped in, do you wish to recreate the stamp with current date and time?',
-                   no_message='Former stamp preserved!',
-                   yes_message='Overwriting current stamp!',
-                   yes_function=_create_stamp,
-                   yes_function_args=(db, customer_query, project_query,
-                                      stamp, date, time))
+                  no_message='Former stamp preserved!',
+                  yes_message='Overwriting current stamp!',
+                  yes_function=_create_stamp,
+                  yes_function_args=(db, customer_query, project_query,
+                                     stamp, date, time))
     except CurrentStampNotFoundError:
         _workday = Workday(customer_id=customer_query.id, project_id=project_query.id)
 

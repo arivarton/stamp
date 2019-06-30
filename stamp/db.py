@@ -88,7 +88,7 @@ class Database():
     def query_db_export_filter(self, table_name, export_filter):
         query = self.get(table_name)
         for key, value in export_filter.items():
-            query = query.filter(value['op_func'](getattr(table, key), value['value']))
+            query = query.filter(value['op_func'](getattr(table_name, key), value['value']))
         if query.count() == 0:
             raise NoMatchingDatabaseEntryError('No matching database entry found with search string: %s' % value['value'])
         else:
@@ -106,16 +106,16 @@ class Database():
     def get_related_invoice(self, year, month):
         invoices = self.get('Invoice').filter(Invoice.month == month,
                                               Invoice.year == year).order_by(
-                                              Invoice.id.desc())
+                                                  Invoice.id.desc())
         if invoices.count() == 0:
             raise NoMatchingDatabaseEntryError('No invoice found for %s %s!' % (month, year))
         else:
             return invoices.first()
 
-    def get_workdays(self, id, customer=None, invoice_id=None):
+    def get_workdays(self, object_id, customer=None, invoice_id=None):
         # Used with delete or edit argument
-        if id:
-            workdays = self.session.query(Workday).get(id)
+        if object_id:
+            workdays = self.session.query(Workday).get(object_id)
             if not workdays:
                 raise NoMatchingDatabaseEntryError('Specified id not found!')
 
@@ -126,9 +126,9 @@ class Database():
                 workdays = self.session.query(Workday).filter(Workday.end.isnot(None)).order_by(Workday.start)
                 # Query with filter
                 if customer:
-                    workdays = workdays.filter(Customer.name==customer)
+                    workdays = workdays.filter(Customer.name == customer)
                 if invoice_id:
-                    workdays = workdays.filter(Workday.invoice_id==invoice_id)
+                    workdays = workdays.filter(Workday.invoice_id == invoice_id)
                 if not workdays.count():
                     raise NoMatchingDatabaseEntryError('No workday has been completed yet!')
             except orm_exc.UnmappedInstanceError:
