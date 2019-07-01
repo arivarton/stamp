@@ -19,13 +19,16 @@ from stamp.end import end_stamp
 from stamp.status import Status
 from stamp.export import export_invoice
 from stamp.delete import delete_workday_or_tag
+from stamp.config import Config
 
-testing_db = 'test_%s' % uuid4().hex
-testing_db_path = os.path.join(settings.DATA_DIR, testing_db) + '.db'
+TESTING_DB = 'test_%s' % uuid4().hex
+TESTING_DB_PATH = os.path.join(settings.DATA_DIR, TESTING_DB) + '.db'
 with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-    db = Database(testing_db_path)
-customer_name = 'Test Company AS'
-project_name = 'Test Project'
+    DB = Database(TESTING_DB_PATH)
+CUSTOMER_NAME = 'Test Company AS'
+PROJECT_NAME = 'Test Project'
+
+CONFIG = Config(None)
 
 
 # [TODO] Need to patch properly for stdin
@@ -36,68 +39,68 @@ class TestStampCLI(unittest.TestCase):
         date_and_time = datetime.now()
         # Stamp in
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = new_stamp(db, customer_name, project_name, date_and_time.date(),
+            stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
                              date_and_time.time())
         self.assertTrue(stamp)
         # Tag with current time
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Tag with one added hour
         date_and_time = date_and_time + timedelta(hours=1)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Tag with 3 added hours
         date_and_time = date_and_time + timedelta(hours=2)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Stamp out
-        self.assertTrue(end_stamp(db, date_and_time.date(), date_and_time.time()))
+        self.assertTrue(end_stamp(DB, date_and_time.date(), date_and_time.time()))
 
         # Create another workday a day later
         date_and_time = datetime.now() + timedelta(days=1)
         # Stamp in
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = new_stamp(db, customer_name, project_name, date_and_time.date(),
+            stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
                              date_and_time.time())
         self.assertTrue(stamp)
         # Tag with current time
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Tag with 1 added hour
         date_and_time = date_and_time + timedelta(hours=1)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Tag with 3 added hours
         date_and_time = date_and_time + timedelta(hours=2)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Stamp out
-        self.assertTrue(end_stamp(db, date_and_time.date(), date_and_time.time()))
+        self.assertTrue(end_stamp(DB, date_and_time.date(), date_and_time.time()))
 
         # Create another workday a day before
         date_and_time = datetime.now() + timedelta(days=-1)
         # Stamp in
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = new_stamp(db, customer_name, project_name, date_and_time.date(),
+            stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
                              date_and_time.time())
         self.assertTrue(stamp)
         # Tag with current time
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Tag with 1 added hour
         date_and_time = date_and_time + timedelta(hours=1)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Tag with 3 added hours
         date_and_time = date_and_time + timedelta(hours=2)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Tag with 5 added hours
         date_and_time = date_and_time + timedelta(hours=2)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Stamp out
-        self.assertTrue(end_stamp(db, date_and_time.date(), date_and_time.time()))
+        self.assertTrue(end_stamp(DB, date_and_time.date(), date_and_time.time()))
 
         # Create another workday with random date
         random_year = rrange(1900, 2200)
@@ -110,143 +113,143 @@ class TestStampCLI(unittest.TestCase):
                                  minute=rrange(0, 60))
         # Stamp in
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = new_stamp(db, customer_name, project_name, date_and_time.date(),
+            stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
                              date_and_time.time())
         self.assertTrue(stamp)
         # Tag with current time
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Tag with 1 added hour
         date_and_time = date_and_time + timedelta(hours=1)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Tag with 3 added hours
         date_and_time = date_and_time + timedelta(hours=2)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Tag with 5 added hours
         date_and_time = date_and_time + timedelta(hours=2)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Stamp out
-        self.assertTrue(end_stamp(db, date_and_time.date(), date_and_time.time()))
+        self.assertTrue(end_stamp(DB, date_and_time.date(), date_and_time.time()))
 
         # Create another workday a day later
         date_and_time = date_and_time + timedelta(days=1)
         # Stamp in
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = new_stamp(db, customer_name, project_name, date_and_time.date(),
+            stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
                              date_and_time.time())
         self.assertTrue(stamp)
         # Tag with current time
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Tag with 1 added hour
         date_and_time = date_and_time + timedelta(hours=1)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Tag with 3 added hours
         date_and_time = date_and_time + timedelta(hours=2)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Stamp out
-        self.assertTrue(end_stamp(db, date_and_time.date(), date_and_time.time()))
+        self.assertTrue(end_stamp(DB, date_and_time.date(), date_and_time.time()))
 
         # Create another workday a day before
         date_and_time = date_and_time + timedelta(days=-2)
         # Stamp in
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = new_stamp(db, customer_name, project_name, date_and_time.date(),
+            stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
                              date_and_time.time())
         self.assertTrue(stamp)
         # Tag with current time
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Tag with 1 added hour
         date_and_time = date_and_time + timedelta(hours=1)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Tag with 3 added hours
         date_and_time = date_and_time + timedelta(hours=2)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Tag with 5 added hours
         date_and_time = date_and_time + timedelta(hours=2)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
         # Stamp out
-        self.assertTrue(end_stamp(db, date_and_time.date(), date_and_time.time()))
+        self.assertTrue(end_stamp(DB, date_and_time.date(), date_and_time.time()))
 
         # Create another workday to test workday deletion
         # Stamp in
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = new_stamp(db, customer_name, project_name, date_and_time.date(),
+            stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
                              date_and_time.time())
         self.assertTrue(stamp)
         # Tag with current time
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, 'This should be deleted.'))
         # Tag with 1 added hour
         date_and_time = date_and_time + timedelta(hours=1)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, 'This should be deleted.'))
         # Tag with 3 added hours
         date_and_time = date_and_time + timedelta(hours=2)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, 'This should be deleted.'))
         # Tag with 5 added hours
         date_and_time = date_and_time + timedelta(hours=2)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, 'This should be deleted.'))
         # Stamp out
-        self.assertTrue(end_stamp(db, date_and_time.date(), date_and_time.time()))
+        self.assertTrue(end_stamp(DB, date_and_time.date(), date_and_time.time()))
         # Delete
-        delete_workday_or_tag(db, stamp.id)
+        delete_workday_or_tag(DB, stamp.id)
 
         # Create another workday to test tag deletion
         date_and_time = datetime.now() + timedelta(days=10)
         # Stamp in
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = new_stamp(db, customer_name, project_name, date_and_time.date(),
+            stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
                              date_and_time.time())
         self.assertTrue(stamp)
         # Tag with current time
-        tag = tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        tag = tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                         stamp, 'This should be deleted.')
         self.assertTrue(tag)
         # Tag with 1 added hour
         date_and_time = date_and_time + timedelta(hours=1)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, 'This should not be deleted.'))
         # Tag with 3 added hours
         date_and_time = date_and_time + timedelta(hours=2)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, 'This should not be deleted.'))
         # Tag with 5 added hours
         date_and_time = date_and_time + timedelta(hours=2)
-        self.assertTrue(tag_stamp(db, date_and_time.date(), date_and_time.time(),
+        self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, 'This should not be deleted.'))
         # Stamp out
-        self.assertTrue(end_stamp(db, date_and_time.date(), date_and_time.time()))
+        self.assertTrue(end_stamp(DB, date_and_time.date(), date_and_time.time()))
         # Delete
-        delete_workday_or_tag(db, stamp.id, tag.id)
+        delete_workday_or_tag(DB, stamp.id, tag.id)
 
         # Status of workdays
-        status_object = Status(db.get('Workday', None))
+        status_object = Status(DB.get('Workday', None), CONFIG)
         print(status_object)
 
         with patch('sys.stdin.read', return_value='y'):
-            pdf = export_invoice(db, '{:%Y}'.format(datetime.now()),
-                                '{:%B}'.format(datetime.now()), customer_name,
-                                project_name, True)
+            pdf = export_invoice(DB, '{:%Y}'.format(datetime.now()),
+                                 '{:%B}'.format(datetime.now()), CUSTOMER_NAME,
+                                 PROJECT_NAME, True)
         os.system('xdg-open ' + '\'%s\'' % pdf)
 
 
 
 def tearDownModule():
-    if os.path.isfile(testing_db_path):
-        os.remove(testing_db_path)
-    invoice_folder = os.path.join(settings.INVOICE_DIR, testing_db)
+    if os.path.isfile(TESTING_DB_PATH):
+        os.remove(TESTING_DB_PATH)
+    invoice_folder = os.path.join(settings.INVOICE_DIR, TESTING_DB)
     if os.path.isdir(invoice_folder):
         rmtree(invoice_folder)
 

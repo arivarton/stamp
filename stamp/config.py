@@ -111,8 +111,8 @@ class InvoicePath(ConfigValue):
 class MinimumHours(ConfigValue):
     def __init__(self):
         super().__init__()
-        self.add_default_value(2.0)
         self.type = float
+        self.add_default_value(2.0)
 
 
 class StandardHours(ConfigValue):
@@ -136,15 +136,15 @@ class StandardHours(ConfigValue):
 class LunchHours(ConfigValue):
     def __init__(self):
         super().__init__()
-        self.add_default_value(0.5)
         self.type = float
+        self.add_default_value(0.5)
 
 
 class WagePerHour(ConfigValue):
     def __init__(self):
         super().__init__()
-        self.add_default_value(300)
         self.type = int
+        self.add_default_value(300)
 
 
 class Currency(ConfigValue):

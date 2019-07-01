@@ -142,7 +142,7 @@ class Status(object):
             else:
                 total_time = calculate_workhours(workday.start, datetime.now())
                 end_output = 'Active'
-            total_owed = calculate_wage(total_time, self.config.wage_per_hour.value)
+            total_owed = calculate_wage(total_time, self.config.values.wage_per_hour.value)
             total_output = str(round(total_time, 2)) + ' for ' + str(round(total_owed, 2))
             total_width = get_terminal_width() - (workdays.total_column_width())
             return_str += '{0:<{id_width}}{1:^{date_width}}{2:^{customer_width}}{3:^{project_width}}{4:^{from_width}}{5:^{to_width}}{6:^{invoice_id_width}}{7:>{total_width}}'.format(
