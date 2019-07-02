@@ -241,7 +241,7 @@ class TestStampCLI(unittest.TestCase):
         with patch('sys.stdin.read', return_value='y'):
             pdf = export_invoice(DB, '{:%Y}'.format(datetime.now()),
                                  '{:%B}'.format(datetime.now()), CUSTOMER_NAME,
-                                 PROJECT_NAME, True)
+                                 PROJECT_NAME, CONFIG, save_pdf=True)
         os.system('xdg-open ' + '\'%s\'' % pdf)
 
 

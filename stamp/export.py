@@ -109,7 +109,7 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
     bottom_end_width = PAGE_WIDTH - 108
     bottom_height = 18
     output_hours = sum([calculate_workhours(w.start, w.end) for w in workdays])
-    output_wage = calculate_wage(output_hours, config.wage_per_hour.value)
+    output_wage = calculate_wage(output_hours, config.values.wage_per_hour.value)
 
     def myFirstPage(canvas, doc):
         canvas.saveState()
@@ -119,17 +119,17 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
 
         # Sellers customer info
         canvas.setFont('Times-Bold', 12)
-        canvas.drawString(customer_width, customer_height, config.company_name.value)
+        canvas.drawString(customer_width, customer_height, config.values.company_name.value)
         canvas.setFont('Times-Bold', 9)
         canvas.drawString(customer_width, customer_height - 37, "Org nr:")
         canvas.drawString(customer_width, customer_height - 48, "Epost:")
         canvas.drawString(customer_width, customer_height - 59, "Tlf:")
         canvas.setFont('Times-Roman', 9)
-        canvas.drawString(customer_width, customer_height - 10, config.company_address.value)
-        canvas.drawString(customer_width, customer_height - 21, config.company_zip.value)
-        canvas.drawString(customer_width + 50, customer_height - 37, config.organization_number.value)
-        canvas.drawString(customer_width + 50, customer_height - 48, config.mail_address.value)
-        canvas.drawString(customer_width + 50, customer_height - 59, config.phone_number.value)
+        canvas.drawString(customer_width, customer_height - 10, config.values.company_address.value)
+        canvas.drawString(customer_width, customer_height - 21, config.values.company_zip.value)
+        canvas.drawString(customer_width + 50, customer_height - 37, config.values.organization_number.value)
+        canvas.drawString(customer_width + 50, customer_height - 48, config.values.mail_address.value)
+        canvas.drawString(customer_width + 50, customer_height - 59, config.values.phone_number.value)
 
         # Buyers customer info
         canvas.setFont('Times-Bold', 14)
@@ -158,8 +158,8 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
         # Bottom info
         canvas.setFont('Times-Roman', 9)
         canvas.drawCentredString(PAGE_WIDTH/2.0, bottom_height, str(round(output_wage, 2)))
-        canvas.drawString(bottom_width, bottom_height, config.company_name.value)
-        canvas.drawString(bottom_end_width, bottom_height, config.company_account_number.value)
+        canvas.drawString(bottom_width, bottom_height, config.values.company_name.value)
+        canvas.drawString(bottom_end_width, bottom_height, config.values.company_account_number.value)
 
         canvas.restoreState()
 
@@ -168,8 +168,8 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
         # Bottom info
         canvas.setFont('Times-Roman', 9)
         canvas.drawCentredString(PAGE_WIDTH/2.0, bottom_height, str(round(output_wage, 2)))
-        canvas.drawString(bottom_width, bottom_height, config.company_name.value)
-        canvas.drawString(bottom_end_width, bottom_height, config.company_account_number.value)
+        canvas.drawString(bottom_width, bottom_height, config.values.company_name.value)
+        canvas.drawString(bottom_end_width, bottom_height, config.values.company_account_number.value)
         canvas.restoreState()
 
     def new_page(canvas, doc):
@@ -197,7 +197,7 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
                              Paragraph(workday.start.time().strftime('%H:%M'), workday_style),
                              Paragraph(workday.end.time().strftime('%H:%M'), workday_style),
                              Paragraph(str(round(hours, 2)), workday_style),
-                             Paragraph('%s %s' % (str(round(calculate_wage(hours, config.wage_per_hour.value), 2)), config.currency.value), workday_style)])
+                             Paragraph('%s %s' % (str(round(calculate_wage(hours, config.values.wage_per_hour.value), 2)), config.values.currency.value), workday_style)])
         for tag in workday.tags:
             workday_tags.append([Table([[Paragraph(workday.start.date().isoformat() + ' ' + tag.recorded.strftime('%H:%M'), tag_header_style)],
                                 [Paragraph(tag.tag, tag_style)]], style=[('LINEBELOW', (0,0), (0,0), 0.1, 'black'),
@@ -205,7 +205,7 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
         if workday_tags:
             tag_rows.append([Table(workday_tags, style=[('BOTTOMPADDING', (-1,-1), (-1,-1), 45)])])
     workday_rows.append(['', '', '', '', Paragraph(str(round(output_hours, 2)), workday_conclusion_style),
-                         Paragraph('%s %s' % (str(round(output_wage, 2)), config.currency.value), workday_conclusion_style)])
+                         Paragraph('%s %s' % (str(round(output_wage, 2)), config.values.currency.value), workday_conclusion_style)])
 
 
     # Add workdays to story
