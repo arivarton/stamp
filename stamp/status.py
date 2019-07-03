@@ -6,8 +6,8 @@ from .helpers import get_terminal_width, calculate_workhours, calculate_wage
 from .formatting import divider, boolean_yes_or_no
 from .exceptions import RequiredValueError
 
-__all__ = ['Status',
-           'print_current_stamp']
+__all__ = ['Status']
+
 
 class Column(object):
     def __init__(self, name=None, width=10, headline='', in_total_width=True):
@@ -235,13 +235,17 @@ class Status(object):
         return return_str
 
 
-def print_current_stamp(current_stamp):
-    result = '\nCurrent stamp:\n'
-    result = result + '%s %s\n' % (current_stamp.start.date().isoformat(), current_stamp.start.time().isoformat().split('.')[0])
-    result = result + 'Customer: %s\n' % current_stamp.customer.name
-    result = result + '%d tag(s)' % len(current_stamp.tags.all())
-    for tag in current_stamp.tags:
-        result = result + '\n\t[id: %d] [Tagged: %s | %s]\n\t%s' % (tag.id, tag.recorded.date().isoformat(), tag.recorded.time().isoformat(), tag.tag)
-    result = result + '\n'
+    def print_current_stamp(self, current_stamp):
+        current_hours = calculate_workhours(current_stamp.start, datetime.now())
+        result = '\nCurrent stamp:\n'
+        result = result + '%s %s\n' % (current_stamp.start.date().isoformat(), current_stamp.start.time().isoformat().split('.')[0])
+        result = result + 'Hours: %s\n' % round(current_hours, 2)
+        result = result + 'Wage: %s\n' % round(calculate_wage(current_hours, self.config.values.wage_per_hour.value), 2)
+        result = result + 'Customer: %s\n' % current_stamp.customer.name
+        result = result + 'Project: %s\n' % current_stamp.project.name
+        result = result + '%d tag(s)' % len(current_stamp.tags.all())
+        for tag in current_stamp.tags:
+            result = result + '\n\t[id: %d] [Tagged: %s | %s]\n\t%s' % (tag.id, tag.recorded.date().isoformat(), tag.recorded.time().isoformat(), tag.tag)
+        result = result + '\n'
 
-    print(result)
+        print(result)

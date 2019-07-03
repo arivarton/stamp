@@ -2,7 +2,7 @@ import sys
 from .add import new_stamp
 from .end import end_stamp
 from .edit import edit_workday, edit_customer, edit_project, edit_invoice
-from .status import print_current_stamp, Status
+from .status import Status
 from .delete import delete_workday_or_tag
 from .tag import tag_stamp
 from .export import export_invoice
@@ -68,7 +68,7 @@ def status(args):
                 status_object.ui()
         else:
             try:
-                print_current_stamp(args.db.current_stamp())
+                status_object.print_current_stamp(args.db.current_stamp())
             except CurrentStampNotFoundError as err_msg:
                 error_handler(err_msg)
     except NoMatchingDatabaseEntryError as err_msg:

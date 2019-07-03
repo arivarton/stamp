@@ -84,6 +84,9 @@ class TestStampCLI(unittest.TestCase):
             stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
                              date_and_time.time())
         self.assertTrue(stamp)
+        # Print current stamp
+        status_object = Status(DB.get('Workday', None), CONFIG)
+        status_object.print_current_stamp(DB.current_stamp())
         # Tag with current time
         self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
@@ -99,6 +102,9 @@ class TestStampCLI(unittest.TestCase):
         date_and_time = date_and_time + timedelta(hours=2)
         self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
                                   stamp, lorem.paragraph()))
+        # Print current stamp with tags
+        status_object = Status(DB.get('Workday', None), CONFIG)
+        status_object.print_current_stamp(DB.current_stamp())
         # Stamp out
         self.assertTrue(end_stamp(DB, date_and_time.date(), date_and_time.time()))
 
@@ -211,7 +217,7 @@ class TestStampCLI(unittest.TestCase):
         # Stamp in
         with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
             stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
-                             date_and_time.time())
+                              date_and_time.time())
         self.assertTrue(stamp)
         # Tag with current time
         tag = tag_stamp(DB, date_and_time.date(), date_and_time.time(),
