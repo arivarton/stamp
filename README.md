@@ -4,6 +4,10 @@ Stamp in before starting the workday, tag points in time with comments and stamp
 Hours are saved to a sqlite database and exportable to pdf.
 PDF is currently in Norwegian, needs to be translated.
 
+# Table of Contents
+{:.no_toc}
+
+{:toc}
 
 # Environment variables
 
@@ -15,16 +19,16 @@ See stamp/settings.py.
 Download and install 'virtualenv' for your distribution.
 
 ```bash
-mkvirtualenv 'stamp-0.1.6'
-workon 'stamp-0.1.6'
+mkvirtualenv 'stamp-0.1.8'
+workon 'stamp-0.1.8'
 ```
 
-### Download the "stable" version which is currently 0.1.6
+### Download the "stable" version which is currently 0.1.8
 
 ```bash
-wget https://gitlab.com/arivarton/stamp/-/archive/0.1.6/stamp-0.1.6.tar.gz
-tar -xvzf stamp-0.1.6.tar.gz
-cd stamp-0.1.6
+wget https://gitlab.com/arivarton/stamp/-/archive/0.1.8/stamp-0.1.8.tar.gz
+tar -xvzf stamp-0.1.8.tar.gz
+cd stamp-0.1.8
 python3 setup.py install
 ```
 
@@ -65,4 +69,8 @@ This software is still in alpha and is therefore not recommended for daily usage
 
 
 # Version change summary
-0.1.7: Config has been implemented.
+- 0.1.8: 
+   - (995797c) Changed the way hours and wage is calculcated and displayed. Using decimals instead of the hours and minutes approach.
+   - (08d16e1) Implemented the ability to change project assigned to workday.
+- 0.1.7: 
+   - Config has been implemented.
