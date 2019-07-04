@@ -237,9 +237,12 @@ class Status(object):
 
     def print_current_stamp(self, current_stamp):
         current_hours = calculate_workhours(current_stamp.start, datetime.now())
-        result = '\nCurrent stamp:\n'
+        result = '\n'
+        result = _('Current stamp:')
+        result = result + '\n'
         result = result + '%s %s\n' % (current_stamp.start.date().isoformat(), current_stamp.start.time().isoformat().split('.')[0])
-        result = result + 'Hours: %s\n' % round(current_hours, 2)
+        result = result + _('Hours: %s') % round(current_hours, 2)
+        result = result + '\n'
         result = result + 'Wage: %s\n' % round(calculate_wage(current_hours, self.config.values.wage_per_hour.value), 2)
         result = result + 'Customer: %s\n' % current_stamp.customer.name
         result = result + 'Project: %s\n' % current_stamp.project.name

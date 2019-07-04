@@ -1,4 +1,7 @@
+import sys
 import os
+import gettext
+
 from .settings import DEFAULT_DIR, INVOICE_DIR, FILE_DIR, CONFIG_DIR
 
 if not os.path.exists(DEFAULT_DIR):
@@ -14,3 +17,6 @@ if not os.path.exists(CONFIG_DIR):
     os.makedirs(CONFIG_DIR)
 
 __version__ = '0.1.8'
+
+icelandic = gettext.translation('stamp', 'locale/', languages=['is'])
+#  icelandic.install()
