@@ -23,8 +23,7 @@ from stamp.config import Config
 
 TESTING_DB = 'test_%s' % uuid4().hex
 TESTING_DB_PATH = os.path.join(settings.DATA_DIR, TESTING_DB) + '.db'
-with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-    DB = Database(TESTING_DB_PATH)
+DB = Database(TESTING_DB_PATH, ask=False)
 CUSTOMER_NAME = 'Test Company AS'
 PROJECT_NAME = 'Test Project'
 
@@ -38,9 +37,8 @@ class TestStampCLI(unittest.TestCase):
         # Create workday with start time now
         date_and_time = datetime.now()
         # Stamp in
-        with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
-                             date_and_time.time())
+        stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
+                          date_and_time.time(), ask=False)
         self.assertTrue(stamp)
         # Tag with current time
         self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
@@ -59,9 +57,8 @@ class TestStampCLI(unittest.TestCase):
         # Create another workday a day later
         date_and_time = datetime.now() + timedelta(days=1)
         # Stamp in
-        with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
-                             date_and_time.time())
+        stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
+                         date_and_time.time(), ask=False)
         self.assertTrue(stamp)
         # Tag with current time
         self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
@@ -80,9 +77,8 @@ class TestStampCLI(unittest.TestCase):
         # Create another workday a day before
         date_and_time = datetime.now() + timedelta(days=-1)
         # Stamp in
-        with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
-                             date_and_time.time())
+        stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
+                         date_and_time.time(), ask=False)
         self.assertTrue(stamp)
         # Print current stamp
         status_object = Status(DB.get('Workday', None), CONFIG)
@@ -118,9 +114,8 @@ class TestStampCLI(unittest.TestCase):
                                  hour=rrange(0, 24),
                                  minute=rrange(0, 60))
         # Stamp in
-        with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
-                             date_and_time.time())
+        stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
+                         date_and_time.time(), ask=False)
         self.assertTrue(stamp)
         # Tag with current time
         self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
@@ -143,9 +138,8 @@ class TestStampCLI(unittest.TestCase):
         # Create another workday a day later
         date_and_time = date_and_time + timedelta(days=1)
         # Stamp in
-        with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
-                             date_and_time.time())
+        stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
+                         date_and_time.time(), ask=False)
         self.assertTrue(stamp)
         # Tag with current time
         self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
@@ -164,9 +158,8 @@ class TestStampCLI(unittest.TestCase):
         # Create another workday a day before
         date_and_time = date_and_time + timedelta(days=-2)
         # Stamp in
-        with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
-                             date_and_time.time())
+        stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
+                         date_and_time.time(), ask=False)
         self.assertTrue(stamp)
         # Tag with current time
         self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
@@ -188,9 +181,8 @@ class TestStampCLI(unittest.TestCase):
 
         # Create another workday to test workday deletion
         # Stamp in
-        with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
-                             date_and_time.time())
+        stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
+                         date_and_time.time(), ask=False)
         self.assertTrue(stamp)
         # Tag with current time
         self.assertTrue(tag_stamp(DB, date_and_time.date(), date_and_time.time(),
@@ -215,9 +207,8 @@ class TestStampCLI(unittest.TestCase):
         # Create another workday to test tag deletion
         date_and_time = datetime.now() + timedelta(days=10)
         # Stamp in
-        with patch('sys.stdin.read', return_value='y'), patch('builtins.input', lambda: 'test value'):
-            stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
-                              date_and_time.time())
+        stamp = new_stamp(DB, CUSTOMER_NAME, PROJECT_NAME, date_and_time.date(),
+                          date_and_time.time(), ask=False)
         self.assertTrue(stamp)
         # Tag with current time
         tag = tag_stamp(DB, date_and_time.date(), date_and_time.time(),
@@ -244,10 +235,10 @@ class TestStampCLI(unittest.TestCase):
         status_object = Status(DB.get('Workday', None), CONFIG)
         print(status_object)
 
-        with patch('sys.stdin.read', return_value='y'):
-            pdf = export_invoice(DB, '{:%Y}'.format(datetime.now()),
-                                 '{:%B}'.format(datetime.now()), CUSTOMER_NAME,
-                                 PROJECT_NAME, CONFIG, save_pdf=True)
+        pdf = export_invoice(DB, '{:%Y}'.format(datetime.now()),
+                             '{:%B}'.format(datetime.now()), CUSTOMER_NAME,
+                             PROJECT_NAME, CONFIG, save_pdf=True, ask=False)
+        print(pdf)
         os.system('xdg-open ' + '\'%s\'' % pdf)
 
 

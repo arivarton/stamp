@@ -15,18 +15,19 @@ from .formatting import yes_or_no
 __all__ = ['Database']
 
 class Database():
-    def __init__(self, db_file):
+    def __init__(self, db_file, ask=True):
         self.engine = create_engine('sqlite:///' + db_file)
         if os.path.isfile(db_file):
             self.new_db = False
             Base.metadata.create_all(self.engine)
         else:
             self.new_db = True
-            yes_or_no('Do you wish to create a new database called %s?' % db_file.split('/')[-1].split('.')[0],
-                      no_message='Canceled...',
-                      no_function=sys.exit,
-                      no_function_args=(0,),
-                      yes_message='Creating database!')
+            if ask:
+                yes_or_no('Do you wish to create a new database called %s?' % db_file.split('/')[-1].split('.')[0],
+                          no_message='Canceled...',
+                          no_function=sys.exit,
+                          no_function_args=(0,),
+                          yes_message='Creating database!')
             try:
                 Base.metadata.create_all(self.engine)
             except exc.OperationalError as err:
@@ -66,17 +67,16 @@ class Database():
 
     def get(self, table_name, id=None):
         table = self.resolve_table_name(table_name)
-        try:
-            if id:
-                query = self.session.query(table).get(id)
-            else:
-                query = self.session.query(table)
-        except NoMatchingDatabaseEntryError:
-            raise NoMatchingDatabaseEntryError('No %ss created yet!' % table_name.lower())
-        if not query:
-            raise NonExistingId('%s with %s as id does not exist!' % (table_name.capitalize(), id))
+        if id:
+            query = self.session.query(table).get(id)
+            if not query:
+                raise NonExistingId('%s with %s as id does not exist!' % (table_name.capitalize(), id))
         else:
-            return query
+            query = self.session.query(table)
+            if not query.count():
+                raise NoMatchingDatabaseEntryError('No %ss created yet!' % table_name.lower())
+
+        return query
 
     def current_stamp(self):
         stamp = self.session.query(Workday).filter_by(end=None).first()

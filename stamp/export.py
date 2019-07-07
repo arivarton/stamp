@@ -136,8 +136,8 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
         canvas.drawString(customer_width2, customer_height2,
                           workdays[0].customer.name)
         canvas.setFont('Times-Roman', 9)
-        canvas.drawString(customer_width2, customer_height2 - 15, workdays[0].customer.address)
-        canvas.drawString(customer_width2, customer_height2 - 26, workdays[0].customer.zip_code)
+        canvas.drawString(customer_width2, customer_height2 - 15, str(workdays[0].customer.address))
+        canvas.drawString(customer_width2, customer_height2 - 26, str(workdays[0].customer.zip_code))
 
         # Invoice
         canvas.setFont('Times-Bold', 14)
@@ -243,7 +243,7 @@ def export_pdf(db, year, month, customer, invoice, config):
     return pdf_file
 
 
-def export_invoice(db, year, month, customer, project, config, save_pdf=False):
+def export_invoice(db, year, month, customer, project, config, save_pdf=False, ask=True):
     export_filter = GetExportFilter(db, year, month, customer, project)
     workdays = db.get('Workday').filter(Workday.start >= export_filter.start,
                                         Workday.end < export_filter.end,
@@ -258,11 +258,12 @@ def export_invoice(db, year, month, customer, project, config, save_pdf=False):
         related_invoice_ids = [i.id for i in related_invoice.workdays]
         if workday_ids == related_invoice_ids:
             if save_pdf and related_invoice.pdf:
-                yes_or_no('This invoice already has an exported pdf, do you wish to create a new one?',
-                          no_message='Canceling...',
-                          no_function=sys.exit,
-                          no_function_args=(0,),
-                          yes_message='Creating new pdf!')
+                if ask:
+                    yes_or_no('This invoice already has an exported pdf, do you wish to create a new one?',
+                              no_message='Canceling...',
+                              no_function=sys.exit,
+                              no_function_args=(0,),
+                              yes_message='Creating new pdf!')
                 invoice = related_invoice
             elif save_pdf and not related_invoice.pdf:
                 invoice = related_invoice
@@ -275,25 +276,31 @@ def export_invoice(db, year, month, customer, project, config, save_pdf=False):
             print('Current workdays:')
             status_object = Status(workdays, config)
             print(status_object)
-            invoice = yes_or_no('Invoice already exists for this month but does not contain the same work days/hours. Do you wish to create a new invoice for this month? This cannot be undone!',
-                                no_message='Canceling...',
-                                no_function=sys.exit,
-                                no_function_args=(0,),
-                                yes_message='Redoing invoice for specified month!',
-                                yes_function=create_invoice,
-                                yes_function_args=(db, workdays, customer, year,
-                                                   export_filter.month))
+            if ask:
+                invoice = yes_or_no('Invoice already exists for this month but does not contain the same work days/hours. Do you wish to create a new invoice for this month? This cannot be undone!',
+                                    no_message='Canceling...',
+                                    no_function=sys.exit,
+                                    no_function_args=(0,),
+                                    yes_message='Redoing invoice for specified month!',
+                                    yes_function=create_invoice,
+                                    yes_function_args=(db, workdays, customer, year,
+                                                       export_filter.month))
+            else:
+                invoice = create_invoice(db, workdays, customer, year, export_filter.month)
     except NoMatchingDatabaseEntryError:
         status_object = Status(workdays, config)
         print(status_object)
-        invoice = yes_or_no('Do you wish to create a invoice containing these workdays?',
-                            no_message='Canceling...',
-                            no_function=sys.exit,
-                            no_function_args=(0,),
-                            yes_message='Creating new invoice!',
-                            yes_function=create_invoice,
-                            yes_function_args=(db, workdays, customer, year,
-                                               export_filter.month))
+        if ask:
+            invoice = yes_or_no('Do you wish to create a invoice containing these workdays?',
+                                no_message='Canceling...',
+                                no_function=sys.exit,
+                                no_function_args=(0,),
+                                yes_message='Creating new invoice!',
+                                yes_function=create_invoice,
+                                yes_function_args=(db, workdays, customer, year,
+                                                   export_filter.month))
+        else:
+            invoice = create_invoice(db, workdays, customer, year, export_filter.month)
     except KeyboardInterrupt:
         print('Canceling...')
         sys.exit(0)
