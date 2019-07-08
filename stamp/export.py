@@ -121,7 +121,7 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
         canvas.setFont('Times-Bold', 12)
         canvas.drawString(customer_width, customer_height, config.values.company_name.value)
         canvas.setFont('Times-Bold', 9)
-        canvas.drawString(customer_width, customer_height - 37, "Org nr:")
+        canvas.drawString(customer_width, customer_height - 37, _("Organization number:"))
         canvas.drawString(customer_width, customer_height - 48, "Epost:")
         canvas.drawString(customer_width, customer_height - 59, "Tlf:")
         canvas.setFont('Times-Roman', 9)
