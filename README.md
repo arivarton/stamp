@@ -7,6 +7,7 @@ PDF is currently in Norwegian, needs to be translated.
 # Table of Contents
 {:.no_toc}
 
+- TOC
 {:toc}
 
 # Environment variables
