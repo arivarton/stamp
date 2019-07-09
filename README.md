@@ -5,7 +5,8 @@ Hours are saved to a sqlite database and exportable to pdf.
 PDF is currently in Norwegian, needs to be translated.
 
 
-<!-- vim-markdown-toc GFM -->
+# Table of Contents
+<!-- vim-markdown-toc GitLab -->
 
 * [Environment variables](#environment-variables)
 * [Install](#install)
