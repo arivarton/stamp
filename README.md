@@ -4,11 +4,15 @@ Stamp in before starting the workday, tag points in time with comments and stamp
 Hours are saved to a sqlite database and exportable to pdf.
 PDF is currently in Norwegian, needs to be translated.
 
+----
+
 # Table of Contents
 {:.no_toc}
 
 - TOC
 {:toc}
+
+----
 
 # Environment variables
 
