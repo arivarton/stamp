@@ -4,15 +4,20 @@ Stamp in before starting the workday, tag points in time with comments and stamp
 Hours are saved to a sqlite database and exportable to pdf.
 PDF is currently in Norwegian, needs to be translated.
 
-----
 
-# Table of Contents
-{:.no_toc}
+<!-- vim-markdown-toc GFM -->
 
-- TOC
-{:toc}
+* [Environment variables](#environment-variables)
+* [Install](#install)
+        * [(Optional) Create virtual python environment](#optional-create-virtual-python-environment)
+        * [Download the "stable" version which is currently 0.1.8](#download-the-stable-version-which-is-currently-018)
+* [Config](#config)
+* [Usage](#usage)
+* [Development FAQ](#development-faq)
+* [Disclaimer](#disclaimer)
+* [Version change summary](#version-change-summary)
 
-----
+<!-- vim-markdown-toc -->
 
 # Environment variables
 
