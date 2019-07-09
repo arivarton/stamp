@@ -4,10 +4,10 @@ import sys
 import os
 import locale
 from datetime import datetime
+from glob import glob
 
-from stamp import __version__
+from stamp import __version__, SUPPORTED_LANGUAGES
 
-SUPPORTED_LANGUAGES = ['is', 'en', 'nb']
 LOCALE_DIR = 'locale'
 if not os.path.exists(LOCALE_DIR):
     os.makedirs(LOCALE_DIR)

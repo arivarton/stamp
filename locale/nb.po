@@ -1,0 +1,31 @@
+# STAMP.
+# Copyright (C) 2019 arivarton
+# This file is distributed under the same license as the stamp package.
+# Automatically generated, 2019.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.1.8\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-07-08 21:32+0000\n"
+"PO-Revision-Date: 2019-07-08 21:32+0000\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: nb\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: stamp/status.py:241
+msgid "Current stamp:"
+msgstr "Nåværende stempel:"
+
+#: stamp/status.py:244
+#, python-format
+msgid "Hours: %s"
+msgstr "Timer: %s"
+
+#: stamp/export.py:124
+msgid "Organization number:"
+msgstr "Org nr:"
