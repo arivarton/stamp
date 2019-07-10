@@ -15,15 +15,15 @@ class Column(object):
         self.headline = headline
         self.in_total_width = in_total_width
         if not name and headline is '':
-            raise RequiredValueError('If no headline is set, name is required to be set!')
+            raise RequiredValueError(_('If no headline is set, name is required to be set!'))
         if not name:
             self.name = headline
         else:
             self.name = name
         if not isinstance(width, int):
-            raise ValueError('width argument must be an int!')
+            raise ValueError(_('width argument must be an int!'))
         if not isinstance(self.name, str) and isinstance(self.headline, str):
-            raise ValueError('name and headline arguments must be str types!')
+            raise ValueError(_('name and headline arguments must be str types!'))
 
 
 class ColumnWrapper(object):
@@ -32,7 +32,7 @@ class ColumnWrapper(object):
             name = column.name.lower().replace(' ', '_')
             setattr(self, name, column)
         else:
-            raise ValueError('column argument must be a Column class!')
+            raise ValueError(_('column argument must be a Column class!'))
 
 
 class Table(object):
@@ -72,7 +72,7 @@ class Status(object):
         for workday_id, date, customer, project, from_time, to_time, invoice_id, total_workday, tags in zip(self.id, self.date, self.customer, self.project, self.from_time, self.to_time, self.invoice_id, self.total_workday, self.tags):
             return_value += '\n' + workday_id + date + customer + project + from_time + to_time + invoice_id + total_workday + '\n'
             return_value += divider()
-            return_value += '\n' + 'the tag: ' + tags[1] + '\n'
+            return_value += '\n' + _('the tag: ') + tags[1] + '\n'
             return_value += divider()
         return return_value
 
@@ -89,21 +89,21 @@ class Status(object):
         workdays = Table()
         workdays.columns.add(Column(name='id',
                              width=len(max([str(x.id) for x in self.db_query], key=len)) + 3))
-        workdays.columns.add(Column(headline='Date',
+        workdays.columns.add(Column(headline=_('Date'),
                                     width=len(self.db_query[0].start.date().isoformat()) + 3))
-        workdays.columns.add(Column(headline='Customer',
+        workdays.columns.add(Column(headline=_('Customer'),
                                     width=len(max([x.customer.name for x in self.db_query], key=len)) + 6))
-        workdays.columns.add(Column(headline='Project',
+        workdays.columns.add(Column(headline=_('Project'),
                                     width=len(max([x.project.name for x in self.db_query], key=len)) + 6))
         workdays.columns.add(Column(name='from_date',
-                                    headline='From',
+                                    headline=_('From'),
                                     width=len(self.db_query[0].start.strftime(self.time_format)) + 3))
         workdays.columns.add(Column(name='to_date',
-                                    headline='To',
+                                    headline=_('To'),
                                     width=len(self.db_query[0].end.strftime(self.time_format)) + 3))
-        workdays.columns.add(Column(headline='Invoice ID',
+        workdays.columns.add(Column(headline=_('Invoice ID'),
                                     width=len(max([str(x.invoice_id) for x in self.db_query], key=len))))
-        workdays.columns.add(Column(headline='Total',
+        workdays.columns.add(Column(headline=_('Total'),
                                     width=0,
                                     in_total_width=False))
                                     
@@ -141,9 +141,9 @@ class Status(object):
                 end_output = workday.end.strftime(self.time_format)
             else:
                 total_time = calculate_workhours(workday.start, datetime.now())
-                end_output = 'Active'
+                end_output = _('Active')
             total_owed = calculate_wage(total_time, self.config.values.wage_per_hour.value)
-            total_output = str(round(total_time, 2)) + ' for ' + str(round(total_owed, 2))
+            total_output = str(round(total_time, 2)) + _(' for ') + str(round(total_owed, 2))
             total_width = get_terminal_width() - (workdays.total_column_width())
             return_str += '{0:<{id_width}}{1:^{date_width}}{2:^{customer_width}}{3:^{project_width}}{4:^{from_width}}{5:^{to_width}}{6:^{invoice_id_width}}{7:>{total_width}}'.format(
                 workday.id,
@@ -170,23 +170,23 @@ class Status(object):
 
 
     def invoices(self):
-        not_exported_message = 'Not exported'
+        not_exported_message = _('Not exported')
         invoices = Table()
         invoices.columns.add(Column(name='id',
                                     width=len(max([str(x.id) for x in self.db_query], key=len)) + 3))
-        invoices.columns.add(Column(headline='Created on',
+        invoices.columns.add(Column(headline=_('Created on'),
                                     width=len(self.db_query[0].created.date().isoformat()) + 6))
-        invoices.columns.add(Column(headline='Customer',
+        invoices.columns.add(Column(headline=_('Customer'),
                                     width=len(max([x.customer.name for x in self.db_query], key=len)) + 6))
-        invoices.columns.add(Column(headline='Year',
+        invoices.columns.add(Column(headline=_('Year'),
                                     width=len(max([x.year if x.year else '' for x in self.db_query], key=len)) + 6))
-        invoices.columns.add(Column(headline='Month',
+        invoices.columns.add(Column(headline=_('Month'),
                                     width=len(max([x.month if x.month else '' for x in self.db_query], key=len)) + 6))
-        invoices.columns.add(Column(headline='PDF',
+        invoices.columns.add(Column(headline=_('PDF'),
                                     width=max(len(max([x.pdf if x.pdf else '' for x in self.db_query], key=len)), len(not_exported_message)) + 6))
-        invoices.columns.add(Column(headline='Sent',
+        invoices.columns.add(Column(headline=_('Sent'),
                                     width=max(len('Yes'), len('Sent')) + 6))
-        invoices.columns.add(Column(headline='Paid',
+        invoices.columns.add(Column(headline=_('Paid'),
                                     width=max(len('Yes'), len('Paid')) + 6))
         return_str = divider()
         return_str += '\n'
@@ -243,12 +243,12 @@ class Status(object):
         result = result + '%s %s\n' % (current_stamp.start.date().isoformat(), current_stamp.start.time().isoformat().split('.')[0])
         result = result + _('Hours: %s') % round(current_hours, 2)
         result = result + '\n'
-        result = result + 'Wage: %s\n' % round(calculate_wage(current_hours, self.config.values.wage_per_hour.value), 2)
-        result = result + 'Customer: %s\n' % current_stamp.customer.name
-        result = result + 'Project: %s\n' % current_stamp.project.name
-        result = result + '%d tag(s)' % len(current_stamp.tags.all())
+        result = result + _('Wage: %s\n') % round(calculate_wage(current_hours, self.config.values.wage_per_hour.value), 2)
+        result = result + _('Customer: %s\n') % current_stamp.customer.name
+        result = result + _('Project: %s\n') % current_stamp.project.name
+        result = result + _('%d tag(s)') % len(current_stamp.tags.all())
         for tag in current_stamp.tags:
-            result = result + '\n\t[id: %d] [Tagged: %s | %s]\n\t%s' % (tag.id, tag.recorded.date().isoformat(), tag.recorded.time().isoformat(), tag.tag)
+            result = result + _('\n\t[id: {id}] [Tagged: {date} | {time}]\n\t{tag}').format(id=tag.id, date=tag.recorded.date().isoformat(), time=tag.recorded.time().isoformat(), tag=tag.tag)
         result = result + '\n'
 
         print(result)

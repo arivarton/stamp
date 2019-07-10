@@ -42,10 +42,10 @@ class GetExportFilter(object):  # pylint: disable=too-few-public-methods
             if month.startswith(month_name.capitalize()):
                 months.append(month)
         if len(months) > 1:
-            raise TooManyMatchesError('Refine month argument! These months are currently matching: %s.' %
+            raise TooManyMatchesError(_('Refine month argument! These months are currently matching: %s.') %
                                       ', '.join(months))
         elif not months:
-            raise NoMatchesError('%s is not an acceptable month format. These are the month names to match: %s.' % (month_name, ', '.join(get_month_names())))
+            raise NoMatchesError(_('{month} is not an acceptable month format. These are the month names to match: {all_months}.').format(month=month_name, all_months=', '.join(get_month_names())))
         else:
             return ''.join(months)
 
@@ -122,8 +122,8 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
         canvas.drawString(customer_width, customer_height, config.values.company_name.value)
         canvas.setFont('Times-Bold', 9)
         canvas.drawString(customer_width, customer_height - 37, _("Organization number:"))
-        canvas.drawString(customer_width, customer_height - 48, "Epost:")
-        canvas.drawString(customer_width, customer_height - 59, "Tlf:")
+        canvas.drawString(customer_width, customer_height - 48, _("Email:"))
+        canvas.drawString(customer_width, customer_height - 59, _("Phone number:"))
         canvas.setFont('Times-Roman', 9)
         canvas.drawString(customer_width, customer_height - 10, config.values.company_address.value)
         canvas.drawString(customer_width, customer_height - 21, config.values.company_zip.value)
@@ -141,13 +141,13 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
 
         # Invoice
         canvas.setFont('Times-Bold', 14)
-        canvas.drawString(invoice_width, invoice_height, "Faktura")
+        canvas.drawString(invoice_width, invoice_height, _("Faktura"))
         canvas.setFont('Times-Bold', 9)
-        canvas.drawString(invoice_width, invoice_height - 15, "Kunde nr:")
-        canvas.drawString(invoice_width, invoice_height - 26, "Faktura nr:")
-        canvas.drawString(invoice_width, invoice_height - 37, "Faktura dato:")
-        canvas.drawString(invoice_width, invoice_height - 48, "Forfalls dato:")
-        canvas.drawString(invoice_width, invoice_height - 59, "Leverings dato:")
+        canvas.drawString(invoice_width, invoice_height - 15, _("Kunde nr:"))
+        canvas.drawString(invoice_width, invoice_height - 26, _("Faktura nr:"))
+        canvas.drawString(invoice_width, invoice_height - 37, _("Faktura dato:"))
+        canvas.drawString(invoice_width, invoice_height - 48, _("Forfalls dato:"))
+        canvas.drawString(invoice_width, invoice_height - 59, _("Leverings dato:"))
         canvas.setFont('Times-Roman', 9)
         canvas.drawString(invoice_width + 80, invoice_height - 15, str(workdays[0].customer.id))
         canvas.drawString(invoice_width + 80, invoice_height - 26, str(invoice_id))
@@ -178,12 +178,12 @@ def create_pdf(workdays, save_dir, config, invoice_id=None): # NOQA
 
     doc = SimpleDocTemplate(file_dir)
     Story = [Spacer(1, 2*inch)]
-    workday_header = [[Paragraph('Dato', header_style),
-                      Paragraph('Prosjekt', header_style),
-                      Paragraph('Fra', header_style),
-                      Paragraph('Til', header_style),
-                      Paragraph('Timer', header_style),
-                      Paragraph('Å betale', header_style)]]
+    workday_header = [[Paragraph(_('Date'), header_style),
+                      Paragraph(_('Project'), header_style),
+                      Paragraph(_('From'), header_style),
+                      Paragraph(_('To'), header_style),
+                      Paragraph(_('Hours'), header_style),
+                      Paragraph(_('To pay'), header_style)]]
     Story.append(Table(workday_header, colWidths=100,
                        style=[('LEFTPADDING', (0,0), (-1,-1), 0),
                               ('RIGHTPADDING', (0,0), (-1,-1), 0)]))
@@ -235,7 +235,7 @@ def export_pdf(db, year, month, customer, invoice, config):
         invoice.pdf = pdf_file
         invoice.month = month
         invoice.year = year
-        print('Saved pdf here: %s' % pdf_file)
+        print(_('Saved pdf here: %s') % pdf_file)
         db.session.add(invoice)
     except:
         db.session.delete(invoice)
@@ -259,29 +259,29 @@ def export_invoice(db, year, month, customer, project, config, save_pdf=False, a
         if workday_ids == related_invoice_ids:
             if save_pdf and related_invoice.pdf:
                 if ask:
-                    yes_or_no('This invoice already has an exported pdf, do you wish to create a new one?',
-                              no_message='Canceling...',
+                    yes_or_no(_('This invoice already has an exported pdf, do you wish to create a new one?'),
+                              no_message=_('Canceling...'),
                               no_function=sys.exit,
                               no_function_args=(0,),
-                              yes_message='Creating new pdf!')
+                              yes_message=_('Creating new pdf!'))
                 invoice = related_invoice
             elif save_pdf and not related_invoice.pdf:
                 invoice = related_invoice
             else:
-                print('Invoice already exists. Append --pdf if you want to export pdf!')
+                print(_('Invoice already exists. Append --pdf if you want to export pdf!'))
         else:
-            print('Old workdays:')
+            print_(_('Old workdays:'))
             status_object = Status(related_invoice.workdays, config)
             print(status_object)
-            print('Current workdays:')
+            print(_('Current workdays:'))
             status_object = Status(workdays, config)
             print(status_object)
             if ask:
-                invoice = yes_or_no('Invoice already exists for this month but does not contain the same work days/hours. Do you wish to create a new invoice for this month? This cannot be undone!',
-                                    no_message='Canceling...',
+                invoice = yes_or_no(_('Invoice already exists for this month but does not contain the same work days/hours. Do you wish to create a new invoice for this month? This cannot be undone!'),
+                                    no_message=_('Canceling...'),
                                     no_function=sys.exit,
                                     no_function_args=(0,),
-                                    yes_message='Redoing invoice for specified month!',
+                                    yes_message=_('Redoing invoice for specified month!'),
                                     yes_function=create_invoice,
                                     yes_function_args=(db, workdays, customer, year,
                                                        export_filter.month))
@@ -291,18 +291,18 @@ def export_invoice(db, year, month, customer, project, config, save_pdf=False, a
         status_object = Status(workdays, config)
         print(status_object)
         if ask:
-            invoice = yes_or_no('Do you wish to create a invoice containing these workdays?',
-                                no_message='Canceling...',
+            invoice = yes_or_no(_('Do you wish to create a invoice containing these workdays?'),
+                                no_message=_('Canceling...'),
                                 no_function=sys.exit,
                                 no_function_args=(0,),
-                                yes_message='Creating new invoice!',
+                                yes_message=_('Creating new invoice!'),
                                 yes_function=create_invoice,
                                 yes_function_args=(db, workdays, customer, year,
                                                    export_filter.month))
         else:
             invoice = create_invoice(db, workdays, customer, year, export_filter.month)
     except KeyboardInterrupt:
-        print('Canceling...')
+        print(_('Canceling...'))
         sys.exit(0)
     if save_pdf:
         return export_pdf(db, year, export_filter.month, customer, invoice, config)
