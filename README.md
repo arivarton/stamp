@@ -14,7 +14,14 @@ PDF is currently in Norwegian, needs to be translated.
         - [Download the "stable" version which is currently 0.1.8](#download-the-stable-version-which-is-currently-018)
 + [Config](#config)
 + [Usage](#usage)
-+ [Development FAQ](#development-faq)
++ [Development](#development)
++ [Contribute](#contribute)
+    * [Translations](#translations)
+        - [(Optional) Create virtual python environment](#optional-create-virtual-python-environment-1)
+        - [Install development requirements](#install-development-requirements)
+        - [Add locale](#add-locale)
+        - [Create locale](#create-locale)
+        - [Translate po](#translate-po)
 + [Disclaimer](#disclaimer)
 + [Version change summary](#version-change-summary)
 
@@ -68,11 +75,40 @@ The environment variables take the same name as in the config file but with a pr
 Run `stamp --help`
 
 
-# Development FAQ
+# Development
 Look in stamp/main.py to get a quick overview.
 
 When changing code for mappings, any old databases will be uncompatible with the changes. 
 A manual fix by entering the hours again to a new database will be required.
+
+
+# Contribute
+
+## Translations
+
+### (Optional) Create virtual python environment
+```bash
+mkvirtualenv 'stamp-dev'
+workon 'stamp-dev'
+```
+
+### Install development requirements
+```bash
+pip install -r dev-requirements.txt
+```
+
+### Add locale
+To create a new translation add the locale name to the 'SUPPORTED_LANGUAGES' constant in stamp/__init__.py.
+
+### Create locale
+```bash
+invoke translate
+```
+This will create a po file in the locale/ folder which has the same name as the locale specified in SUPPORTED_LANGUAGES.
+
+### Translate po
+Now the po can be translated. The mo file will be automatically installed when running setup.py.
+
 
 
 # Disclaimer
