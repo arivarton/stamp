@@ -7,7 +7,7 @@ from os import path, makedirs, system
 from glob import glob
 from distutils.command.build_py import build_py as _build_py
 from setuptools import setup, find_packages
-from stamp import __version__, SYSTEM_LOCALE_DIR
+from stamp.constants import SYSTEM_LOCALE_DIR, VERSION
 
 
 with open('README.md', encoding='utf-8') as f:
@@ -50,7 +50,7 @@ class build_py(_build_py):
 
 setup(
     name='stamp',
-    version=str(__version__),
+    version=VERSION,
     description='Register and keep track of work hours in terminal.',
     long_description=long_description,
     long_description_content_type='text/markdown',

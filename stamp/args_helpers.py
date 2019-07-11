@@ -3,7 +3,7 @@ import sys
 import argparse
 from datetime import datetime
 
-from .settings import DATA_DIR, DB_FILE, CONFIG_DIR, CONFIG_FILE
+from .constants import DATA_DIR, DB_FILE, CONFIG_DIR, CONFIG_FILE
 
 __all__ = ['DateAction',
            'TimeAction',

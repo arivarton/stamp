@@ -102,3 +102,5 @@ workhours.db
 stamp.db
 *.pdf
 research/
+# Temp files
+*~

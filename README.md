@@ -29,7 +29,7 @@ PDF is currently in Norwegian, needs to be translated.
 
 # Environment variables
 
-See stamp/settings.py.
+See stamp/constants.py.
 
 
 # Install
@@ -98,7 +98,7 @@ pip install -r dev-requirements.txt
 ```
 
 ### Add locale
-To create a new translation add the locale name to the 'SUPPORTED_LANGUAGES' constant in stamp/__init__.py.
+To create a new translation add the locale name to the 'SUPPORTED_LANGUAGES' constant in stamp/constants.py.
 
 ### Create locale
 ```bash

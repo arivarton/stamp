@@ -10,8 +10,7 @@ from reportlab.lib.units import inch
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT, TA_CENTER
 
-from .settings import (FILE_DIR,
-                       INVOICE_DIR)
+from .constants import FILE_DIR, INVOICE_DIR
 from .exceptions import (TooManyMatchesError, ArgumentError, NoMatchesError,
                          NoMatchingDatabaseEntryError,
                          TooManyMatchingDatabaseEntriesError)

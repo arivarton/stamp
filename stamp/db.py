@@ -9,7 +9,7 @@ from .mappings import Workday, Customer, Base, Invoice, Project, Tag
 from .exceptions import (NoMatchingDatabaseEntryError,
                          TooManyMatchingDatabaseEntriesError,
                          CurrentStampNotFoundError, NonExistingId)
-from .settings import DATA_DIR
+from .constants import DATA_DIR
 from .formatting import yes_or_no
 
 __all__ = ['Database']

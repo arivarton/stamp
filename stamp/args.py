@@ -6,7 +6,7 @@ from .args_helpers import *
 from .main import stamp_in, stamp_out, tag, status, export, delete, edit, config
 from .exceptions import RequiredValueError
 from .config import Config
-from .settings import DATA_DIR, DB_FILE, CONFIG_DIR, CONFIG_FILE
+from .constants import DATA_DIR, DB_FILE, CONFIG_DIR, CONFIG_FILE
 
 __all__ = ['parse']
 

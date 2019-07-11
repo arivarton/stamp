@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.1.8\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-10 21:19+0000\n"
+"POT-Creation-Date: 2019-07-11 20:43+0000\n"
 "PO-Revision-Date: 2019-07-08 21:32+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -37,8 +37,8 @@ msgstr ""
 msgid "Active"
 msgstr ""
 
-#: stamp/export.py:263 stamp/export.py:281 stamp/export.py:295
-#: stamp/export.py:305
+#: stamp/export.py:262 stamp/export.py:280 stamp/export.py:294
+#: stamp/export.py:304
 msgid "Canceling..."
 msgstr ""
 
@@ -46,11 +46,11 @@ msgstr ""
 msgid "Created on"
 msgstr ""
 
-#: stamp/export.py:298
+#: stamp/export.py:297
 msgid "Creating new invoice!"
 msgstr ""
 
-#: stamp/export.py:266
+#: stamp/export.py:265
 msgid "Creating new pdf!"
 msgstr ""
 
@@ -58,7 +58,7 @@ msgstr ""
 msgid "Current stamp:"
 msgstr "Núverandi innstimplun:"
 
-#: stamp/export.py:276
+#: stamp/export.py:275
 #, fuzzy
 msgid "Current workdays:"
 msgstr "Núverandi innstimplun:"
@@ -72,45 +72,42 @@ msgstr ""
 msgid "Customer: %s\n"
 msgstr ""
 
-#: stamp/status.py:92
+#: stamp/status.py:92 stamp/export.py:180
 msgid "Date"
 msgstr ""
 
-#: stamp/export.py:181
-msgid "Dato"
-msgstr ""
-
-#: stamp/export.py:294
+#: stamp/export.py:293
 msgid "Do you wish to create a invoice containing these workdays?"
 msgstr ""
 
-#: stamp/export.py:125
+#: stamp/export.py:124
 msgid "Email:"
 msgstr ""
 
-#: stamp/export.py:144
+#: stamp/export.py:143
 msgid "Faktura"
 msgstr ""
 
-#: stamp/export.py:148
+#: stamp/export.py:147
 msgid "Faktura dato:"
 msgstr ""
 
-#: stamp/export.py:147
+#: stamp/export.py:146
 msgid "Faktura nr:"
 msgstr ""
 
-#: stamp/export.py:149
+#: stamp/export.py:148
 msgid "Forfalls dato:"
 msgstr ""
 
-#: stamp/export.py:183
-msgid "Fra"
-msgstr ""
-
-#: stamp/status.py:99
+#: stamp/status.py:99 stamp/export.py:182
 msgid "From"
 msgstr ""
+
+#: stamp/export.py:184
+#, fuzzy
+msgid "Hours"
+msgstr "Tímar: %s"
 
 #: stamp/status.py:244
 #, python-format
@@ -125,22 +122,22 @@ msgstr ""
 msgid "Invoice ID"
 msgstr ""
 
-#: stamp/export.py:280
+#: stamp/export.py:279
 msgid ""
 "Invoice already exists for this month but does not contain the same work "
 "days/hours. Do you wish to create a new invoice for this month? This cannot "
 "be undone!"
 msgstr ""
 
-#: stamp/export.py:271
+#: stamp/export.py:270
 msgid "Invoice already exists. Append --pdf if you want to export pdf!"
 msgstr ""
 
-#: stamp/export.py:146
+#: stamp/export.py:145
 msgid "Kunde nr:"
 msgstr ""
 
-#: stamp/export.py:150
+#: stamp/export.py:149
 msgid "Leverings dato:"
 msgstr ""
 
@@ -152,11 +149,11 @@ msgstr ""
 msgid "Not exported"
 msgstr ""
 
-#: stamp/export.py:273
+#: stamp/export.py:272
 msgid "Old workdays:"
 msgstr ""
 
-#: stamp/export.py:124
+#: stamp/export.py:123
 msgid "Organization number:"
 msgstr "Fyrirtækja númer:"
 
@@ -168,12 +165,12 @@ msgstr ""
 msgid "Paid"
 msgstr ""
 
-#: stamp/export.py:126
+#: stamp/export.py:125
 #, fuzzy
 msgid "Phone number:"
 msgstr "Fyrirtækja númer:"
 
-#: stamp/status.py:96
+#: stamp/status.py:96 stamp/export.py:181
 msgid "Project"
 msgstr ""
 
@@ -182,20 +179,16 @@ msgstr ""
 msgid "Project: %s\n"
 msgstr ""
 
-#: stamp/export.py:182
-msgid "Prosjekt"
-msgstr ""
-
-#: stamp/export.py:284
+#: stamp/export.py:283
 msgid "Redoing invoice for specified month!"
 msgstr ""
 
-#: stamp/export.py:45
+#: stamp/export.py:44
 #, python-format
 msgid "Refine month argument! These months are currently matching: %s."
 msgstr ""
 
-#: stamp/export.py:238
+#: stamp/export.py:237
 #, python-format
 msgid "Saved pdf here: %s"
 msgstr ""
@@ -204,21 +197,17 @@ msgstr ""
 msgid "Sent"
 msgstr ""
 
-#: stamp/export.py:262
+#: stamp/export.py:261
 msgid ""
 "This invoice already has an exported pdf, do you wish to create a new one?"
 msgstr ""
 
-#: stamp/export.py:184
-msgid "Til"
+#: stamp/status.py:102 stamp/export.py:183
+msgid "To"
 msgstr ""
 
 #: stamp/export.py:185
-msgid "Timer"
-msgstr ""
-
-#: stamp/status.py:102
-msgid "To"
+msgid "To pay"
 msgstr ""
 
 #: stamp/status.py:106
@@ -250,13 +239,9 @@ msgstr ""
 msgid "width argument must be an int!"
 msgstr ""
 
-#: stamp/export.py:48
+#: stamp/export.py:47
 #, python-brace-format
 msgid ""
 "{month} is not an acceptable month format. These are the month names to "
 "match: {all_months}."
-msgstr ""
-
-#: stamp/export.py:186
-msgid "Å betale"
 msgstr ""

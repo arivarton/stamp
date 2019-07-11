@@ -11,7 +11,7 @@ from calendar import monthrange
 
 sys.path.append('../stamp')
 
-from stamp import settings # NOQA
+from stamp.constants import DATA_DIR, INVOICE_DIR # NOQA
 from stamp.db import Database
 from stamp.add import new_stamp
 from stamp.tag import tag_stamp
@@ -22,7 +22,7 @@ from stamp.delete import delete_workday_or_tag
 from stamp.config import Config
 
 TESTING_DB = 'test_%s' % uuid4().hex
-TESTING_DB_PATH = os.path.join(settings.DATA_DIR, TESTING_DB) + '.db'
+TESTING_DB_PATH = os.path.join(DATA_DIR, TESTING_DB) + '.db'
 DB = Database(TESTING_DB_PATH, ask=False)
 CUSTOMER_NAME = 'Test Company AS'
 PROJECT_NAME = 'Test Project'
@@ -246,7 +246,7 @@ class TestStampCLI(unittest.TestCase):
 def tearDownModule():
     if os.path.isfile(TESTING_DB_PATH):
         os.remove(TESTING_DB_PATH)
-    invoice_folder = os.path.join(settings.INVOICE_DIR, TESTING_DB)
+    invoice_folder = os.path.join(INVOICE_DIR, TESTING_DB)
     if os.path.isdir(invoice_folder):
         rmtree(invoice_folder)
 

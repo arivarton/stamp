@@ -6,7 +6,7 @@ import locale
 from datetime import datetime
 from glob import glob
 
-from stamp import __version__, SUPPORTED_LANGUAGES
+from stamp.constants import SUPPORTED_LANGUAGES, VERSION
 
 LOCALE_DIR = 'locale'
 if not os.path.exists(LOCALE_DIR):
@@ -17,7 +17,7 @@ USER_LOCALE = locale.getlocale()
 POT_CHANGES = [('SOME DESCRIPTIVE TITLE', 'STAMP'),
                ('YEAR THE PACKAGE\'S COPYRIGHT HOLDER', '{} arivarton'.format(str(datetime.now().year))),
                ('PACKAGE', 'stamp'),
-               ('PACKAGE VERSION', str(__version__)),
+               ('PACKAGE VERSION', VERSION),
                ('CHARSET', 'UTF-8')]
 
 

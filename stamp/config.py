@@ -7,7 +7,7 @@ from datetime import datetime
 
 import yaml
 
-from .settings import DATA_DIR, INVOICE_DIR
+from .constants import DATA_DIR, INVOICE_DIR
 from .helpers import error_handler
 from .exceptions import ConfigValueError
 

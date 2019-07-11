@@ -1,5 +1,9 @@
 import os
 
+VERSION = '0.1.8'
+
+SUPPORTED_LANGUAGES = ['is', 'en', 'nb']
+SYSTEM_LOCALE_DIR = '/usr/share/locale/'
 
 # Directories
 DEFAULT_DIR = os.path.join(os.environ.get('HOME'), '.stamp')
